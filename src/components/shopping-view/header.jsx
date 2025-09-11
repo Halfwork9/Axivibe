@@ -137,7 +137,7 @@ function ShoppingHeader() {
         {/* Logo */}
         <Link to="/shop/home" className="flex items-center gap-2">
           <img src={Logo} alt="Logo" className="h-8 w-auto" />
-          <span className="font-bold">Ecommerce</span>
+          <span className="font-bold">Axivibe</span>
         </Link>
 
         {/* Mobile menu */}
