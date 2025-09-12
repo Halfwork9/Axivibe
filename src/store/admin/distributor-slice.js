@@ -1,11 +1,11 @@
 // store/admin/distributor-slice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "@/api"; //  use centralized api
 
 export const fetchAllDistributors = createAsyncThunk(
   "adminDistributors/fetchAll",
   async () => {
-    const res = await axios.get("http://localhost:5000/api/distributors");
+    const res = await api.get("/distributors");
     return res.data.data;
   }
 );
@@ -13,10 +13,7 @@ export const fetchAllDistributors = createAsyncThunk(
 export const updateDistributorStatus = createAsyncThunk(
   "adminDistributors/updateStatus",
   async ({ id, status }) => {
-    const res = await axios.put(
-      `http://localhost:5000/api/distributors/${id}/status`,
-      { status }
-    );
+    const res = await api.put(`/distributors/${id}/status`, { status });
     return res.data.data;
   }
 );
@@ -25,35 +22,27 @@ export const withdrawApplication = createAsyncThunk(
   "distributor/withdrawApplication",
   async (id, { getState }) => {
     const { auth } = getState();
-    console.log("DEBUG TOKEN:", auth?.user?.token); // 👈 add this
     const token = auth?.user?.token;
 
-    const res = await fetch(`http://localhost:5000/api/distributors/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      credentials: "include", // 👈 also send cookies
+    const res = await api.delete(`/distributors/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    return await res.json();
+    return res.data;
   }
 );
-
 
 const distributorSlice = createSlice({
   name: "adminDistributors",
   initialState: {
     distributorList: [],
-    application: null, // <-- added so withdraw can clear it
+    application: null,
     isLoading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch
       .addCase(fetchAllDistributors.pending, (state) => {
         state.isLoading = true;
       })
@@ -65,16 +54,9 @@ const distributorSlice = createSlice({
         state.isLoading = false;
         state.distributorList = [];
       })
-
-      // Withdraw
       .addCase(withdrawApplication.fulfilled, (state) => {
-        state.application = null; // ✅ clear withdrawn app
+        state.application = null;
       })
-      .addCase(withdrawApplication.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-
-      // Update
       .addCase(updateDistributorStatus.fulfilled, (state, action) => {
         const idx = state.distributorList.findIndex(
           (d) => d._id === action.payload._id
