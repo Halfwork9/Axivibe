@@ -44,7 +44,7 @@ export const logoutUser = createAsyncThunk("/auth/logout", async () => {
 });
 
 // CHECK AUTH
-export const checkAuth = createAsyncThunk("/auth/checkauth", async () => {
+export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
   const response = await api.get(
     "/auth/check-auth",
     {
