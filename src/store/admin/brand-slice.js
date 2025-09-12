@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "@/api";
 
 const initialState = {
   brandList: [],
@@ -10,7 +10,7 @@ const initialState = {
 export const createBrand = createAsyncThunk(
   "admin/brands/createBrand",
   async ({ name, icon }) => {
-    const response = await axios.post("http://localhost:5000/api/admin/brands", {
+    const response = await api.post("/admin/brands", {
       name,
       icon,
     });
@@ -22,7 +22,7 @@ export const createBrand = createAsyncThunk(
 export const fetchAllBrands = createAsyncThunk(
   "admin/brands/fetchAllBrands",
   async () => {
-    const response = await axios.get("http://localhost:5000/api/admin/brands");
+    const response = await api.get("/admin/brands");
     return response.data;
   }
 );
@@ -31,7 +31,7 @@ export const deleteBrand = createAsyncThunk(
   'adminBrands/deleteBrand',
   async (brandId, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/brands/${brandId}`);
+      await api.delete(`/admin/brands/${brandId}`);
       return brandId; // Return the ID on success
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -80,3 +80,4 @@ const brandSlice = createSlice({
 });
 
 export default brandSlice.reducer;
+
