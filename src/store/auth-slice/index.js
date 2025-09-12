@@ -6,7 +6,6 @@ const initialState = {
   isLoading: true,
   user: null,
 };
-
 // REGISTER
 export const registerUser = createAsyncThunk(
   "/auth/register",
@@ -19,7 +18,6 @@ export const registerUser = createAsyncThunk(
     return response.data;
   }
 );
-
 // LOGIN
 export const loginUser = createAsyncThunk(
   "/auth/login",
