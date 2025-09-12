@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { clearCart, fetchCartItems } from "@/store/shop/cart-slice";
+import api from "@/api";
 
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -103,7 +104,7 @@ function ShoppingCheckout() {
         paymentMethod: 'stripe',
       };
 
-      const response = await fetch("http://localhost:5000/api/shop/order/create", {
+      const response = await api.post("/shop/order/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +164,7 @@ function ShoppingCheckout() {
       paymentMethod: "cod",
     };
 
-    const response = await fetch("http://localhost:5000/api/shop/order/create", {
+    const response = await api.post("/shop/order/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderData),
