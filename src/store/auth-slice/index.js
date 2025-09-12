@@ -12,7 +12,7 @@ export const registerUser = createAsyncThunk(
   "/auth/register",
   async (formData) => {
     const response = await api.post(
-      "/auth/register",
+      "/api/auth/register",
       formData,
       { withCredentials: true }
     );
@@ -25,7 +25,7 @@ export const loginUser = createAsyncThunk(
   "/auth/login",
   async (formData) => {
     const response = await api.post(
-      "/auth/login",
+      "/api/auth/login",
       formData,
       { withCredentials: true }
     );
@@ -36,7 +36,7 @@ export const loginUser = createAsyncThunk(
 // LOGOUT
 export const logoutUser = createAsyncThunk("/auth/logout", async () => {
   const response = await api.post(
-    "/auth/logout",
+    "/api/auth/logout",
     {},
     { withCredentials: true }
   );
@@ -46,7 +46,7 @@ export const logoutUser = createAsyncThunk("/auth/logout", async () => {
 // CHECK AUTH
 export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
   const response = await api.get(
-    "/auth/check-auth",
+    "/api/auth/check-auth",
     {
       withCredentials: true,
       headers: {
