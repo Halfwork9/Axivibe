@@ -1,21 +1,14 @@
-// client/src/utils/api.js
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// client/src/api.js
+import axios from "axios";
 
-export async function apiFetch(path, options = {}) {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    credentials: "include", // ✅ allow cookies for login/session
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "API Error");
-  }
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // ✅ allows cookies for auth
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  return res.json();
-}
-
+export default api;
