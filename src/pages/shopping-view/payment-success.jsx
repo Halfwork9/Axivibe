@@ -15,22 +15,22 @@ function PaymentSuccessPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    async function fetchOrder() {
-      if (!orderId) return;
-      try {
-        const res = await api.get(`/shop/order/get/${orderId}`);
-        if (res.data?.success) {
-          setOrder(res.data.data);
-          dispatch(clearCart()); // ✅ Clear cart in frontend
-        }
-      } catch (err) {
-        console.error("Error fetching order:", err);
-      } finally {
-        setLoading(false);
+  async function fetchOrder() {
+    if (!orderId) return;
+    try {
+      const res = await api.post(`/shop/order/details/${orderId}`);
+      const data = await res.json();
+      if (data?.success) {
+        setOrder(data.data);
       }
+    } catch (err) {
+      console.error("Error fetching order:", err);
+    } finally {
+      setLoading(false);
     }
-    fetchOrder();
-  }, [orderId, dispatch]);
+  }
+  fetchOrder();
+}, [orderId]);
 
   if (loading) {
     return (
