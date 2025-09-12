@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "@/api";
 
 function PaymentSuccessPage() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ function PaymentSuccessPage() {
     async function fetchOrder() {
       if (!orderId) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/shop/order/details/${orderId}`);
+        const res = await api.post(`/shop/order/details/${orderId}`);
         const data = await res.json();
         if (data?.success) {
           setOrder(data.data);
