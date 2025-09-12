@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "@/api";
 
 export const createCategory = createAsyncThunk(
   "categories/createCategory",
   async ({ name, icon }) => {
-    const res = await axios.post("http://localhost:5000/api/admin/categories", { name, icon });
+    const res = await api.post("/admin/categories", { name, icon });
     return res.data;
   }
 );
@@ -12,7 +12,7 @@ export const createCategory = createAsyncThunk(
 export const fetchAllCategories = createAsyncThunk(
   "categories/fetchAllCategories",
   async () => {
-    const res = await axios.get("http://localhost:5000/api/admin/categories");
+    const res = await api.get("/admin/categories");
     return res.data;
   }
 );
@@ -21,7 +21,7 @@ export const deleteCategory = createAsyncThunk(
   'adminCategories/deleteCategory',
   async (categoryId, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/categories/${categoryId}`);
+      await api.delete(`/admin/categories/${categoryId}`);
       return categoryId; // Return the ID on success
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -60,3 +60,4 @@ const categorySlice = createSlice({
 });
 
 export default categorySlice.reducer;
+
