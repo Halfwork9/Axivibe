@@ -1,11 +1,11 @@
 // store/common-slice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "@/api";
 
 export const addFeatureImage = createAsyncThunk(
   "common/addFeatureImage",
   async (imageUrl) => {
-    const response = await axios.post("http://localhost:5000/api/common/feature/add", {
+    const response = await api.post("/common/feature/add", {
       image: imageUrl,
     });
     return response.data;
@@ -15,17 +15,17 @@ export const addFeatureImage = createAsyncThunk(
 export const getFeatureImages = createAsyncThunk(
   "common/getFeatureImages",
   async () => {
-    const response = await axios.get("http://localhost:5000/api/common/feature/get");
+    const response = await api.get("/common/feature/get");
     return response.data;
   }
 );
 
-// ✅ NEW: Delete feature image
+//  NEW: Delete feature image
 export const deleteFeatureImage = createAsyncThunk(
   "common/deleteFeatureImage",
   async (id) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/common/feature/delete/${id}`
+    const response = await api.delete(
+      `/common/feature/delete/${id}`
     );
     return { ...response.data, id };
   }
