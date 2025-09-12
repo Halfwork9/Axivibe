@@ -60,81 +60,58 @@ function ShoppingCheckout() {
   }
 
   async function handleStripeCheckout() {
-    if (!cartItems || !cartItems.items || cartItems.items.length === 0) {
+  if (!performValidations()) return;
+
+  setIsPaymemntStart(true);
+
+  try {
+    const orderData = {
+      userId: user?.id,
+      cartId: cartItems?._id,
+      cartItems: cartItems.items.map((singleCartItem) => ({
+        productId: singleCartItem?.productId,
+        title: singleCartItem?.title,
+        image: singleCartItem?.image,
+        price:
+          singleCartItem?.salePrice > 0
+            ? singleCartItem?.salePrice
+            : singleCartItem?.price,
+        quantity: singleCartItem?.quantity,
+      })),
+      addressInfo: {
+        addressId: currentSelectedAddress?._id,
+        address: currentSelectedAddress?.address,
+        city: currentSelectedAddress?.city,
+        pincode: currentSelectedAddress?.pincode,
+        phone: currentSelectedAddress?.phone,
+        notes: currentSelectedAddress?.notes,
+      },
+      totalAmount: totalCartAmount,
+      paymentMethod: "stripe",
+    };
+
+    const { data } = await api.post("/shop/order/create", orderData);
+
+    if (data?.success && data.url) {
+      window.location.href = data.url; // Redirect to Stripe Checkout
+    } else {
       toast({
-        title: "Your cart is empty. Please add items to proceed",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!currentSelectedAddress) {
-      toast({
-        title: "Please select one address to proceed.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsPaymemntStart(true);
-
-    try {
-      const orderData = {
-        userId: user?.id,
-        cartId: cartItems?._id,
-        cartItems: cartItems.items.map((singleCartItem) => ({
-          productId: singleCartItem?.productId,
-          title: singleCartItem?.title,
-          image: singleCartItem?.image,
-          price:
-            singleCartItem?.salePrice > 0
-              ? singleCartItem?.salePrice
-              : singleCartItem?.price,
-          quantity: singleCartItem?.quantity,
-        })),
-        addressInfo: {
-          addressId: currentSelectedAddress?._id,
-          address: currentSelectedAddress?.address,
-          city: currentSelectedAddress?.city,
-          pincode: currentSelectedAddress?.pincode,
-          phone: currentSelectedAddress?.phone,
-          notes: currentSelectedAddress?.notes,
-        },
-        totalAmount: totalCartAmount,
-        paymentMethod: 'stripe',
-      };
-
-      const response = await api.post("/shop/order/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const data = await response.json();
-
-      if (data?.success && data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } else {
-        toast({
-          title: "Error creating order. Please try again.",
-          variant: "destructive",
-        });
-        setIsPaymemntStart(false);
-      }
-    } catch (error) {
-      console.error("Stripe checkout error:", error);
-      toast({
-        title: "Something went wrong with Stripe.",
+        title: "Error creating order. Please try again.",
         variant: "destructive",
       });
       setIsPaymemntStart(false);
     }
+  } catch (error) {
+    console.error("Stripe checkout error:", error);
+    toast({
+      title: "Something went wrong with Stripe.",
+      variant: "destructive",
+    });
+    setIsPaymemntStart(false);
   }
+}
 
-  async function handleCashOnDeliveryCheckout() {
+async function handleCashOnDeliveryCheckout() {
   if (!performValidations()) return;
 
   setIsProcessing(true);
@@ -164,13 +141,8 @@ function ShoppingCheckout() {
       paymentMethod: "cod",
     };
 
-    const response = await api.post("/shop/order/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(orderData),
-    });
+    const { data } = await api.post("/shop/order/create", orderData);
 
-    const data = await response.json();
     if (data?.success && data?.data) {
       dispatch(clearCart());
       toast({ title: "Order placed successfully!" });
