@@ -11,6 +11,7 @@ function DistributorPage() {
     contactName: "",
     title: "",
     phone: "",
+    email: "",
     markets: "",
   });
   const [error, setError] = useState(""); // 👈 inline error
@@ -237,4 +238,5 @@ function DistributorPage() {
 }
 
 export default DistributorPage;
+
 
