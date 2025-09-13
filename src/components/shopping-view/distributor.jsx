@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState,useEffect } from "react";
+import api from "@/api";
 
 function DistributorPage() {
   const [formData, setFormData] = useState({
@@ -20,7 +21,7 @@ function DistributorPage() {
   useEffect(() => {
     const fetchApp = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/distributors/status", {
+        const res = await api.get("/distributors/status", {
           credentials: "include",
         });
         const data = await res.json();
@@ -43,7 +44,7 @@ function DistributorPage() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("http://localhost:5000/api/distributors", {
+      const res = await api.post("/distributors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // 👈 must include cookie for auth
@@ -236,3 +237,4 @@ function DistributorPage() {
 }
 
 export default DistributorPage;
+
