@@ -18,10 +18,15 @@ function PaymentSuccessPage() {
   async function fetchOrder() {
     if (!orderId) return;
     try {
-      const res = await api.post(`/shop/order/details/${orderId}`);
-      const data = await res.json();
-      if (data?.success) {
-        setOrder(data.data);
+      //  use GET (backend expects GET not POST)
+      const res = await api.get(`/shop/order/details/${orderId}`);
+
+      //  Axios response is already parsed
+      if (res.data?.success) {
+        setOrder(res.data.data);
+
+        //  Clear cart if order is successful
+        dispatch(clearCart());
       }
     } catch (err) {
       console.error("Error fetching order:", err);
@@ -30,7 +35,8 @@ function PaymentSuccessPage() {
     }
   }
   fetchOrder();
-}, [orderId]);
+}, [orderId, dispatch]);
+
 
   if (loading) {
     return (
@@ -48,7 +54,7 @@ function PaymentSuccessPage() {
         <CardHeader>
           <CardTitle>Order not found!</CardTitle>
         </CardHeader>
-        <Button className="mt-5" onClick={() => navigate("/shop")}>
+        <Button className="mt-5" onClick={() => navigate("/shop/home")}>
           Continue Shopping
         </Button>
       </Card>
