@@ -3,26 +3,23 @@ import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { Separator } from "../ui/separator";
 import PropTypes from "prop-types";
+import api from "@/api";   // ✅ use your centralized axios instance
 
 function ProductFilter({ filters, handleFilter }) {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
 
-  // Fetch categories and brands
   useEffect(() => {
     async function fetchFilters() {
       try {
-        // FIX: Corrected API endpoint URLs to include /admin/
+        // ✅ API calls now use baseURL from api.js (VITE_API_BASE_URL)
         const [catRes, brandRes] = await Promise.all([
-          fetch("http://localhost:5000/api/admin/categories"),
-          fetch("http://localhost:5000/api/admin/brands"),
+          api.get("/admin/categories"),
+          api.get("/admin/brands"),
         ]);
 
-        const cats = await catRes.json();
-        const brs = await brandRes.json();
-
-        if (cats.success) setCategories(cats.data);
-        if (brs.success) setBrands(brs.data);
+        if (catRes.data.success) setCategories(catRes.data.data);
+        if (brandRes.data.success) setBrands(brandRes.data.data);
       } catch (err) {
         console.error("Error fetching filters", err);
       }
@@ -48,9 +45,7 @@ function ProductFilter({ filters, handleFilter }) {
                   className="flex font-medium items-center gap-2"
                 >
                   <Checkbox
-                    checked={
-                      filters?.category?.includes(cat._id) || false
-                    }
+                    checked={filters?.category?.includes(cat._id) || false}
                     onCheckedChange={() => handleFilter("category", cat._id)}
                   />
                   {cat.name}
@@ -85,7 +80,6 @@ function ProductFilter({ filters, handleFilter }) {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
