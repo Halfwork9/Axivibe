@@ -32,6 +32,24 @@ export const withdrawApplication = createAsyncThunk(
   }
 );
 
+// Delete distributor application
+export const deleteDistributor = createAsyncThunk(
+  "adminDistributors/deleteDistributor",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await api.delete(`/distributors/admin/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!data.success) return rejectWithValue(data.message);
+      return id; // return the deleted id
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 const distributorSlice = createSlice({
   name: "adminDistributors",
   initialState: {
@@ -57,6 +75,11 @@ const distributorSlice = createSlice({
       .addCase(withdrawApplication.fulfilled, (state) => {
         state.application = null;
       })
+       .addCase(deleteDistributor.fulfilled, (state, action) => {
+      state.distributorList = state.distributorList.filter(
+        (d) => d._id !== action.payload
+      );
+    })
       .addCase(updateDistributorStatus.fulfilled, (state, action) => {
         const idx = state.distributorList.findIndex(
           (d) => d._id === action.payload._id
@@ -69,3 +92,4 @@ const distributorSlice = createSlice({
 });
 
 export default distributorSlice.reducer;
+
