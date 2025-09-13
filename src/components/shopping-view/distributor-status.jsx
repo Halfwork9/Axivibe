@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
 import { withdrawApplication } from "@/store/admin/distributor-slice";
 import { useToast } from "@/components/ui/use-toast";
+import api from "@/api";
 
 function DistributorStatus() {
   const [application, setApplication] = useState(null);
@@ -13,7 +14,7 @@ function DistributorStatus() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/distributors/status", {
+      const res = await api.get("/distributors/status", {
         credentials: "include",
       });
       const data = await res.json();
@@ -97,3 +98,4 @@ function DistributorStatus() {
 }
 
 export default DistributorStatus;
+
