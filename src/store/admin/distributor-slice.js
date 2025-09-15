@@ -38,7 +38,7 @@ export const deleteDistributor = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await api.delete(`/distributors/admin/${id}`, {
-        withCredentials: true,
+          
       });
       if (!res.data.success) return rejectWithValue(res.data.message);
       return id;
@@ -47,6 +47,7 @@ export const deleteDistributor = createAsyncThunk(
     }
   }
 );
+
 
 
 const distributorSlice = createSlice({
@@ -91,5 +92,6 @@ const distributorSlice = createSlice({
 });
 
 export default distributorSlice.reducer;
+
 
 
