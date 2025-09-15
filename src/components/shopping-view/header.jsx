@@ -141,22 +141,24 @@ function ShoppingHeader() {
         </Link>
 
         {/* Mobile menu */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="lg:hidden">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle header menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-full max-w-xs flex flex-col gap-4">
-            <Link to="/shop/home" className="text-sm font-medium">Home</Link>
-            <Link to="/shop/listing" className="text-sm font-medium">Products</Link>
-            <Link to="/shop/search" className="text-sm font-medium">Search</Link>
-            <Link to="/shop/distributor" className="text-sm font-medium">Distributor</Link>
-            <CategoryDropdown />
-            <HeaderRightContent />
-          </SheetContent>
-        </Sheet>
+        const [openSidebar, setOpenSidebar] = useState(false);
+
+<Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
+  <SheetTrigger asChild>
+    <Button variant="outline" size="icon" className="lg:hidden">
+      <Menu className="h-6 w-6" />
+    </Button>
+  </SheetTrigger>
+  <SheetContent side="left" className="w-full max-w-xs flex flex-col gap-4">
+    <Link to="/shop/home" onClick={() => setOpenSidebar(false)}>Home</Link>
+    <Link to="/shop/listing" onClick={() => setOpenSidebar(false)}>Products</Link>
+    <Link to="/shop/search" onClick={() => setOpenSidebar(false)}>Search</Link>
+    <Link to="/shop/distributor" onClick={() => setOpenSidebar(false)}>Distributor</Link>
+    <CategoryDropdown />
+    <HeaderRightContent />
+  </SheetContent>
+</Sheet>
+
 
         {/* Desktop menu */}
         <div className="hidden lg:flex gap-6 items-center">
