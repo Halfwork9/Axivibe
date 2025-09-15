@@ -24,6 +24,7 @@ function CategoryDropdown() {
   const dispatch = useDispatch();
   const { categoryList } = useSelector((state) => state.adminCategories);
   const navigate = useNavigate();
+  const [openSidebar, setOpenSidebar] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllCategories());
@@ -141,7 +142,7 @@ function ShoppingHeader() {
         </Link>
 
         {/* Mobile menu */}
-        const [openSidebar, setOpenSidebar] = useState(false);
+       
 
 <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
   <SheetTrigger asChild>
