@@ -19,22 +19,24 @@ function DistributorPage() {
   const [existingApp, setExistingApp] = useState(null);
 
   // Fetch existing application when component loads
-  useEffect(() => {
-    const fetchApp = async () => {
-      try {
-        const res = await api.get("/distributors/status", {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (data.success) {
-          setExistingApp(data.data);
-        }
-      } catch {
+useEffect(() => {
+  const fetchApp = async () => {
+    try {
+      const res = await api.get("/distributors/status", {
+        withCredentials: true, // axios needs this, not credentials: 'include'
+      });
+      if (res.data.success) {
+        setExistingApp(res.data.data);
+      } else {
         setExistingApp(null);
       }
-    };
-    fetchApp();
-  }, []);
+    } catch (err) {
+      setExistingApp(null);
+    }
+  };
+  fetchApp();
+}, []);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -236,6 +238,7 @@ function DistributorPage() {
 }
 
 export default DistributorPage;
+
 
 
 
