@@ -68,7 +68,7 @@ function AdminDashboard() {
           <img
             src={uploadedImageUrl}
             alt="Preview"
-            className="w-full h-[300px] object-cover rounded-lg"
+            className="w-full h-auto max-h-[300px] object-cover rounded-lg"
           />
         </div>
       )}
@@ -84,7 +84,7 @@ function AdminDashboard() {
         <img
           src={featureImgItem.image}
           alt="Feature"
-          className="w-full h-[300px] object-cover"
+          className="w-full h-auto max-h-[300px] object-cover rounded-lg"
         />
         <Button
           variant="destructive"
