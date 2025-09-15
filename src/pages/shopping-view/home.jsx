@@ -113,8 +113,48 @@ useEffect(() => {
 
   return (
     <div className="flex flex-col min-h-screen">
-     {/* Hero Slider */} <div className="relative w-full h-[600px] overflow-hidden"> {featureImageList.map((slide, index) => ( <img src={slide?.image} key={index} className={${ index === currentSlide ? "opacity-100" : "opacity-0" } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000} /> ))} {featureImageList.length > 1 && ( <> <Button variant="outline" size="icon" onClick={() => setCurrentSlide( (prevSlide) => (prevSlide - 1 + featureImageList.length) % featureImageList.length ) } className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80" > <ChevronLeftIcon className="w-4 h-4" /> </Button> <Button variant="outline" size="icon" onClick={() => setCurrentSlide( (prevSlide) => (prevSlide + 1) % featureImageList.length ) } className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80" > <ChevronRightIcon className="w-4 h-4" /> </Button> </> )} </div>
-
+      {/* Hero Slider */}
+      <div className="relative w-full h-[600px] overflow-hidden">
+        {featureImageList.map((slide, index) => (
+          <img
+            src={slide?.image}
+            key={index}
+            className={`${
+              index === currentSlide ? "opacity-100" : "opacity-0"
+            } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+          />
+        ))}
+        {featureImageList.length > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() =>
+                setCurrentSlide(
+                  (prevSlide) =>
+                    (prevSlide - 1 + featureImageList.length) %
+                    featureImageList.length
+                )
+              }
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() =>
+                setCurrentSlide(
+                  (prevSlide) => (prevSlide + 1) % featureImageList.length
+                )
+              }
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </Button>
+          </>
+        )}
+      </div>
 
       {/* Categories */}
       <section className="py-12 bg-gray-50">
