@@ -12,16 +12,19 @@ function AdminDistributorsPage() {
     dispatch(fetchAllDistributors());
   }, [dispatch]);
 
-  const handleStatusChange = (id, status) => {
-    dispatch(updateDistributorStatus({ id, status }));
-  };
+ const handleStatusChange = async (id, status) => {
+  await dispatch(updateDistributorStatus({ id, status }));
+  dispatch(fetchAllDistributors()); // refresh list
+};
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this application?");
-    if (confirmDelete) {
-      dispatch(deleteDistributor(id));
-    }
-  };
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm("Are you sure?");
+  if (confirmDelete) {
+    await dispatch(deleteDistributor(id));
+    dispatch(fetchAllDistributors()); // refresh list
+  }
+};
+
 
   if (isLoading) {
     return (
@@ -92,3 +95,4 @@ function AdminDistributorsPage() {
 }
 
 export default AdminDistributorsPage;
+
