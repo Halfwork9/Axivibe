@@ -41,30 +41,33 @@ function DistributorPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    try {
-      const res = await api.post("/distributors", formData, {
-  withCredentials: true,
-});
-if (res.data.success) {
-  setSuccess("Application submitted successfully!");
-  setFormData({
-    company: "",
-    contactName: "",
-    title: "",
-    phone: "",
-    markets: "",
-  });
-} else {
-  setError(res.data.message || "Something went wrong.");
-}
+  e.preventDefault();
+  setError("");
+  setSuccess("");
+  try {
+    const res = await api.post("/distributors", formData, {
+      withCredentials: true,
+    });
 
-    } catch {
-      setError("Error submitting application. Please try again.");
+    if (res.data.success) {
+      setSuccess("Application submitted successfully!");
+      setExistingApp(res.data.data); // 👈 immediately show status box
+      setFormData({
+        company: "",
+        contactName: "",
+        title: "",
+        phone: "",
+        email: "",
+        markets: "",
+      });
+    } else {
+      setError(res.data.message || "Something went wrong.");
     }
-  };
+  } catch {
+    setError("Error submitting application. Please try again.");
+  }
+};
+
 
 
   const handleSubscribe = (e) => {
@@ -233,6 +236,7 @@ if (res.data.success) {
 }
 
 export default DistributorPage;
+
 
 
 
