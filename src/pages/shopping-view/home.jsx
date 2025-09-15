@@ -114,55 +114,59 @@ useEffect(() => {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Slider */}
-      <div className="relative w-full h-[600px] overflow-hidden">
-        {featureImageList.map((slide, index) => (
-          <img
-            src={slide?.image}
-            key={index}
-            className={`${
-              index === currentSlide ? "opacity-100" : "opacity-0"
-            } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
-          />
-        ))}
-        {featureImageList.length > 1 && (
-          <>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                setCurrentSlide(
-                  (prevSlide) =>
-                    (prevSlide - 1 + featureImageList.length) %
-                    featureImageList.length
-                )
-              }
-              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
-            >
-              <ChevronLeftIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                setCurrentSlide(
-                  (prevSlide) => (prevSlide + 1) % featureImageList.length
-                )
-              }
-              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
-            >
-              <ChevronRightIcon className="w-4 h-4" />
-            </Button>
-          </>
-        )}
-      </div>
+      <div className="relative w-full h-[250px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+  {featureImageList.map((slide, index) => (
+    <img
+      src={slide?.image}
+      key={index}
+      className={`${
+        index === currentSlide ? "opacity-100" : "opacity-0"
+      } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+    />
+  ))}
 
-      {/* Categories */}
-      <section className="py-12 bg-gray-50">
+  {featureImageList.length > 1 && (
+    <>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() =>
+          setCurrentSlide(
+            (prevSlide) =>
+              (prevSlide - 1 + featureImageList.length) %
+              featureImageList.length
+          )
+        }
+        className="absolute top-1/2 left-2 sm:left-4 transform -translate-y-1/2 bg-white/80"
+      >
+        <ChevronLeftIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() =>
+          setCurrentSlide(
+            (prevSlide) => (prevSlide + 1) % featureImageList.length
+          )
+        }
+        className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2 bg-white/80"
+      >
+        <ChevronRightIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+      </Button>
+    </>
+  )}
+</div>
+
+
+      
+     {/* Categories */}
+<section className="py-12 bg-gray-50">
   <div className="container mx-auto px-4">
     <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {categoryList.map((categoryItem) => {
-        const IconComp = LucideIcons[categoryItem.icon];
+      {(categoryList || []).map((categoryItem) => {
+        const IconComp = LucideIcons[categoryItem.icon] || LucideIcons["Box"]; // ✅ fallback icon
         return (
           <Card
             key={categoryItem._id}
@@ -172,9 +176,7 @@ useEffect(() => {
             className="cursor-pointer hover:shadow-lg transition-shadow"
           >
             <CardContent className="flex flex-col items-center justify-center p-6">
-              {IconComp && (
-                <IconComp className="w-12 h-12 mb-4 text-primary" />
-              )}
+              <IconComp className="w-12 h-12 mb-4 text-primary" />
               <span className="font-bold">{categoryItem.name}</span>
             </CardContent>
           </Card>
@@ -183,39 +185,39 @@ useEffect(() => {
     </div>
   </div>
 </section>
-     
 
-      {/* Brands */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandList.map((brandItem) => {
-              const IconComp = LucideIcons[brandItem.icon];
-              return (
-                <Card
-                  key={brandItem._id || brandItem.id}
-                  onClick={() =>
-                    handleNavigateToListingPage(brandItem, "brand")
-                  }
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <CardContent className="flex flex-col items-center justify-center p-6">
-                    {IconComp ? (
-                      <IconComp className="w-12 h-12 mb-4 text-primary" />
-                    ) : (
-                      <span className="w-12 h-12 mb-4 flex items-center justify-center text-primary border rounded-full">
-                        {brandItem?.name?.[0] || "?"}
-                      </span>
-                    )}
-                    <span className="font-bold">{brandItem.name}</span>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+{/* Brands */}
+<section className="py-12 bg-gray-50">
+  <div className="container mx-auto px-4">
+    <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {(brandList || []).map((brandItem) => {
+        const IconComp = LucideIcons[brandItem.icon] || null; // ✅ null safe
+        return (
+          <Card
+            key={brandItem._id || brandItem.id}
+            onClick={() =>
+              handleNavigateToListingPage(brandItem, "brand")
+            }
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+          >
+            <CardContent className="flex flex-col items-center justify-center p-6">
+              {IconComp ? (
+                <IconComp className="w-12 h-12 mb-4 text-primary" />
+              ) : (
+                <span className="w-12 h-12 mb-4 flex items-center justify-center text-primary border rounded-full">
+                  {brandItem?.name?.[0] || "?"}
+                </span>
+              )}
+              <span className="font-bold">{brandItem.name}</span>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
 
       {/* Feature Products */}
       <section className="py-12">
