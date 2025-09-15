@@ -13,22 +13,20 @@ function DistributorStatus() {
   const { toast } = useToast();
 
   const fetchStatus = async () => {
-    try {
-      const res = await api.get("/distributors/status", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        setApplication(data.data);
-      } else {
-        setApplication(null);
-      }
-    } catch {
+  try {
+    const res = await api.get("/distributors/status", { withCredentials: true });
+    if (res.data.success) {
+      setApplication(res.data.data);
+    } else {
       setApplication(null);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch {
+    setApplication(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchStatus(); // initial load
@@ -98,4 +96,5 @@ function DistributorStatus() {
 }
 
 export default DistributorStatus;
+
 
