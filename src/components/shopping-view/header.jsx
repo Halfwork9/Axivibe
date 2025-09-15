@@ -24,7 +24,6 @@ function CategoryDropdown() {
   const dispatch = useDispatch();
   const { categoryList } = useSelector((state) => state.adminCategories);
   const navigate = useNavigate();
-  const [openSidebar, setOpenSidebar] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllCategories());
@@ -132,6 +131,7 @@ function HeaderRightContent() {
 
 // ---------------- Main Header ----------------
 function ShoppingHeader() {
+  const [openSidebar, setOpenSidebar] = useState(false);
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -141,24 +141,47 @@ function ShoppingHeader() {
           <span className="font-bold">Axivibe</span>
         </Link>
 
-        {/* Mobile menu */}
-       
-
-<Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
-  <SheetTrigger asChild>
-    <Button variant="outline" size="icon" className="lg:hidden">
-      <Menu className="h-6 w-6" />
-    </Button>
-  </SheetTrigger>
-  <SheetContent side="left" className="w-full max-w-xs flex flex-col gap-4">
-    <Link to="/shop/home" onClick={() => setOpenSidebar(false)}>Home</Link>
-    <Link to="/shop/listing" onClick={() => setOpenSidebar(false)}>Products</Link>
-    <Link to="/shop/search" onClick={() => setOpenSidebar(false)}>Search</Link>
-    <Link to="/shop/distributor" onClick={() => setOpenSidebar(false)}>Distributor</Link>
-    <CategoryDropdown />
-    <HeaderRightContent />
-  </SheetContent>
-</Sheet>
+       {/* Mobile menu */}
+        <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="lg:hidden">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle header menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-full max-w-xs flex flex-col gap-4">
+            <Link
+              to="/shop/home"
+              className="text-sm font-medium"
+              onClick={() => setOpenSidebar(false)} // ✅ close sidebar after click
+            >
+              Home
+            </Link>
+            <Link
+              to="/shop/listing"
+              className="text-sm font-medium"
+              onClick={() => setOpenSidebar(false)} // ✅
+            >
+              Products
+            </Link>
+            <Link
+              to="/shop/search"
+              className="text-sm font-medium"
+              onClick={() => setOpenSidebar(false)}
+            >
+              Search
+            </Link>
+            <Link
+              to="/shop/distributor"
+              className="text-sm font-medium"
+              onClick={() => setOpenSidebar(false)}
+            >
+              Distributor
+            </Link>
+            <CategoryDropdown />
+            <HeaderRightContent />
+          </SheetContent>
+        </Sheet>
 
 
         {/* Desktop menu */}
