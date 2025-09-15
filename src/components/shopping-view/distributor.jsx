@@ -45,27 +45,22 @@ function DistributorPage() {
     setError("");
     setSuccess("");
     try {
-      const res = await api.post("/distributors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // 👈 must include cookie for auth
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+      const res = await api.post("/distributors", formData, {
+  withCredentials: true,
+});
+if (res.data.success) {
+  setSuccess("Application submitted successfully!");
+  setFormData({
+    company: "",
+    contactName: "",
+    title: "",
+    phone: "",
+    markets: "",
+  });
+} else {
+  setError(res.data.message || "Something went wrong.");
+}
 
-      if (data.success) {
-        setSuccess("Application submitted successfully!");
-        setFormData({
-          company: "",
-          contactName: "",
-          title: "",
-          email: "",   
-          phone: "",
-          markets: "",
-        });
-      } else {
-        setError(data.message || "Something went wrong. If you already applied, check your status in Account → Distributor Status.");
-      }
     } catch {
       setError("Error submitting application. Please try again.");
     }
@@ -238,5 +233,6 @@ function DistributorPage() {
 }
 
 export default DistributorPage;
+
 
 
