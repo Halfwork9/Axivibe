@@ -15,7 +15,7 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
 import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
-
+import SEO from "@/components/common/SEO";
 // Import all Lucide icons
 import * as LucideIcons from "lucide-react";
 
@@ -113,6 +113,11 @@ useEffect(() => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEO
+        title="Axivibe - Shop Premium Products Online"
+        description="Discover top categories, premium brands, and trending products with exclusive deals at Axivibe."
+        url="https://axivibe.vercel.app/shop/home"
+      />
       {/* Hero Slider */}
       <div className="relative w-full h-[250px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
   {featureImageList.map((slide, index) => (
