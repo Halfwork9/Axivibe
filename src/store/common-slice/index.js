@@ -2,6 +2,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api";
 
+const initialState = {
+  featureImageList: [], // Add this
+  status: "idle",
+  error: null,
+};
+
 export const addFeatureImage = createAsyncThunk(
   "common/addFeatureImage",
   async (imageUrl) => {
