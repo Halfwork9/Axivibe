@@ -2,8 +2,9 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
 const initialState = {
-  brandList: [],
-  isLoading: false,
+  brandList: [], // Add this
+  status: "idle",
+  error: null,
 };
 
 // Create a new brand
@@ -80,4 +81,5 @@ const brandSlice = createSlice({
 });
 
 export default brandSlice.reducer;
+
 
