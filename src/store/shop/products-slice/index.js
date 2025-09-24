@@ -2,9 +2,10 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
 const initialState = {
-  isLoading: false,
-  productList: [],
+  productList: [], // Add this
   productDetails: null,
+  status: "idle",
+  error: null,
 };
 
 export const fetchAllFilteredProducts = createAsyncThunk(
