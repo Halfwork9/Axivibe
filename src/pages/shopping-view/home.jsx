@@ -50,27 +50,23 @@ function ShoppingHome() {
 
   // Add to cart with defensive checks
   function handleAddtoCart(productId) {
-  if (!user?.id) {
-    toast({ title: "Please login to add items to cart" });
-    return;
-  }
+    if (!user?.id) {
+      toast({ title: "Please login to add items to cart" });
+      return;
+    }
 
-  dispatch(addToCart({ userId: user.id, productId, quantity: 1 }))
-    .unwrap()
-    .then((items) => {
-      if (Array.isArray(items) && items.length > 0) {
+    dispatch(
+      addToCart({ userId: user.id, productId, quantity: 1 })
+    ).then((data) => {
+      const items = data?.payload || [];
+      if (items.length > 0) {
         dispatch(fetchCartItems(user.id));
         toast({ title: "Product added to cart" });
       } else {
         toast({ title: "Something went wrong adding product" });
       }
-    })
-    .catch((err) => {
-      console.error("Add to cart failed:", err);
-      toast({ title: "Add to cart failed" });
     });
-}
-
+  }
 
   // Open product details dialog
   useEffect(() => {
