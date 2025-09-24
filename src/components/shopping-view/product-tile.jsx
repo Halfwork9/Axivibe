@@ -67,11 +67,12 @@ function ShoppingProductTile({
           </Button>
         ) : (
           <Button
-            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
-            className="w-full"
-          >
-            Add to cart
-          </Button>
+  onClick={() => handleAddtoCart(product?._id)} // no extra params
+  className="w-full"
+>
+  Add to cart
+</Button>
+
         )}
       </CardFooter>
     </Card>
