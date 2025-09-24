@@ -107,7 +107,7 @@ console.log("Categories Data:", categoryList);
 
       {/* Hero Slider */}
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
-        {featureImageList.map((slide, index) => (
+        {featureImageList?.map((slide, index) => (
           <img
             src={slide?.image}
             key={index}
@@ -124,7 +124,7 @@ console.log("Categories Data:", categoryList);
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
            {/* Categories */}
-{categoryList.map((categoryItem) => {
+{categoryList?.map((categoryItem) => {
   let IconComp = null;
 
   if (categoryItem.icon && LucideIcons[categoryItem.icon]) {
@@ -158,7 +158,7 @@ console.log("Categories Data:", categoryList);
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-       {brandList.map((brandItem) => {
+      {brandList?.map((brandItem) => {
   // Safely check if the icon exists and is a valid component
   const IconComp =
     brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
@@ -193,7 +193,7 @@ console.log("Categories Data:", categoryList);
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Feature Products</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productList.map((productItem) => (
+            {productList?.map((productItem) => (
               <ShoppingProductTile
                 key={productItem._id}
                 handleGetProductDetails={handleGetProductDetails}
