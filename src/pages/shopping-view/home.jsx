@@ -95,7 +95,8 @@ function ShoppingHome() {
     dispatch(fetchAllBrands());
     dispatch(fetchAllCategories());
   }, [dispatch]);
-
+console.log("Brands Data:", brandList);
+console.log("Categories Data:", categoryList);
   return (
     <div className="flex flex-col min-h-screen">
       <SEO
@@ -157,11 +158,11 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {brandList.map((brandItem) => {
-  // Safely get the icon component
-  const IconComp = 
+       {brandList.map((brandItem) => {
+  // Safely check if the icon exists and is a valid component
+  const IconComp =
     brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
-      ? LucideIcons[brandItem.icon] 
+      ? LucideIcons[brandItem.icon]
       : null;
 
   return (
