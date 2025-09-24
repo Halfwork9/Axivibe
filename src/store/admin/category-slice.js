@@ -1,6 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
+const initialState = {
+  categoryList: [], // Add this
+  status: "idle",
+  error: null,
+};
+
 export const createCategory = createAsyncThunk(
   "categories/createCategory",
   async ({ name, icon }) => {
@@ -60,4 +66,5 @@ const categorySlice = createSlice({
 });
 
 export default categorySlice.reducer;
+
 
