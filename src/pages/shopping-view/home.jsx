@@ -157,11 +157,10 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-           // New robust code
-{brandList.map((brandItem) => {
-  // 1. Check if the icon key exists and is a valid component in LucideIcons
+        {brandList.map((brandItem) => {
+  // Safely get the icon component
   const IconComp = 
-    brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function' 
+    brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
       ? LucideIcons[brandItem.icon] 
       : null;
 
@@ -173,10 +172,8 @@ function ShoppingHome() {
     >
       <CardContent className="flex flex-col items-center justify-center p-6">
         {IconComp ? (
-          // Render the icon only if it's a valid component
           <IconComp className="w-12 h-12 mb-4 text-primary" />
         ) : (
-          // Otherwise, always render the fallback
           <span className="w-12 h-12 mb-4 flex items-center justify-center text-primary border rounded-full">
             {brandItem?.name?.[0] || "?"}
           </span>
