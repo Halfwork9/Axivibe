@@ -29,13 +29,16 @@ export const fetchAllFilteredProducts = createAsyncThunk(
 );
 
 export const fetchProductDetails = createAsyncThunk(
-  "/products/fetchProductDetails",
-  async (id) => {
-    const result = await api.get(
-      `/shop/products/get/${id}`
-    );
-
-    return result?.data;
+  'products/fetchProductDetails',
+  async (productId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/shop/product-details/${productId}`);
+      console.log('fetchProductDetails response:', response.data);
+      return response?.data?.data || {};
+    } catch (error) {
+      console.error('fetchProductDetails error:', error);
+      return rejectWithValue(error.message);
+    }
   }
 );
 
