@@ -39,15 +39,19 @@ function ShoppingHome() {
 function getLucideIcon(name, fallback = "Box") {
   if (!name || typeof name !== "string") return LucideIcons[fallback];
 
-  // Normalize string (capitalize properly)
   const formatted =
     name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 
-  // Aliases for common DB mistakes
-  if (formatted === "Add") return LucideIcons.Plus;
-  if (formatted === "Shoppingcart") return LucideIcons.ShoppingCart;
+  // Common DB mistakes
+  const aliasMap = {
+    add: "Plus",
+    shoppingcart: "ShoppingCart",
+    cart: "ShoppingCart",
+    box: "Box",
+  };
 
-  return LucideIcons[formatted] || LucideIcons[fallback];
+  const finalName = aliasMap[name.toLowerCase()] || formatted;
+  return LucideIcons[finalName] || LucideIcons[fallback];
 }
 
   function handleNavigateToListingPage(getCurrentItem, section) {
