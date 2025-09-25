@@ -95,6 +95,7 @@ function handleAddtoCart(getCurrentProductId, totalStock) {  // Accept totalStoc
   }, [dispatch]);
 
   return (
+    <ErrorBoundary>
     <div className="flex flex-col min-h-screen">
       <SEO
         title="Axivibe - Shop Premium Products Online"
@@ -225,6 +226,7 @@ function handleAddtoCart(getCurrentProductId, totalStock) {  // Accept totalStoc
         productDetails={productDetails}
       />
     </div>
+      </ErrorBoundary>
   );
 }
 
