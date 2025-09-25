@@ -17,6 +17,7 @@ import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
 import * as LucideIcons from "lucide-react";
 import SEO from "@/components/common/SEO";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
