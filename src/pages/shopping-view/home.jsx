@@ -35,7 +35,6 @@ function ShoppingHome() {
   const { toast } = useToast();
 
   // Utility: get safe icon
-import * as LucideIcons from "lucide-react";
 
 function getLucideIcon(name, fallback = "Box") {
   if (!name || typeof name !== "string") return LucideIcons[fallback];
@@ -160,6 +159,7 @@ function getLucideIcon(name, fallback = "Box") {
     </Card>
   );
 })}
+
           </div>
         </div>
       </section>
@@ -171,7 +171,7 @@ function getLucideIcon(name, fallback = "Box") {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* Brands */}
 {brandList.map((brandItem) => {
-  const IconComp = getLucideIcon(brandItem.icon, null);
+  const IconComp = getLucideIcon(brandItem.icon, "Box"); // ✅ never null
   return (
     <Card
       key={brandItem._id || brandItem.id}
