@@ -37,7 +37,15 @@ function ShoppingHome() {
   // Utility: get safe icon
 function getLucideIcon(name, fallback = "Box") {
   if (!name || typeof name !== "string") return LucideIcons[fallback];
-  const formatted = name.charAt(0).toUpperCase() + name.slice(1); // e.g. "box" → "Box"
+
+  // Normalize to PascalCase
+  const formatted =
+    name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+
+  // Handle common aliases
+  if (formatted === "Add") return LucideIcons.Plus;
+  if (formatted === "Shoppingcart") return LucideIcons.ShoppingCart;
+
   return LucideIcons[formatted] || LucideIcons[fallback];
 }
 
@@ -150,7 +158,6 @@ function getLucideIcon(name, fallback = "Box") {
     </Card>
   );
 })}
-
           </div>
         </div>
       </section>
