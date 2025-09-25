@@ -128,7 +128,7 @@ function ShoppingHome() {
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {categoryList?.map((categoryItem) => {
-              // ✅ This safe check prevents the crash
+              // This safe check prevents the crash
               const IconComp =
                 categoryItem.icon && typeof LucideIcons[categoryItem.icon] === 'function'
                   ? LucideIcons[categoryItem.icon]
@@ -161,7 +161,7 @@ function ShoppingHome() {
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {brandList?.map((brandItem) => {
-              // ✅ This safe check prevents the crash
+              // This safe check prevents the crash
               const IconComp =
                 brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
                   ? LucideIcons[brandItem.icon]
