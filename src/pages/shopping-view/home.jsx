@@ -47,19 +47,27 @@ function ShoppingHome() {
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-  function handleAddtoCart(getCurrentProductId) {
-    if (!user?.id) {
-      toast({ title: "Please login to add items to cart" });
-      return;
-    }
-    dispatch(addToCart({ userId: user.id, productId: getCurrentProductId, quantity: 1 }))
-      .then((data) => {
-        if (data?.payload?.success) {
-          dispatch(fetchCartItems(user.id));
-          toast({ title: "Product added to cart" });
-        }
-      });
+function handleAddtoCart(getCurrentProductId) {
+  console.log('user:', user);
+  console.log('productId:', getCurrentProductId);
+  if (!user?.id) {
+    toast({ title: "Please login to add items to cart" });
+    return;
   }
+  dispatch(addToCart({ userId: user.id, productId: getCurrentProductId, quantity: 1 }))
+    .then((data) => {
+      console.log('addToCart response:', data);
+      if (data?.payload?.success) {
+        dispatch(fetchCartItems(user.id));
+        toast({ title: "Product added to cart" });
+      } else {
+        console.error('addToCart failed:', data);
+      }
+    })
+    .catch((error) => {
+      console.error('addToCart error:', error);
+    });
+}
 
   useEffect(() => {
     if (productDetails) {
