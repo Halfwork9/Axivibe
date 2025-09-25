@@ -10,6 +10,7 @@ import PropTypes from "prop-types";
 import { Star } from "lucide-react";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  console.log('ProductDetailsDialog - productDetails:', productDetails); // Debug
   if (!productDetails) return null;
 
   return (
