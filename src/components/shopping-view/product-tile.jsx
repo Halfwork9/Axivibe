@@ -62,15 +62,18 @@ function ShoppingProductTile({
       </div>
       <CardFooter>
         {product?.totalStock === 0 ? (
-          <Button className="w-full opacity-60 cursor-not-allowed">
-            Out Of Stock
-          </Button>
-        ) : (
           <Button
-  onClick={() => handleAddtoCart(product?._id)} // no extra params
+  onClick={() => {
+    if (product?._id && product?.totalStock > 0) {
+      handleAddtoCart(product._id, product.totalStock);
+    } else {
+      console.warn('Cannot add to cart: Invalid product or out of stock');
+    }
+  }}
   className="w-full"
+  disabled={product?.totalStock === 0}
 >
-  Add to cart
+  {product?.totalStock === 0 ? 'Out Of Stock' : 'Add to cart'}
 </Button>
 
         )}
