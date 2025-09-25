@@ -34,6 +34,13 @@ function ShoppingHome() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Utility: get safe icon
+function getLucideIcon(name, fallback = "Box") {
+  if (!name || typeof name !== "string") return LucideIcons[fallback];
+  const formatted = name.charAt(0).toUpperCase() + name.slice(1); // e.g. "box" → "Box"
+  return LucideIcons[formatted] || LucideIcons[fallback];
+}
+
   function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
     const currentFilter = {
@@ -127,30 +134,23 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categoryList?.map((categoryItem) => {
-              // ✅ This safe check prevents the crash
-              const IconComp =
-                categoryItem.icon && typeof LucideIcons[categoryItem.icon] === 'function'
-                  ? LucideIcons[categoryItem.icon]
-                  : null;
+            {/* Categories */}
+{categoryList.map((categoryItem) => {
+  const IconComp = getLucideIcon(categoryItem.icon, "Box");
+  return (
+    <Card
+      key={categoryItem._id}
+      onClick={() => handleNavigateToListingPage(categoryItem, "category")}
+      className="cursor-pointer hover:shadow-lg transition-shadow"
+    >
+      <CardContent className="flex flex-col items-center justify-center p-6">
+        <IconComp className="w-12 h-12 mb-4 text-primary" />
+        <span className="font-bold">{categoryItem.name}</span>
+      </CardContent>
+    </Card>
+  );
+})}
 
-              return (
-                <Card
-                  key={categoryItem._id}
-                  onClick={() => handleNavigateToListingPage(categoryItem, "category")}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <CardContent className="flex flex-col items-center justify-center p-6">
-                    {IconComp ? (
-                      <IconComp className="w-12 h-12 mb-4 text-primary" />
-                    ) : (
-                      <LucideIcons.Box className="w-12 h-12 mb-4 text-primary" />
-                    )}
-                    <span className="font-bold">{categoryItem.name}</span>
-                  </CardContent>
-                </Card>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -160,32 +160,29 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandList?.map((brandItem) => {
-              // ✅ This safe check prevents the crash
-              const IconComp =
-                brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
-                  ? LucideIcons[brandItem.icon]
-                  : null;
+            {/* Brands */}
+{brandList.map((brandItem) => {
+  const IconComp = getLucideIcon(brandItem.icon, null);
+  return (
+    <Card
+      key={brandItem._id || brandItem.id}
+      onClick={() => handleNavigateToListingPage(brandItem, "brand")}
+      className="cursor-pointer hover:shadow-lg transition-shadow"
+    >
+      <CardContent className="flex flex-col items-center justify-center p-6">
+        {IconComp ? (
+          <IconComp className="w-12 h-12 mb-4 text-primary" />
+        ) : (
+          <span className="w-12 h-12 mb-4 flex items-center justify-center text-primary border rounded-full">
+            {brandItem?.name?.[0] || "?"}
+          </span>
+        )}
+        <span className="font-bold">{brandItem.name}</span>
+      </CardContent>
+    </Card>
+  );
+})}
 
-              return (
-                <Card
-                  key={brandItem._id || brandItem.id}
-                  onClick={() => handleNavigateToListingPage(brandItem, "brand")}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <CardContent className="flex flex-col items-center justify-center p-6">
-                    {IconComp ? (
-                      <IconComp className="w-12 h-12 mb-4 text-primary" />
-                    ) : (
-                      <span className="w-12 h-12 mb-4 flex items-center justify-center text-primary border rounded-full">
-                        {brandItem?.name?.[0] || "?"}
-                      </span>
-                    )}
-                    <span className="font-bold">{brandItem.name}</span>
-                  </CardContent>
-                </Card>
-              );
-            })}
           </div>
         </div>
       </section>
