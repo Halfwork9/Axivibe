@@ -47,25 +47,28 @@ function ShoppingHome() {
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-function handleAddtoCart(getCurrentProductId) {
-  console.log('user:', user);
-  console.log('productId:', getCurrentProductId);
+function handleAddtoCart(getCurrentProductId, totalStock) {  // Accept totalStock if needed, but ignore for now
+  console.log('handleAddtoCart called with productId:', getCurrentProductId, 'user:', user);  // Debug log
   if (!user?.id) {
     toast({ title: "Please login to add items to cart" });
     return;
   }
   dispatch(addToCart({ userId: user.id, productId: getCurrentProductId, quantity: 1 }))
-    .then((data) => {
-      console.log('addToCart response:', data);
-      if (data?.payload?.success) {
+    .then((action) => {  // 'action' is the full dispatched action
+      console.log('addToCart action:', action);  // Debug: Log the full action
+      const apiData = action.payload;  // This is response.data.data (array)
+      // Assuming backend returns { success: true, data: [...] }—check your API
+      if (apiData && Array.isArray(apiData)) {  // Or check action.meta.requestStatus === 'fulfilled'
         dispatch(fetchCartItems(user.id));
         toast({ title: "Product added to cart" });
       } else {
-        console.error('addToCart failed:', data);
+        console.error('addToCart failed or unexpected data:', apiData);
+        toast({ title: "Failed to add to cart" });
       }
     })
     .catch((error) => {
-      console.error('addToCart error:', error);
+      console.error('addToCart dispatch error:', error);
+      toast({ title: "Error adding to cart" });
     });
 }
 
