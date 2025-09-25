@@ -35,14 +35,16 @@ function ShoppingHome() {
   const { toast } = useToast();
 
   // Utility: get safe icon
+import * as LucideIcons from "lucide-react";
+
 function getLucideIcon(name, fallback = "Box") {
   if (!name || typeof name !== "string") return LucideIcons[fallback];
 
-  // Normalize to PascalCase
+  // Normalize string (capitalize properly)
   const formatted =
     name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 
-  // Handle common aliases
+  // Aliases for common DB mistakes
   if (formatted === "Add") return LucideIcons.Plus;
   if (formatted === "Shoppingcart") return LucideIcons.ShoppingCart;
 
