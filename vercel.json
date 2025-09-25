@@ -3,3 +3,8 @@
     { "source": "/(.*)", "destination": "/" }
   ]
 }
+{
+  "env": {
+    "GENERATE_SOURCEMAP": "true"
+  }
+}
