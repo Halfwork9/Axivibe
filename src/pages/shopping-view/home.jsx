@@ -1,96 +1,83 @@
-import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import {
   fetchAllFilteredProducts,
   fetchProductDetails,
 } from "@/store/shop/products-slice";
+import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import { useNavigate } from "react-router-dom";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/components/ui/use-toast";
-import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
 import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
-import SEO from "@/components/common/SEO";
 import * as LucideIcons from "lucide-react";
-import { Button, Card, CardContent } from "@/components/ui";
+import SEO from "@/components/common/SEO";
 
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  const { productList = [], productDetails = null } =
-    useSelector((state) => state.shopProducts || {});
-  const { featureImageList = [] } = useSelector(
-    (state) => state.commonFeature || {}
-  );
+  // Using safe selectors with fallbacks
+  const { productList = [] } = useSelector((state) => state.shopProducts || {});
+  const { productDetails } = useSelector((state) => state.shopProducts || {});
+  const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
   const { brandList = [] } = useSelector((state) => state.adminBrands || {});
-  const { categoryList = [] } = useSelector(
-    (state) => state.adminCategories || {}
-  );
+  const { categoryList = [] } = useSelector((state) => state.adminCategories || {});
   const { user } = useSelector((state) => state.auth || {});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Navigate to filtered listing page
-  function handleNavigateToListingPage(item, section) {
+  function handleNavigateToListingPage(getCurrentItem, section) {
     sessionStorage.removeItem("filters");
-    const currentFilter = { [section]: [item.id || item._id] };
+    const currentFilter = {
+      [section]: [getCurrentItem.id || getCurrentItem._id],
+    };
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
     navigate(`/shop/listing`);
   }
 
-  // Fetch product details
-  function handleGetProductDetails(productId) {
-    dispatch(fetchProductDetails(productId));
+  function handleGetProductDetails(getCurrentProductId) {
+    dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-  // Add to cart with defensive checks
-  function handleAddtoCart(productId) {
+  function handleAddtoCart(getCurrentProductId) {
     if (!user?.id) {
       toast({ title: "Please login to add items to cart" });
       return;
     }
-
-    dispatch(
-      addToCart({ userId: user.id, productId, quantity: 1 })
-    ).then((data) => {
-      const items = data?.payload || [];
-      if (items.length > 0) {
-        dispatch(fetchCartItems(user.id));
-        toast({ title: "Product added to cart" });
-      } else {
-        toast({ title: "Something went wrong adding product" });
-      }
-    });
+    dispatch(addToCart({ userId: user.id, productId: getCurrentProductId, quantity: 1 }))
+      .then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchCartItems(user.id));
+          toast({ title: "Product added to cart" });
+        }
+      });
   }
 
-  // Open product details dialog
   useEffect(() => {
-    if (productDetails !== null) setOpenDetailsDialog(true);
+    if (productDetails) {
+      setOpenDetailsDialog(true);
+    }
   }, [productDetails]);
 
-  // Auto slide feature images
   useEffect(() => {
-    if (featureImageList.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % featureImageList.length);
-    }, 3000);
-    return () => clearInterval(timer);
+    if (featureImageList && featureImageList.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % featureImageList.length);
+      }, 3000);
+      return () => clearInterval(timer);
+    }
   }, [featureImageList]);
 
-  // Fetch products
   useEffect(() => {
-    dispatch(
-      fetchAllFilteredProducts({ filterParams: {}, sortParams: "price-lowtohigh" })
-    );
-  }, [dispatch]);
-
-  // Fetch banners, brands & categories
-  useEffect(() => {
+    dispatch(fetchAllFilteredProducts({ filterParams: {}, sortParams: "price-lowtohigh" }));
     dispatch(getFeatureImages());
     dispatch(fetchAllBrands());
     dispatch(fetchAllCategories());
@@ -103,18 +90,36 @@ function ShoppingHome() {
         description="Discover top categories, premium brands, and trending products with exclusive deals at Axivibe."
         url="https://axivibe.vercel.app/shop/home"
       />
-
       {/* Hero Slider */}
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
-        {featureImageList.map((slide, index) => (
+        {featureImageList?.map((slide, index) => (
           <img
             src={slide?.image}
             key={index}
+            alt="Promotional banner"
             className={`${
               index === currentSlide ? "opacity-100" : "opacity-0"
             } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
           />
         ))}
+        {featureImageList && featureImageList.length > 1 && (
+          <>
+            <Button
+              variant="outline" size="icon"
+              onClick={() => setCurrentSlide((prev) => (prev - 1 + featureImageList.length) % featureImageList.length)}
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline" size="icon"
+              onClick={() => setCurrentSlide((prev) => (prev + 1) % featureImageList.length)}
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Categories */}
@@ -122,8 +127,13 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categoryList.map((categoryItem) => {
-              const IconComp = LucideIcons[categoryItem.icon] || LucideIcons.Box;
+            {categoryList?.map((categoryItem) => {
+              // ✅ This safe check prevents the crash
+              const IconComp =
+                categoryItem.icon && typeof LucideIcons[categoryItem.icon] === 'function'
+                  ? LucideIcons[categoryItem.icon]
+                  : null;
+
               return (
                 <Card
                   key={categoryItem._id}
@@ -131,7 +141,11 @@ function ShoppingHome() {
                   className="cursor-pointer hover:shadow-lg transition-shadow"
                 >
                   <CardContent className="flex flex-col items-center justify-center p-6">
-                    <IconComp className="w-12 h-12 mb-4 text-primary" />
+                    {IconComp ? (
+                      <IconComp className="w-12 h-12 mb-4 text-primary" />
+                    ) : (
+                      <LucideIcons.Box className="w-12 h-12 mb-4 text-primary" />
+                    )}
                     <span className="font-bold">{categoryItem.name}</span>
                   </CardContent>
                 </Card>
@@ -146,8 +160,13 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandList.map((brandItem) => {
-              const IconComp = LucideIcons[brandItem.icon] || null;
+            {brandList?.map((brandItem) => {
+              // ✅ This safe check prevents the crash
+              const IconComp =
+                brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
+                  ? LucideIcons[brandItem.icon]
+                  : null;
+
               return (
                 <Card
                   key={brandItem._id || brandItem.id}
@@ -176,12 +195,12 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Feature Products</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productList.map((productItem) => (
+            {productList?.map((productItem) => (
               <ShoppingProductTile
                 key={productItem._id}
                 handleGetProductDetails={handleGetProductDetails}
-                handleAddtoCart={handleAddtoCart}
                 product={productItem}
+                handleAddtoCart={handleAddtoCart}
               />
             ))}
           </div>
