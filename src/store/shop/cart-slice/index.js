@@ -9,19 +9,14 @@ const initialState = {
 
 // ✅ Add to cart
 export const addToCart = createAsyncThunk(
-  "cart/addToCart",
+  'cart/addToCart',
   async ({ userId, productId, quantity }) => {
     try {
-      const response = await api.post("/shop/cart/add", {
-        userId,
-        productId,
-        quantity,
-      });
-
-      return response?.data?.data || []; // always return an array
+      const response = await api.post('/shop/cart/add', { userId, productId, quantity });
+      return response?.data?.data || response?.data || []; // Fallback to response.data
     } catch (error) {
-      console.error("addToCart API error:", error);
-      return []; // fallback
+      console.error('addToCart API error:', error);
+      throw error; // Let RTK handle rejection
     }
   }
 );
