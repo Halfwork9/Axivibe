@@ -1,4 +1,3 @@
-// client/src/components/shopping-view/product-details.jsx
 import {
   Dialog,
   DialogContent,
@@ -11,52 +10,70 @@ import { Star } from "lucide-react";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   console.log('ProductDetailsDialog - productDetails:', productDetails); // Debug
+
+  // Defensive: don't render if missing
   if (!productDetails) return null;
+
+  // Defensive: fallback values
+  const title = productDetails?.title || "Untitled";
+  const image = productDetails?.image || "";
+  const description = productDetails?.description || "";
+  const categoryName = productDetails?.categoryId?.name || "Unknown";
+  const brandName = productDetails?.brandId?.name || "Unknown";
+  const price = typeof productDetails?.price === "number" ? productDetails.price : "-";
+  const salePrice = typeof productDetails?.salePrice === "number" ? productDetails.salePrice : 0;
+
+  // Defensive: reviews
+  const reviews = Array.isArray(productDetails?.reviews) ? productDetails.reviews : [];
+  const averageReview =
+    typeof productDetails?.averageReview === "number"
+      ? productDetails.averageReview
+      : 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{productDetails?.title}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-6">
           {/* Product Image */}
-          <img
-            src={productDetails?.image}
-            alt={productDetails?.title}
-            className="w-full h-[300px] object-cover rounded"
-          />
+          {image && (
+            <img
+              src={image}
+              alt={title}
+              className="w-full h-[300px] object-cover rounded"
+            />
+          )}
 
           {/* Description */}
-          <p className="text-muted-foreground">{productDetails?.description}</p>
+          <p className="text-muted-foreground">{description}</p>
 
           {/* Category & Brand */}
           <div className="flex justify-between text-sm text-muted-foreground">
-  <span>Category: {productDetails?.categoryId?.name}</span>
-<span>Brand: {productDetails?.brandId?.name}</span>
-
-</div>
-
+            <span>Category: {categoryName}</span>
+            <span>Brand: {brandName}</span>
+          </div>
 
           {/* Price */}
           <div className="flex gap-4 items-center">
             <span
               className={`${
-                productDetails?.salePrice > 0 ? "line-through" : ""
+                salePrice > 0 ? "line-through" : ""
               } text-lg font-semibold`}
             >
-              ₹{productDetails?.price}
+              ₹{price}
             </span>
-            {productDetails?.salePrice > 0 && (
+            {salePrice > 0 && (
               <Badge className="bg-green-500 text-white">
-                ₹{productDetails?.salePrice}
+                ₹{salePrice}
               </Badge>
             )}
           </div>
 
           {/* Reviews Section */}
-          {productDetails?.reviews && productDetails.reviews.length > 0 && (
+          {reviews.length > 0 && (
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
               <div className="flex items-center gap-2 mb-3">
@@ -66,7 +83,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                     <Star
                       key={idx}
                       className={`w-5 h-5 ${
-                        idx < productDetails.averageReview
+                        idx < Math.round(averageReview)
                           ? "fill-yellow-500"
                           : "fill-gray-300"
                       }`}
@@ -74,21 +91,21 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {productDetails.averageReview.toFixed(1)} / 5
+                  {averageReview.toFixed(1)} / 5
                 </span>
               </div>
 
               {/* Individual Reviews */}
               <ul className="space-y-2 max-h-40 overflow-y-auto">
-                {productDetails.reviews.map((review, index) => (
+                {reviews.map((review, index) => (
                   <li
                     key={index}
                     className="p-2 border rounded-md bg-muted/30"
                   >
-                    <p className="text-sm">{review.comment}</p>
+                    <p className="text-sm">{review?.comment || ""}</p>
                     <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground">
-                      <span>- {review.userName}</span>
-                      <span>{review.rating} ★</span>
+                      <span>- {review?.userName || "Anonymous"}</span>
+                      <span>{review?.rating ?? "-"} ★</span>
                     </div>
                   </li>
                 ))}
