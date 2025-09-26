@@ -6,7 +6,6 @@ const initialState = {
   isLoading: false,
 };
 
-// ADD TO CART
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }) => {
@@ -15,13 +14,10 @@ export const addToCart = createAsyncThunk(
       productId,
       quantity,
     });
-
-    // ✅ Defensive fallback
     return Array.isArray(response.data?.data) ? response.data.data : [];
   }
 );
 
-// FETCH CART ITEMS
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId) => {
@@ -30,7 +26,6 @@ export const fetchCartItems = createAsyncThunk(
   }
 );
 
-// DELETE CART ITEM
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
   async ({ userId, productId }) => {
@@ -39,7 +34,6 @@ export const deleteCartItem = createAsyncThunk(
   }
 );
 
-// UPDATE CART QUANTITY
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
   async ({ userId, productId, quantity }) => {
@@ -67,40 +61,37 @@ const shoppingCartSlice = createSlice({
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload || [];
+        state.cartItems = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(addToCart.rejected, (state) => {
         state.isLoading = false;
       })
-
       .addCase(fetchCartItems.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchCartItems.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload || [];
+        state.cartItems = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchCartItems.rejected, (state) => {
         state.isLoading = false;
       })
-
       .addCase(updateCartQuantity.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(updateCartQuantity.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload || [];
+        state.cartItems = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(updateCartQuantity.rejected, (state) => {
         state.isLoading = false;
       })
-
       .addCase(deleteCartItem.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(deleteCartItem.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload || [];
+        state.cartItems = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(deleteCartItem.rejected, (state) => {
         state.isLoading = false;
