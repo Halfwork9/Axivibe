@@ -22,13 +22,18 @@ function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  // Using safe selectors with fallbacks
-  const { productList = [] } = useSelector((state) => state.shopProducts || {});
-  const { productDetails } = useSelector((state) => state.shopProducts || {});
-  const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
-  const { brandList = [] } = useSelector((state) => state.adminBrands || {});
-  const { categoryList = [] } = useSelector((state) => state.adminCategories || {});
+  // Defensive array guards
+  const { productList: reduxProductList, productDetails } = useSelector((state) => state.shopProducts || {});
+  const { featureImageList: reduxFeatureImageList } = useSelector((state) => state.commonFeature || {});
+  const { brandList: reduxBrandList } = useSelector((state) => state.adminBrands || {});
+  const { categoryList: reduxCategoryList } = useSelector((state) => state.adminCategories || {});
   const { user } = useSelector((state) => state.auth || {});
+
+  // Defensive fallback arrays
+  const productList = Array.isArray(reduxProductList) ? reduxProductList : [];
+  const featureImageList = Array.isArray(reduxFeatureImageList) ? reduxFeatureImageList : [];
+  const brandList = Array.isArray(reduxBrandList) ? reduxBrandList : [];
+  const categoryList = Array.isArray(reduxCategoryList) ? reduxCategoryList : [];
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -68,7 +73,7 @@ function ShoppingHome() {
   }, [productDetails]);
 
   useEffect(() => {
-    if (featureImageList && featureImageList.length > 0) {
+    if (featureImageList.length > 0) {
       const timer = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % featureImageList.length);
       }, 3000);
@@ -92,7 +97,7 @@ function ShoppingHome() {
       />
       {/* Hero Slider */}
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
-        {featureImageList?.map((slide, index) => (
+        {featureImageList.map((slide, index) => (
           <img
             src={slide?.image}
             key={index}
@@ -102,7 +107,7 @@ function ShoppingHome() {
             } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
           />
         ))}
-        {featureImageList && featureImageList.length > 1 && (
+        {featureImageList.length > 1 && (
           <>
             <Button
               variant="outline" size="icon"
@@ -127,8 +132,7 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categoryList?.map((categoryItem) => {
-              // ✅ This safe check prevents the crash
+            {categoryList.map((categoryItem) => {
               const IconComp =
                 categoryItem.icon && typeof LucideIcons[categoryItem.icon] === 'function'
                   ? LucideIcons[categoryItem.icon]
@@ -160,8 +164,7 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandList?.map((brandItem) => {
-              // ✅ This safe check prevents the crash
+            {brandList.map((brandItem) => {
               const IconComp =
                 brandItem.icon && typeof LucideIcons[brandItem.icon] === 'function'
                   ? LucideIcons[brandItem.icon]
@@ -195,7 +198,7 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Feature Products</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productList?.map((productItem) => (
+            {productList.map((productItem) => (
               <ShoppingProductTile
                 key={productItem._id}
                 handleGetProductDetails={handleGetProductDetails}
