@@ -88,7 +88,7 @@ function ShoppingHome() {
       <SEO
         title="Axivibe - Shop Premium Products Online"
         description="Discover top categories, premium brands, and trending products with exclusive deals at Axivibe."
-        url="https://axivibe-vojm.vercel.app/shop/home"
+        url="https://axivibe.vercel.app/shop/home"
       />
       {/* Hero Slider */}
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
