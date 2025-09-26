@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://axivibe.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!api/|_next/|static/|assets/|favicon.ico).*)",
+      "destination": "/index.html"
     }
   ]
 }
