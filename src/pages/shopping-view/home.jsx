@@ -16,7 +16,7 @@ import { getFeatureImages } from "@/store/common-slice";
 import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
 import * as LucideIcons from "lucide-react";
-//import SEO from "@/components/common/SEO";
+import SEO from "@/components/common/SEO";
 
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -90,11 +90,11 @@ function ShoppingHome() {
 
   return (
     <div className="flex flex-col min-h-screen">
-  {/*     <SEO
+       <SEO
         title="Axivibe - Shop Premium Products Online"
         description="Discover top categories, premium brands, and trending products with exclusive deals at Axivibe."
         url="https://axivibe.vercel.app/shop/home"
-      />  */}
+      />  
       {/* Hero Slider */}
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
         {featureImageList.map((slide, index) => (
