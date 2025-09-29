@@ -2,14 +2,14 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
 const initialState = {
-  checkoutUrl: null, //  replaces approvalURL
+  checkoutUrl: null, // ✅ replaces approvalURL
   isLoading: false,
   orderId: null,
   orderList: [],
   orderDetails: null,
 };
 
-//  Create new order + Stripe session
+// ✅ Create new order + Stripe session
 export const createNewOrder = createAsyncThunk(
   "/order/createNewOrder",
   async (orderData) => {
@@ -22,7 +22,7 @@ export const createNewOrder = createAsyncThunk(
   }
 );
 
-//  Get all orders for a user
+// ✅ Get all orders for a user
 export const getAllOrdersByUserId = createAsyncThunk(
   "/order/getAllOrdersByUserId",
   async (userId) => {
@@ -34,7 +34,7 @@ export const getAllOrdersByUserId = createAsyncThunk(
   }
 );
 
-//  Get single order details
+// ✅ Get single order details
 export const getOrderDetails = createAsyncThunk(
   "/order/getOrderDetails",
   async (id) => {
@@ -56,7 +56,7 @@ const shoppingOrderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      //  Handle Stripe Checkout session creation
+      // ✅ Handle Stripe Checkout session creation
       .addCase(createNewOrder.pending, (state) => {
         state.isLoading = true;
       })
@@ -77,7 +77,7 @@ const shoppingOrderSlice = createSlice({
         state.orderId = null;
       })
 
-      // Fetch user orders
+      // ✅ Fetch user orders
       .addCase(getAllOrdersByUserId.pending, (state) => {
         state.isLoading = true;
       })
@@ -90,7 +90,7 @@ const shoppingOrderSlice = createSlice({
         state.orderList = [];
       })
 
-      //  Fetch single order
+      // ✅ Fetch single order
       .addCase(getOrderDetails.pending, (state) => {
         state.isLoading = true;
       })
