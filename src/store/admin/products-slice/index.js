@@ -14,7 +14,21 @@ export const addNewProduct = createAsyncThunk(
     return result?.data;
   }
 );
-
+export const fetchProductDetails = createAsyncThunk(
+  'products/fetchProductDetails',
+  async (productId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/shop/product-details/${productId}`);
+      if (!response?.data?.data) {
+        // Gracefully handle missing product
+        return rejectWithValue('Product not found');
+      }
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 export const fetchAllProducts = createAsyncThunk(
   "/products/fetchAllProducts",
   async () => {
