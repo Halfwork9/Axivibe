@@ -1,4 +1,3 @@
-// store/admin/index.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
@@ -10,29 +9,27 @@ const initialState = {
 export const addNewProduct = createAsyncThunk(
   "/products/addnewproduct",
   async (formData) => {
-    const result = await api.post("/admin/products/add", formData);
+    const result = await api.post(
+      "/admin/products/add",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
     return result?.data;
   }
 );
-export const fetchProductDetails = createAsyncThunk(
-  'products/fetchProductDetails',
-  async (productId, { rejectWithValue }) => {
-    try {
-      const response = await api.get(`/shop/product-details/${productId}`);
-      if (!response?.data?.data) {
-        // Gracefully handle missing product
-        return rejectWithValue('Product not found');
-      }
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+
 export const fetchAllProducts = createAsyncThunk(
   "/products/fetchAllProducts",
   async () => {
-    const result = await api.get("/admin/products/get");
+    const result = await api.get(
+      "/admin/products/get"
+    );
+
     return result?.data;
   }
 );
@@ -40,7 +37,16 @@ export const fetchAllProducts = createAsyncThunk(
 export const editProduct = createAsyncThunk(
   "/products/editProduct",
   async ({ id, formData }) => {
-    const result = await api.put(`/admin/products/edit/${id}`, formData);
+    const result = await api.put(
+      `/admin/products/edit/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
     return result?.data;
   }
 );
@@ -48,7 +54,10 @@ export const editProduct = createAsyncThunk(
 export const deleteProduct = createAsyncThunk(
   "/products/deleteProduct",
   async (id) => {
-    const result = await api.delete(`/admin/products/delete/${id}`);
+    const result = await api.delete(
+      `/admin/products/delete/${id}`
+    );
+
     return result?.data;
   }
 );
