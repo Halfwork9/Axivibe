@@ -70,7 +70,7 @@ function ShoppingHome() {
         toast({ title: "Product added to cart" });
       } else {
         toast({
-          title: "Failed to add product to cart.",
+          title: "Failed to add product to Cart.",
           variant: "destructive",
         });
       }
