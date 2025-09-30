@@ -33,7 +33,6 @@ function AdminOrdersView() {
   }, [dispatch]);
 
   useEffect(() => {
-    // This effect correctly opens the dialog when orderDetails is populated
     if (orderDetails !== null) {
       setOpenDetailsDialog(true);
     }
@@ -43,6 +42,14 @@ function AdminOrdersView() {
     setOpenDetailsDialog(false);
     dispatch(resetOrderDetails());
   }
+
+  // Sort orders by date descending (latest first)
+  const sortedOrderList = (orderList || []).slice().sort((a, b) => {
+    // Use orderDate or _id timestamp if orderDate is missing
+    const dateA = a.orderDate ? new Date(a.orderDate) : new Date(parseInt(a._id.substring(0, 8), 16) * 1000);
+    const dateB = b.orderDate ? new Date(b.orderDate) : new Date(parseInt(b._id.substring(0, 8), 16) * 1000);
+    return dateB - dateA;
+  });
 
   return (
     <>
@@ -64,11 +71,11 @@ function AdminOrdersView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orderList && orderList.length > 0
-                ? orderList.map((orderItem) => (
+              {sortedOrderList.length > 0
+                ? sortedOrderList.map((orderItem) => (
                   <TableRow key={orderItem._id}>
                     <TableCell className="font-medium truncate max-w-[150px]">{orderItem?._id}</TableCell>
-                    <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
+                    <TableCell>{orderItem?.orderDate?.split("T")[0]}</TableCell>
                     <TableCell>
                       <Badge
                         className={`py-1 px-3 ${
@@ -84,7 +91,6 @@ function AdminOrdersView() {
                     </TableCell>
                     <TableCell>₹{orderItem?.totalAmount}</TableCell>
                     <TableCell>
-                      {/* This button now just triggers the data fetch */}
                       <Button
                         onClick={() => handleFetchOrderDetails(orderItem?._id)}
                       >
@@ -99,7 +105,6 @@ function AdminOrdersView() {
         </CardContent>
       </Card>
 
-      {/* FIX: The Dialog is now outside the map, ensuring only one instance exists */}
       <Dialog open={openDetailsDialog} onOpenChange={handleCloseDialog}>
         <AdminOrderDetailsView orderDetails={orderDetails} />
       </Dialog>
