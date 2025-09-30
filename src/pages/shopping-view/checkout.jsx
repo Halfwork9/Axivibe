@@ -1,6 +1,6 @@
 import Address from "@/components/shopping-view/address";
 import img from "../../assets/account.jpg";
-import {  useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -10,13 +10,13 @@ import { clearCart, fetchCartItems } from "@/store/shop/cart-slice";
 import api from "@/api";
 
 function ShoppingCheckout() {
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const cartItems = useSelector((state) => state.shopCart.cartItems); // cartItems is now an array
   const { user } = useSelector((state) => state.auth);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymemntStart] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // ✅ Fetch cart on mount
@@ -26,22 +26,25 @@ function ShoppingCheckout() {
     }
   }, [dispatch, user?.id]);
 
+  // Defensive array fallback
+  const cartItemsArray = Array.isArray(cartItems) ? cartItems : [];
+
   const totalCartAmount =
-    cartItems && cartItems.items && cartItems.items.length > 0
-      ? cartItems.items.reduce(
+    cartItemsArray.length > 0
+      ? cartItemsArray.reduce(
           (sum, currentItem) =>
             sum +
-            (currentItem?.salePrice > 0
+            ((currentItem?.salePrice > 0
               ? currentItem?.salePrice
               : currentItem?.price) *
-              currentItem?.quantity,
+              (currentItem?.quantity || 1)),
           0
         )
       : 0;
-   
+
   // --- HELPER FUNCTION FOR VALIDATION ---
   function performValidations() {
-    if (!cartItems || !cartItems.items || cartItems.items.length === 0) {
+    if (!cartItemsArray || cartItemsArray.length === 0) {
       toast({
         title: "Your cart is empty. Please add items to proceed",
         variant: "destructive",
@@ -60,106 +63,106 @@ function ShoppingCheckout() {
   }
 
   async function handleStripeCheckout() {
-  if (!performValidations()) return;
+    if (!performValidations()) return;
 
-  setIsPaymemntStart(true);
+    setIsPaymemntStart(true);
 
-  try {
-    const orderData = {
-      userId: user?.id,
-      cartId: cartItems?._id,
-      cartItems: cartItems.items.map((singleCartItem) => ({
-        productId: singleCartItem?.productId,
-        title: singleCartItem?.title,
-        image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
-        quantity: singleCartItem?.quantity,
-      })),
-      addressInfo: {
-        addressId: currentSelectedAddress?._id,
-        address: currentSelectedAddress?.address,
-        city: currentSelectedAddress?.city,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        notes: currentSelectedAddress?.notes,
-      },
-      totalAmount: totalCartAmount,
-      paymentMethod: "stripe",
-    };
+    try {
+      const orderData = {
+        userId: user?.id,
+        cartId: cartItemsArray[0]?._id, // If you need cart ID, adjust as needed
+        cartItems: cartItemsArray.map((singleCartItem) => ({
+          productId: singleCartItem?.productId,
+          title: singleCartItem?.title,
+          image: singleCartItem?.image,
+          price:
+            singleCartItem?.salePrice > 0
+              ? singleCartItem?.salePrice
+              : singleCartItem?.price,
+          quantity: singleCartItem?.quantity,
+        })),
+        addressInfo: {
+          addressId: currentSelectedAddress?._id,
+          address: currentSelectedAddress?.address,
+          city: currentSelectedAddress?.city,
+          pincode: currentSelectedAddress?.pincode,
+          phone: currentSelectedAddress?.phone,
+          notes: currentSelectedAddress?.notes,
+        },
+        totalAmount: totalCartAmount,
+        paymentMethod: "stripe",
+      };
 
-    const { data } = await api.post("/shop/order/create", orderData);
+      const { data } = await api.post("/shop/order/create", orderData);
 
-    if (data?.success && data.url) {
-      window.location.href = data.url; // Redirect to Stripe Checkout
-    } else {
+      if (data?.success && data.url) {
+        window.location.href = data.url; // Redirect to Stripe Checkout
+      } else {
+        toast({
+          title: "Error creating order. Please try again.",
+          variant: "destructive",
+        });
+        setIsPaymemntStart(false);
+      }
+    } catch (error) {
+      console.error("Stripe checkout error:", error);
       toast({
-        title: "Error creating order. Please try again.",
+        title: "Something went wrong with Stripe.",
         variant: "destructive",
       });
       setIsPaymemntStart(false);
     }
-  } catch (error) {
-    console.error("Stripe checkout error:", error);
-    toast({
-      title: "Something went wrong with Stripe.",
-      variant: "destructive",
-    });
-    setIsPaymemntStart(false);
   }
-}
 
-async function handleCashOnDeliveryCheckout() {
-  if (!performValidations()) return;
+  async function handleCashOnDeliveryCheckout() {
+    if (!performValidations()) return;
 
-  setIsProcessing(true);
-  try {
-    const orderData = {
-      userId: user?.id,
-      cartId: cartItems?._id,
-      cartItems: cartItems.items.map((singleCartItem) => ({
-        productId: singleCartItem?.productId,
-        title: singleCartItem?.title,
-        image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
-        quantity: singleCartItem?.quantity,
-      })),
-      addressInfo: {
-        addressId: currentSelectedAddress?._id,
-        address: currentSelectedAddress?.address,
-        city: currentSelectedAddress?.city,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        notes: currentSelectedAddress?.notes,
-      },
-      totalAmount: totalCartAmount,
-      paymentMethod: "cod",
-    };
+    setIsProcessing(true);
+    try {
+      const orderData = {
+        userId: user?.id,
+        cartId: cartItemsArray[0]?._id, // If you need cart ID, adjust as needed
+        cartItems: cartItemsArray.map((singleCartItem) => ({
+          productId: singleCartItem?.productId,
+          title: singleCartItem?.title,
+          image: singleCartItem?.image,
+          price:
+            singleCartItem?.salePrice > 0
+              ? singleCartItem?.salePrice
+              : singleCartItem?.price,
+          quantity: singleCartItem?.quantity,
+        })),
+        addressInfo: {
+          addressId: currentSelectedAddress?._id,
+          address: currentSelectedAddress?.address,
+          city: currentSelectedAddress?.city,
+          pincode: currentSelectedAddress?.pincode,
+          phone: currentSelectedAddress?.phone,
+          notes: currentSelectedAddress?.notes,
+        },
+        totalAmount: totalCartAmount,
+        paymentMethod: "cod",
+      };
 
-    const { data } = await api.post("/shop/order/create", orderData);
+      const { data } = await api.post("/shop/order/create", orderData);
 
-    if (data?.success && data?.data) {
-      dispatch(clearCart());
-      toast({ title: "Order placed successfully!" });
-      navigate(`/shop/payment-success?orderId=${data.data._id}`);
-    } else {
-      toast({
-        title: "Error creating order. Please try again.",
-        variant: "destructive",
-      });
+      if (data?.success && data?.data) {
+        dispatch(clearCart());
+        toast({ title: "Order placed successfully!" });
+        navigate(`/shop/payment-success?orderId=${data.data._id}`);
+      } else {
+        toast({
+          title: "Error creating order. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("COD checkout error:", error);
+      toast({ title: "Something went wrong.", variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
     }
-  } catch (error) {
-    console.error("COD checkout error:", error);
-    toast({ title: "Something went wrong.", variant: "destructive" });
-  } finally {
-    setIsProcessing(false);
   }
-}
 
   return (
     <div className="flex flex-col">
@@ -172,8 +175,8 @@ async function handleCashOnDeliveryCheckout() {
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
         <div className="flex flex-col gap-4">
-          {cartItems && cartItems.items && cartItems.items.length > 0
-            ? cartItems.items.map((item, idx) => (
+          {cartItemsArray.length > 0
+            ? cartItemsArray.map((item, idx) => (
                 <UserCartItemsContent key={idx} cartItem={item} />
               ))
             : null}
@@ -183,16 +186,14 @@ async function handleCashOnDeliveryCheckout() {
               <span className="font-bold">₹{totalCartAmount}</span>
             </div>
           </div>
-          {/* --- MODIFIED: Added a container for two buttons --- */}
           <div className="mt-4 w-full flex flex-col sm:flex-row gap-4">
             <Button
-  onClick={handleStripeCheckout}
-  className="w-full"
-  disabled={isProcessing || isPaymentStart}
->
-  {isProcessing || isPaymentStart ? "Processing..." : "Checkout with Card"}
-</Button>
-
+              onClick={handleStripeCheckout}
+              className="w-full"
+              disabled={isProcessing || isPaymentStart}
+            >
+              {isProcessing || isPaymentStart ? "Processing..." : "Checkout with Card"}
+            </Button>
             <Button onClick={handleCashOnDeliveryCheckout} className="w-full" disabled={isProcessing}>
               {isProcessing ? "Processing..." : "Pay with Cash on Delivery"}
             </Button>
