@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
 
-// Helper component to display star ratings
+// NEW: Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
   const fullStars = Math.floor(rating);
@@ -57,7 +57,8 @@ function ShoppingProductTile({
       </div>
 
       {/* Product Information */}
-      <CardContent className="p-4 bg-white">
+      {/* FIX: Added padding-bottom (pb-16) to make space for the button on hover */}
+      <CardContent className="p-4 pb-16 bg-white">
         {/* Category/Brand */}
         <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
           {product?.categoryId?.name || "Category"}
@@ -68,7 +69,7 @@ function ShoppingProductTile({
           {product?.title}
         </h2>
 
-        {/* Star Rating */}
+        {/* NEW: Star rating display */}
         <div className="mb-3">
           <StarRating rating={product.averageReview || 4.5} />
         </div>
@@ -130,7 +131,7 @@ ShoppingProductTile.propTypes = {
     totalStock: PropTypes.number,
     salePrice: PropTypes.number,
     price: PropTypes.number,
-    averageReview: PropTypes.number,
+    averageReview: PropTypes.number, // Make sure your product data includes this
     categoryId: PropTypes.shape({
       name: PropTypes.string,
     }),
