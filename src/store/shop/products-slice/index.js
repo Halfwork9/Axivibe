@@ -38,6 +38,22 @@ export const fetchProductDetails = createAsyncThunk(
   }
 );
 
+export const addReviewToProduct = createAsyncThunk(
+  'products/addReview',
+  async ({ productId, rating, comment }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/shop/products/${productId}/reviews`, {
+        rating,
+        comment,
+      });
+      // The backend should return the fully updated product details
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data.message || 'Could not submit review.');
+    }
+  }
+);
+
 const shoppingProductSlice = createSlice({
   name: "shoppingProducts",
   initialState,
@@ -69,7 +85,20 @@ const shoppingProductSlice = createSlice({
     .addCase(fetchProductDetails.rejected, (state) => {
       state.isLoading = false;
       state.productDetails = null;
-    });
+    })
+    .addCase(addReviewToProduct.pending, (state) => {
+        state.isLoading = true; // Or a specific loading state like 'isReviewLoading'
+      })
+      .addCase(addReviewToProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Replace the product details with the updated version from the server
+        state.productDetails = action.payload;
+      })
+      .addCase(addReviewToProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        // Optionally handle the error message
+        state.error = action.payload;
+      });
 }
 
 });
