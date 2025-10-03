@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "@/api"; // your axios instance or fetch wrapper
 import { Star } from "lucide-react";
+import api from "@/api"; // Your axios instance or fetch wrapper
 
 export default function ProductReviewSection({ productId, user }) {
   const [reviews, setReviews] = useState([]);
@@ -9,7 +9,7 @@ export default function ProductReviewSection({ productId, user }) {
   const [reviewMessage, setReviewMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch reviews on mount and after submit
+  // Fetch reviews for this product
   const fetchReviews = () => {
     setLoading(true);
     api.get(`/shop/review/${productId}`)
@@ -21,11 +21,10 @@ export default function ProductReviewSection({ productId, user }) {
     fetchReviews();
   }, [productId]);
 
-  // Handle review submit
+  // Submit a new review
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!reviewValue || !reviewMessage.trim()) return;
-
     setSubmitting(true);
     try {
       await api.post("/shop/review/add", {
@@ -49,6 +48,7 @@ export default function ProductReviewSection({ productId, user }) {
   return (
     <section className="max-w-xl mx-auto my-10">
       <h3 className="font-bold text-lg mb-3">Customer Reviews</h3>
+
       {/* Review submission */}
       {user && (
         <form
