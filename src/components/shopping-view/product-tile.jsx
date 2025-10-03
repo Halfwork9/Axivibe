@@ -1,9 +1,34 @@
-// product-tile.jsx
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import PropTypes from "prop-types";
+import { Star, ShoppingCart } from "lucide-react";
 
-import { Card, CardContent, CardFooter } from "../ui/card";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import PropTypes from "prop-types"; 
+// Helper component to display star ratings
+const StarRating = ({ rating = 0 }) => {
+  const totalStars = 5;
+  const fullStars = Math.floor(rating);
+
+  return (
+    <div className="flex items-center">
+      {[...Array(totalStars)].map((_, i) => (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${
+            i < fullStars
+              ? "text-yellow-400 fill-yellow-400"
+              : "text-gray-300 fill-gray-300"
+          }`}
+        />
+      ))}
+    </div>
+  );
+};
+
+StarRating.propTypes = {
+  rating: PropTypes.number,
+};
+
 
 function ShoppingProductTile({
   product,
@@ -11,74 +36,90 @@ function ShoppingProductTile({
   handleAddtoCart,
 }) {
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
-        <div className="relative">
+    <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+      {/* Clickable Image Area */}
+      <div
+        onClick={() => handleGetProductDetails(product?._id)}
+        className="cursor-pointer"
+      >
+        <div className="relative h-72 w-full overflow-hidden">
           <img
             src={product?.image}
             alt={product?.title}
-            className="w-full h-[300px] object-cover rounded-t-lg"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
-          
-          {product?.totalStock === 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              Out Of Stock
-            </Badge>
-          ) : product?.totalStock < 10 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              {`Only ${product?.totalStock} items left`}
-            </Badge>
-          ) : product?.salePrice > 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+          {product?.salePrice > 0 && (
+            <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
               Sale
             </Badge>
-          ) : null}
+          )}
         </div>
-        <CardContent className="p-4">
-          <h2 className="text-xl font-bold mb-2">{product?.title}</h2>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[16px] text-muted-foreground">
-              {product?.categoryId?.name}
-            </span>
-            <span className="text-[16px] text-muted-foreground">
-              {product?.brandId?.name}
-            </span>
-          </div>
-          <div className="flex justify-between items-center mb-2">
-            <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
-            >
-              ₹{product?.price}
-            </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-semibold text-primary">
-                ₹{product?.salePrice}
-              </span>
-            ) : null}
-          </div>
-        </CardContent>
       </div>
-      <CardFooter>
-        {product?.totalStock === 0 ? (
-          <Button className="w-full opacity-60 cursor-not-allowed">
-            Out Of Stock
-          </Button>
-        ) : (
-          <Button
-            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
-            className="w-full"
-          >
-            Add to cart
-          </Button>
-        )}
-      </CardFooter>
+
+      {/* Product Information */}
+      <CardContent className="p-4 bg-white">
+        {/* Category/Brand */}
+        <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
+          {product?.categoryId?.name || "Category"}
+        </p>
+
+        {/* Title */}
+        <h2 className="mb-2 h-12 text-base font-semibold text-gray-800 truncate-2-lines" title={product?.title}>
+          {product?.title}
+        </h2>
+
+        {/* Star Rating */}
+        <div className="mb-3">
+          <StarRating rating={product.averageReview || 4.5} />
+        </div>
+
+        {/* Price */}
+        <div className="flex items-baseline gap-2">
+          <span className="text-lg font-bold text-red-600">
+            ₹{product?.salePrice > 0 ? product.salePrice : product.price}
+          </span>
+          {product?.salePrice > 0 && (
+            <span className="text-sm text-gray-500 line-through">
+              ₹{product.price}
+            </span>
+          )}
+        </div>
+      </CardContent>
+
+      {/* Add to Cart Button (Appears on Hover) */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <Button
+          onClick={() => handleAddtoCart(product?._id)}
+          className="w-full"
+          disabled={product?.totalStock === 0}
+        >
+          {product?.totalStock === 0 ? (
+            "Out Of Stock"
+          ) : (
+            <>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Add to Cart
+            </>
+          )}
+        </Button>
+      </div>
     </Card>
   );
 }
 
-// FIX: Update propTypes to expect objects for categoryId and brandId
+// Add CSS utility for multi-line truncation to your global CSS file (e.g., index.css)
+/*
+@layer utilities {
+  .truncate-2-lines {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+*/
+
 ShoppingProductTile.propTypes = {
   handleGetProductDetails: PropTypes.func.isRequired,
   handleAddtoCart: PropTypes.func.isRequired,
@@ -89,6 +130,7 @@ ShoppingProductTile.propTypes = {
     totalStock: PropTypes.number,
     salePrice: PropTypes.number,
     price: PropTypes.number,
+    averageReview: PropTypes.number,
     categoryId: PropTypes.shape({
       name: PropTypes.string,
     }),
