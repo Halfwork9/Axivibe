@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 import { Star } from "lucide-react";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
-  // This line correctly prevents the dialog from opening if there are no details.
+  // This line is correctly preventing the dialog from opening because the backend is not sending any product data.
   if (!productDetails) return null;
 
   return (
@@ -20,23 +20,16 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         </DialogHeader>
 
         <div className="grid gap-6">
-          {/* Product Image */}
           <img
             src={productDetails?.image}
             alt={productDetails?.title}
             className="w-full h-[300px] object-cover rounded"
           />
-
-          {/* Description */}
           <p className="text-muted-foreground">{productDetails?.description}</p>
-
-          {/* Category & Brand */}
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Category: {productDetails?.categoryId?.name}</span>
             <span>Brand: {productDetails?.brandId?.name}</span>
           </div>
-
-          {/* Price */}
           <div className="flex gap-4 items-center">
             <span
               className={`${
@@ -51,13 +44,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               </Badge>
             )}
           </div>
-
-          {/* Reviews Section */}
           {productDetails?.reviews && productDetails.reviews.length > 0 && (
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
               <div className="flex items-center gap-2 mb-3">
-                {/* Average Rating */}
                 <div className="flex text-yellow-500">
                   {Array.from({ length: 5 }).map((_, idx) => (
                     <Star
@@ -74,8 +64,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   {productDetails.averageReview.toFixed(1)} / 5
                 </span>
               </div>
-
-              {/* Individual Reviews */}
               <ul className="space-y-2 max-h-40 overflow-y-auto">
                 {productDetails.reviews.map((review, index) => (
                   <li
