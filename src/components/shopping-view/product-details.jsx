@@ -1,15 +1,15 @@
-// client/src/components/shopping-view/product-details.jsx
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
-import { Badge } from "../ui/badge";
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star } from "lucide-react";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  // This line correctly prevents the dialog from opening if there are no details.
   if (!productDetails) return null;
 
   return (
@@ -32,11 +32,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
           {/* Category & Brand */}
           <div className="flex justify-between text-sm text-muted-foreground">
-  <span>Category: {productDetails?.categoryId?.name}</span>
-<span>Brand: {productDetails?.brandId?.name}</span>
-
-</div>
-
+            <span>Category: {productDetails?.categoryId?.name}</span>
+            <span>Brand: {productDetails?.brandId?.name}</span>
+          </div>
 
           {/* Price */}
           <div className="flex gap-4 items-center">
@@ -107,3 +105,4 @@ ProductDetailsDialog.propTypes = {
 };
 
 export default ProductDetailsDialog;
+
