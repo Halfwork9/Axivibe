@@ -4,7 +4,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PropTypes from "prop-types";
@@ -12,11 +11,8 @@ import { Star } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
-
-// We'll create this new component in a separate file
-import StarRatingInput from "./star-rating-input";
-// You will need to create this Redux thunk
-// import { addReviewToProduct } from "@/store/shop/products-slice";
+import StarRatingInput from "@/components/shopping-view/star-rating-input";
+import { addReviewToProduct } from "@/store/shop/products-slice";
 
 
 // Helper component to display existing ratings
@@ -59,38 +55,27 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   const handleReviewSubmit = () => {
     if (newRating === 0) {
-      toast({
-        title: "Please select a star rating.",
-        variant: "destructive",
-      });
+      toast({ title: "Please select a star rating.", variant: "destructive" });
       return;
     }
     if (!user?.id) {
-       toast({
-        title: "Please log in to submit a review.",
-        variant: "destructive",
-      });
+       toast({ title: "Please log in to submit a review.", variant: "destructive" });
       return;
     }
-
-    console.log("Submitting review:", {
-      productId: productDetails._id,
-      userId: user.id,
-      rating: newRating,
-      comment,
-    });
     
-    // **IMPORTANT**: You need to implement this part.
-    // This function should make a POST request to your backend API.
-    // dispatch(addReviewToProduct({ 
-    //   productId: productDetails._id, 
-    //   rating: newRating, 
-    //   comment 
-    // }));
-
-    toast({ title: "Thank you for your review!" });
-    setNewRating(0);
-    setComment("");
+    dispatch(addReviewToProduct({ 
+      productId: productDetails._id, 
+      rating: newRating, 
+      comment 
+    })).then(result => {
+        if (result.meta.requestStatus === 'fulfilled') {
+            toast({ title: "Thank you for your review!" });
+            setNewRating(0);
+            setComment("");
+        } else {
+            toast({ title: "Failed to submit review.", description: result.payload, variant: "destructive" });
+        }
+    });
   };
 
   return (
@@ -193,4 +178,3 @@ ProductDetailsDialog.propTypes = {
 };
 
 export default ProductDetailsDialog;
-
