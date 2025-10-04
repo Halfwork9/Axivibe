@@ -55,5 +55,5 @@ It provides a modern shopping experience with product browsing, cart management,
 
 ---
 
-## 📂 Project Structure
+
 
