@@ -1,10 +1,9 @@
 import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useCallback } from "react";
-import { Button } from "../ui/button";
-import axios from "axios";
-import { Skeleton } from "../ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import PropTypes from "prop-types";
 import api from "@/api";
 
@@ -52,15 +51,12 @@ function ProductImageUpload({
       data.append("my_file", imageFile);
 
       const response = await api.post(
-        "/admin/products/upload-image",
+        "/admin/upload/upload-image",
         data
       );
-
-      console.log("Cloudinary upload response:", response.data.result);
-
+      
       if (response?.data?.success) {
         setUploadedImageUrl(response.data.result.secure_url);
-        setImageLoadingState(false);
       }
     } catch (err) {
       console.error("Image upload failed:", err);
@@ -108,7 +104,7 @@ function ProductImageUpload({
             <span>Drag & drop or click to upload image</span>
           </Label>
         ) : imageLoadingState ? (
-          <Skeleton className="h-10 bg-gray-100" />
+          <Skeleton className="h-48 w-full bg-gray-200" />
         ) : uploadedImageUrl ? (
           <div className="relative">
             <img
@@ -159,3 +155,4 @@ ProductImageUpload.propTypes = {
 };
 
 export default ProductImageUpload;
+
