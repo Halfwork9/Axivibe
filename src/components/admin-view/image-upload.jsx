@@ -31,27 +31,28 @@ function ProductImageUpload({
   }
 
   const uploadImageToCloudinary = useCallback(async () => {
-    if (!imageFile) return;
-    setImageLoadingState(true);
+  if (!imageFile) return;
+  setImageLoadingState(true);
 
-    try {
-      const data = new FormData();
-      // 🔥 Must match backend route key: "my_file"
-      data.append("my_file", imageFile);
+  try {
+    const data = new FormData();
+    // ✅ Must exactly match multer key below
+    data.append("file", imageFile);
 
-      const response = await api.post("/admin/upload/upload-image", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    const response = await api.post("/admin/upload/upload-image", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
-      if (response?.data?.success) {
-        setUploadedImageUrl(response.data.result.secure_url);
-      }
-    } catch (err) {
-      console.error("Image upload failed:", err);
-    } finally {
-      setImageLoadingState(false);
+    if (response?.data?.success) {
+      setUploadedImageUrl(response.data.result.secure_url);
     }
-  }, [imageFile, setImageLoadingState, setUploadedImageUrl]);
+  } catch (err) {
+    console.error("Image upload failed:", err);
+  } finally {
+    setImageLoadingState(false);
+  }
+}, [imageFile, setImageLoadingState, setUploadedImageUrl]);
+
 
   useEffect(() => {
     if (imageFile !== null) uploadImageToCloudinary();
