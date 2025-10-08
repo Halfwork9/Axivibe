@@ -48,7 +48,7 @@ function ProductImageUpload({
 
     try {
       const data = new FormData();
-      data.append("my_file", imageFile);
+      data.append("image", imageFile);
 
       const response = await api.post(
         "/admin/upload/upload-image",
@@ -92,7 +92,6 @@ function ProductImageUpload({
           disabled={isEditMode}
         />
 
-        {/* No file selected */}
         {!imageFile && !uploadedImageUrl ? (
           <Label
             htmlFor="image-upload"
