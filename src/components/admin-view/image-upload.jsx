@@ -37,7 +37,7 @@ function ProductImageUpload({
   try {
     const data = new FormData();
     // ✅ Must exactly match multer key below
-    data.append("file", imageFile);
+    data.append("image", imageFile);
 
     const response = await api.post("/admin/upload/upload-image", data, {
       headers: { "Content-Type": "multipart/form-data" },
