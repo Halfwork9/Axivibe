@@ -67,7 +67,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-     <DialogContent className="sm:max-w-[600px] w-full max-h-[90vh] overflow-y-auto p-4">
+     <DialogContent className="sm:max-w-[600px] w-full max-h-[90vh] overflow-y-auto p-4" aria-describedby="product-description">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">{productDetails?.title}</DialogTitle>
         </DialogHeader>
@@ -75,11 +75,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         <div className="grid gap-6">
           {/* Product Image */}
           <img
-      src={productDetails?.image}
-      alt={productDetails?.title}
-      className="w-full object-cover rounded max-h-[40vh] sm:max-h-[300px]"
-      style={{ width: "100%", height: "auto" }}
-    />
+            src={productDetails?.image}
+            alt={productDetails?.title}
+            className="w-full h-[300px] object-cover rounded"
+          />
 
           {/* Description */}
           <p className="text-muted-foreground">{productDetails?.description}</p>
