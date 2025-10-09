@@ -1,4 +1,3 @@
-// client/src/components/shopping-view/product-details.jsx
 import {
   Dialog,
   DialogContent,
@@ -8,9 +7,63 @@ import {
 import { Badge } from "../ui/badge";
 import PropTypes from "prop-types";
 import { Star } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
+import StarRatingInput from "./star-rating-input"; // ✅ same folder
+import { useDispatch, useSelector } from "react-redux";
+import { addReviewToProduct } from "@/store/shop/products-slice";
+import { useToast } from "@/components/ui/use-toast";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const { toast } = useToast();
+
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   if (!productDetails) return null;
+
+  const handleSubmitReview = async () => {
+    if (!rating || !comment.trim()) {
+      toast({
+        title: "Please fill all fields",
+        description: "Provide both a rating and a comment before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await dispatch(
+        addReviewToProduct({
+          productId: productDetails._id,
+          rating,
+          comment,
+        })
+      ).unwrap();
+
+      setRating(0);
+      setComment("");
+      toast({
+        title: "✅ Review added successfully!",
+        className: "bg-green-600 text-white",
+      });
+    } catch (err) {
+      console.error("Failed to add review:", err);
+      toast({
+        title: "Failed to add review",
+        description:
+          err.message || "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -32,11 +85,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
           {/* Category & Brand */}
           <div className="flex justify-between text-sm text-muted-foreground">
-  <span>Category: {productDetails?.categoryId?.name}</span>
-<span>Brand: {productDetails?.brandId?.name}</span>
-
-</div>
-
+            <span>Category: {productDetails?.categoryId?.name}</span>
+            <span>Brand: {productDetails?.brandId?.name}</span>
+          </div>
 
           {/* Price */}
           <div className="flex gap-4 items-center">
@@ -59,7 +110,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
               <div className="flex items-center gap-2 mb-3">
-                {/* Average Rating */}
                 <div className="flex text-yellow-500">
                   {Array.from({ length: 5 }).map((_, idx) => (
                     <Star
@@ -86,13 +136,41 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   >
                     <p className="text-sm">{review.comment}</p>
                     <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground">
-                      <span>- {review.userName}</span>
+                      <span>- {review.userId?.userName || "Anonymous"}</span>
                       <span>{review.rating} ★</span>
                     </div>
                   </li>
                 ))}
               </ul>
             </div>
+          )}
+
+          {/* ✅ Add Review Form (only visible if logged in) */}
+          {user && (
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-lg font-semibold mb-3">Add Your Review</h3>
+              <StarRatingInput rating={rating} setRating={setRating} />
+              <Textarea
+                placeholder="Write your review..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="mt-3"
+              />
+              <Button
+                onClick={handleSubmitReview}
+                disabled={submitting}
+                className="mt-3 w-full"
+              >
+                {submitting ? "Submitting..." : "Submit Review"}
+              </Button>
+            </div>
+          )}
+
+          {/* Message for guests */}
+          {!user && (
+            <p className="text-sm text-gray-500 italic mt-3">
+              Please log in to add a review.
+            </p>
           )}
         </div>
       </DialogContent>
