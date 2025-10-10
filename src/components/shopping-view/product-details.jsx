@@ -84,8 +84,13 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   className="w-full max-h-[400px] object-contain rounded bg-gray-50"
 />
 
-
-          <p className="text-muted-foreground">{productDetails?.description}</p>
+{/* ✅ Product Description Section */}
+<div className="mt-4">
+  <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
+  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+    {productDetails?.description || "No description available for this product."}
+  </p>
+</div>
 
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Category: {productDetails?.categoryId?.name}</span>
