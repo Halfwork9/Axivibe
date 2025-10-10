@@ -11,8 +11,11 @@ function AdminProductTile({
   setCurrentEditedId,
   handleDelete,
 }) {
+  const isOnSale =
+    product?.salePrice && product?.salePrice < product?.price && product?.salePrice > 0;
+
   return (
-    <Card className="w-full max-w-sm mx-auto border border-gray-200 shadow-sm hover:shadow-md transition">
+    <Card className="w-full max-w-sm mx-auto border border-gray-200 shadow-sm hover:shadow-lg transition">
       {/* Product Image */}
       <div className="relative">
         <img
@@ -21,9 +24,9 @@ function AdminProductTile({
           className="w-full h-[260px] object-contain bg-gray-50 rounded-t-lg p-2"
         />
 
-        {/* Sale Badge */}
-        {product?.salePrice > 0 && (
-          <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
+        {/* ✅ Show sale badge only if salePrice < price */}
+        {isOnSale && (
+          <Badge className="absolute top-3 left-3 bg-red-600 text-white border-none">
             On Sale
           </Badge>
         )}
@@ -39,32 +42,36 @@ function AdminProductTile({
           {product?.title}
         </h2>
 
-        {/* Category and Brand */}
-        <div className="flex justify-between text-sm text-gray-600">
+        {/* Category and Brand (highlighted labels) */}
+        <div className="flex justify-between text-sm text-gray-700">
           <span>
-            Category: {product?.categoryId?.name || "Uncategorized"}
+            <strong className="text-gray-900">Category:</strong>{" "}
+            {product?.categoryId?.name || "Uncategorized"}
           </span>
-          <span>Brand: {product?.brandId?.name || "N/A"}</span>
+          <span>
+            <strong className="text-gray-900">Brand:</strong>{" "}
+            {product?.brandId?.name || "N/A"}
+          </span>
         </div>
 
         {/* Price Section */}
         <div className="flex items-baseline gap-2">
           <span
             className={`${
-              product?.salePrice > 0 ? "line-through text-gray-400" : ""
-            } text-lg font-semibold text-primary`}
+              isOnSale ? "line-through text-gray-400" : "text-gray-800"
+            } text-lg font-semibold`}
           >
             ₹{product?.price}
           </span>
-          {product?.salePrice > 0 && (
+          {isOnSale && (
             <span className="text-lg font-bold text-red-600">
               ₹{product?.salePrice}
             </span>
           )}
         </div>
 
-        {/* Stock Info */}
-        <div className="flex justify-between items-center text-sm">
+        {/* Stock & Rating Info */}
+        <div className="flex justify-between items-center text-sm mt-2">
           <span
             className={`font-medium ${
               product?.totalStock > 10
@@ -76,6 +83,7 @@ function AdminProductTile({
           >
             Stock: {product?.totalStock ?? 0}
           </span>
+
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
             <span className="text-sm text-gray-700">
@@ -87,19 +95,22 @@ function AdminProductTile({
 
       {/* Action Buttons */}
       <CardFooter className="flex justify-between items-center pt-3">
+        {/* ✅ Brighter Edit Button */}
         <Button
           onClick={() => {
             setOpenCreateProductsDialog(true);
             setCurrentEditedId(product?._id);
             setFormData(product);
           }}
-          variant="secondary"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
         >
           Edit
         </Button>
+
         <Button
           variant="destructive"
           onClick={() => handleDelete(product?._id)}
+          className="font-semibold"
         >
           Delete
         </Button>
