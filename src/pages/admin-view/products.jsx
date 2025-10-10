@@ -1,4 +1,3 @@
-// client/src/components/admin-view/products.jsx
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import CommonForm from "@/components/common/form";
@@ -20,6 +19,8 @@ import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const initialFormData = {
   image: null,
@@ -31,11 +32,11 @@ const initialFormData = {
   salePrice: "",
   totalStock: "",
   averageReview: 0,
+  isOnSale: false, // ✅ new field
 };
 
 function AdminProducts() {
-  const [openCreateProductsDialog, setOpenCreateProductsDialog] =
-    useState(false);
+  const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
@@ -55,6 +56,10 @@ function AdminProducts() {
     const payload = {
       ...formData,
       image: uploadedImageUrl,
+      salePrice:
+        formData.isOnSale && formData.salePrice
+          ? Number(formData.salePrice)
+          : 0, // ✅ If not on sale, reset sale price to 0
     };
 
     currentEditedId !== null
@@ -74,7 +79,7 @@ function AdminProducts() {
             setOpenCreateProductsDialog(false);
             setImageFile(null);
             setFormData(initialFormData);
-            toast({ title: "Product added successfully" });
+            toast({ title: "✅ Product added successfully" });
           }
         });
   }
@@ -89,7 +94,7 @@ function AdminProducts() {
 
   function isFormValid() {
     return Object.keys(formData)
-      .filter((key) => key !== "averageReview")
+      .filter((key) => key !== "averageReview" && key !== "isOnSale")
       .every((key) => formData[key] !== "");
   }
 
@@ -101,12 +106,20 @@ function AdminProducts() {
 
   return (
     <Fragment>
+      {/* Header */}
       <div className="mb-5 w-full flex justify-end">
-        <Button onClick={() => setOpenCreateProductsDialog(true)}>
+        <Button
+          onClick={() => {
+            setFormData(initialFormData);
+            setOpenCreateProductsDialog(true);
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+        >
           Add New Product
         </Button>
       </div>
 
+      {/* Products Grid */}
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
         {productList?.map((productItem) => (
           <AdminProductTile
@@ -120,6 +133,7 @@ function AdminProducts() {
         ))}
       </div>
 
+      {/* Product Sheet Drawer */}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -145,6 +159,7 @@ function AdminProducts() {
             isEditMode={currentEditedId !== null}
           />
 
+          {/* Main Form */}
           <div className="py-6">
             <CommonForm
               onSubmit={onSubmit}
@@ -153,11 +168,7 @@ function AdminProducts() {
               buttonText={currentEditedId !== null ? "Edit" : "Add"}
               formControls={[
                 { label: "Title", name: "title", componentType: "input" },
-                {
-                  label: "Description",
-                  name: "description",
-                  componentType: "textarea",
-                },
+                { label: "Description", name: "description", componentType: "textarea" },
                 {
                   label: "Category",
                   name: "categoryId",
@@ -177,16 +188,40 @@ function AdminProducts() {
                   })),
                 },
                 { label: "Price", name: "price", componentType: "input" },
+
+                // ✅ Add "Is On Sale?" toggle
+                {
+                  label: (
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="isOnSale" className="text-sm font-semibold">
+                        Is On Sale?
+                      </Label>
+                      <Switch
+                        id="isOnSale"
+                        checked={formData.isOnSale}
+                        onCheckedChange={(val) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            isOnSale: val,
+                            salePrice: val ? prev.salePrice : "",
+                          }))
+                        }
+                      />
+                    </div>
+                  ),
+                  name: "isOnSaleToggle",
+                  componentType: "custom",
+                },
+
+                // ✅ Conditionally enabled Sale Price
                 {
                   label: "Sale Price",
                   name: "salePrice",
                   componentType: "input",
+                  disabled: !formData.isOnSale,
                 },
-                {
-                  label: "Total Stock",
-                  name: "totalStock",
-                  componentType: "input",
-                },
+
+                { label: "Total Stock", name: "totalStock", componentType: "input" },
               ]}
               isBtnDisabled={!isFormValid()}
             />
