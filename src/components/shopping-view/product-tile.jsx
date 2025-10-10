@@ -1,10 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
 
-// NEW: Helper component to display star ratings
+// Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
   const fullStars = Math.floor(rating);
@@ -36,59 +36,62 @@ function ShoppingProductTile({
   handleAddtoCart,
 }) {
   return (
-    <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300">
-      {/* Clickable Image Area */}
-      <div
-        onClick={() => handleGetProductDetails(product?._id)}
-        className="cursor-pointer"
-      >
-        <div className="relative h-72 w-full overflow-hidden">
-          <img
-            src={product?.image}
-            alt={product?.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          {product?.salePrice > 0 && (
-            <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
-              Sale
-            </Badge>
-          )}
+    // FIX: Using flexbox to ensure the footer (button) always sticks to the bottom
+    <Card className="w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between">
+      <div>
+        {/* Clickable Image Area */}
+        <div
+          onClick={() => handleGetProductDetails(product?._id)}
+          className="cursor-pointer"
+        >
+          <div className="relative h-72 w-full overflow-hidden">
+            <img
+              src={product?.image}
+              alt={product?.title}
+              className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+            />
+            {product?.salePrice > 0 && (
+              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
+                Sale
+              </Badge>
+            )}
+          </div>
         </div>
+
+        {/* Product Information */}
+        <CardContent className="p-4 bg-white">
+          {/* Category/Brand */}
+          <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
+            {product?.categoryId?.name || "Category"}
+          </p>
+
+          {/* Title */}
+          <h2 className="mb-2 h-12 text-base font-semibold text-gray-800 truncate-2-lines" title={product?.title}>
+            {product?.title}
+          </h2>
+
+          {/* Star rating display */}
+          <div className="mb-3">
+            <StarRating rating={product.averageReview || 4.5} />
+          </div>
+
+          {/* Price */}
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-red-600">
+              ₹{product?.salePrice > 0 ? product.salePrice : product.price}
+            </span>
+            {product?.salePrice > 0 && (
+              <span className="text-sm text-gray-500 line-through">
+                ₹{product.price}
+              </span>
+            )}
+          </div>
+        </CardContent>
       </div>
 
-      {/* Product Information */}
-      {/* FIX: Added padding-bottom (pb-16) to make space for the button on hover */}
-      <CardContent className="p-4 pb-16 bg-white">
-        {/* Category/Brand */}
-        <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
-          {product?.categoryId?.name || "Category"}
-        </p>
 
-        {/* Title */}
-        <h2 className="mb-2 h-12 text-base font-semibold text-gray-800 truncate-2-lines" title={product?.title}>
-          {product?.title}
-        </h2>
-
-        {/* NEW: Star rating display */}
-        <div className="mb-3">
-          <StarRating rating={product.averageReview || 4.5} />
-        </div>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-red-600">
-            ₹{product?.salePrice > 0 ? product.salePrice : product.price}
-          </span>
-          {product?.salePrice > 0 && (
-            <span className="text-sm text-gray-500 line-through">
-              ₹{product.price}
-            </span>
-          )}
-        </div>
-      </CardContent>
-
-      {/* Add to Cart Button (Appears on Hover) */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      {/* FIX: Add to Cart Button is now in a CardFooter to be always visible */}
+      <CardFooter className="p-4 pt-0">
         <Button
           onClick={() => handleAddtoCart(product?._id)}
           className="w-full"
@@ -103,22 +106,22 @@ function ShoppingProductTile({
             </>
           )}
         </Button>
-      </div>
+      </CardFooter>
     </Card>
   );
 }
 
-// Add CSS utility for multi-line truncation to your global CSS file (e.g., index.css)
 /*
-@layer utilities {
-  .truncate-2-lines {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  Add this to your global CSS file (e.g., src/index.css) for the title truncation to work:
+  @layer utilities {
+    .truncate-2-lines {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
-}
 */
 
 ShoppingProductTile.propTypes = {
@@ -131,7 +134,7 @@ ShoppingProductTile.propTypes = {
     totalStock: PropTypes.number,
     salePrice: PropTypes.number,
     price: PropTypes.number,
-    averageReview: PropTypes.number, // Make sure your product data includes this
+    averageReview: PropTypes.number,
     categoryId: PropTypes.shape({
       name: PropTypes.string,
     }),
