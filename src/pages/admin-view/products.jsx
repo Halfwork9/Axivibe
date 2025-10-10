@@ -8,6 +8,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import {
   addNewProduct,
@@ -19,8 +21,6 @@ import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const initialFormData = {
   image: null,
@@ -31,8 +31,8 @@ const initialFormData = {
   price: "",
   salePrice: "",
   totalStock: "",
+  isOnSale: false, // ✅ added
   averageReview: 0,
-  isOnSale: false, // ✅ new field
 };
 
 function AdminProducts() {
@@ -55,47 +55,47 @@ function AdminProducts() {
 
     const payload = {
       ...formData,
-      image: uploadedImageUrl,
-      salePrice:
-        formData.isOnSale && formData.salePrice
-          ? Number(formData.salePrice)
-          : 0, // ✅ If not on sale, reset sale price to 0
+      image: uploadedImageUrl || formData.image,
     };
 
-    currentEditedId !== null
-      ? dispatch(editProduct({ id: currentEditedId, formData: payload })).then(
-          (data) => {
-            if (data?.payload?.success) {
-              dispatch(fetchAllProducts());
-              setFormData(initialFormData);
-              setOpenCreateProductsDialog(false);
-              setCurrentEditedId(null);
-            }
+    currentEditedId
+      ? dispatch(editProduct({ id: currentEditedId, formData: payload })).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllProducts());
+            resetForm();
+            toast({ title: "Product updated successfully" });
           }
-        )
+        })
       : dispatch(addNewProduct(payload)).then((data) => {
           if (data?.payload?.success) {
             dispatch(fetchAllProducts());
-            setOpenCreateProductsDialog(false);
-            setImageFile(null);
-            setFormData(initialFormData);
-            toast({ title: "✅ Product added successfully" });
+            resetForm();
+            toast({ title: "Product added successfully" });
           }
         });
   }
 
-  function handleDelete(getCurrentProductId) {
-    dispatch(deleteProduct(getCurrentProductId)).then((data) => {
+  function resetForm() {
+    setFormData(initialFormData);
+    setOpenCreateProductsDialog(false);
+    setCurrentEditedId(null);
+    setImageFile(null);
+    setUploadedImageUrl("");
+  }
+
+  function handleDelete(productId) {
+    dispatch(deleteProduct(productId)).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
+        toast({ title: "Product deleted" });
       }
     });
   }
 
   function isFormValid() {
     return Object.keys(formData)
-      .filter((key) => key !== "averageReview" && key !== "isOnSale")
-      .every((key) => formData[key] !== "");
+      .filter((key) => key !== "averageReview")
+      .every((key) => key !== "salePrice" || formData.isOnSale ? formData[key] !== "" : true);
   }
 
   useEffect(() => {
@@ -106,34 +106,25 @@ function AdminProducts() {
 
   return (
     <Fragment>
-      {/* Header */}
       <div className="mb-5 w-full flex justify-end">
-        <Button
-          onClick={() => {
-            setFormData(initialFormData);
-            setOpenCreateProductsDialog(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-        >
+        <Button onClick={() => setOpenCreateProductsDialog(true)}>
           Add New Product
         </Button>
       </div>
 
-      {/* Products Grid */}
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList?.map((productItem) => (
+        {productList?.map((product) => (
           <AdminProductTile
-            key={productItem._id}
+            key={product._id}
+            product={product}
             setFormData={setFormData}
             setOpenCreateProductsDialog={setOpenCreateProductsDialog}
             setCurrentEditedId={setCurrentEditedId}
-            product={productItem}
             handleDelete={handleDelete}
           />
         ))}
       </div>
 
-      {/* Product Sheet Drawer */}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -145,7 +136,7 @@ function AdminProducts() {
         <SheetContent side="right" className="overflow-auto">
           <SheetHeader>
             <SheetTitle>
-              {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+              {currentEditedId ? "Edit Product" : "Add New Product"}
             </SheetTitle>
           </SheetHeader>
 
@@ -159,13 +150,12 @@ function AdminProducts() {
             isEditMode={currentEditedId !== null}
           />
 
-          {/* Main Form */}
-          <div className="py-6">
+          <div className="py-6 space-y-4">
             <CommonForm
               onSubmit={onSubmit}
               formData={formData}
               setFormData={setFormData}
-              buttonText={currentEditedId !== null ? "Edit" : "Add"}
+              buttonText={currentEditedId ? "Update Product" : "Add Product"}
               formControls={[
                 { label: "Title", name: "title", componentType: "input" },
                 { label: "Description", name: "description", componentType: "textarea" },
@@ -173,58 +163,47 @@ function AdminProducts() {
                   label: "Category",
                   name: "categoryId",
                   componentType: "select",
-                  options: categoryList.map((c) => ({
-                    id: c._id,
-                    label: c.name,
-                  })),
+                  options: categoryList.map((c) => ({ id: c._id, label: c.name })),
                 },
                 {
                   label: "Brand",
                   name: "brandId",
                   componentType: "select",
-                  options: brandList.map((b) => ({
-                    id: b._id,
-                    label: b.name,
-                  })),
+                  options: brandList.map((b) => ({ id: b._id, label: b.name })),
                 },
                 { label: "Price", name: "price", componentType: "input" },
-
-                // ✅ Add "Is On Sale?" toggle
                 {
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="isOnSale" className="text-sm font-semibold">
-                        Is On Sale?
-                      </Label>
-                      <Switch
-                        id="isOnSale"
-                        checked={formData.isOnSale}
-                        onCheckedChange={(val) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            isOnSale: val,
-                            salePrice: val ? prev.salePrice : "",
-                          }))
-                        }
-                      />
-                    </div>
-                  ),
-                  name: "isOnSaleToggle",
-                  componentType: "custom",
-                },
-
-                // ✅ Conditionally enabled Sale Price
-                {
-                  label: "Sale Price",
-                  name: "salePrice",
+                  label: "Total Stock",
+                  name: "totalStock",
                   componentType: "input",
-                  disabled: !formData.isOnSale,
                 },
-
-                { label: "Total Stock", name: "totalStock", componentType: "input" },
               ]}
               isBtnDisabled={!isFormValid()}
             />
+
+            {/* ✅ Is On Sale Toggle + Conditional Sale Price Input */}
+            <div className="flex items-center justify-between mt-4">
+              <Label htmlFor="isOnSale" className="font-semibold text-md">
+                Is On Sale?
+              </Label>
+              <Switch
+                checked={formData.isOnSale}
+                onCheckedChange={(val) => setFormData({ ...formData, isOnSale: val })}
+              />
+            </div>
+
+            {formData.isOnSale && (
+              <div className="mt-2">
+                <Label className="font-semibold text-md">Sale Price</Label>
+                <input
+                  type="number"
+                  value={formData.salePrice}
+                  onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+                  className="w-full border rounded-md px-3 py-2 mt-1 focus:ring focus:ring-blue-200"
+                  placeholder="Enter discounted price"
+                />
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>
