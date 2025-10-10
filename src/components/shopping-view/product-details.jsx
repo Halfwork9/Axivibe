@@ -79,10 +79,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
         <div className="grid gap-6">
           <img
-            src={productDetails?.image}
-            alt={productDetails?.title}
-            className="w-full h-[300px] object-cover rounded"
-          />
+  src={productDetails?.image}
+  alt={productDetails?.title}
+  className="w-full max-h-[400px] object-contain rounded bg-gray-50"
+/>
+
 
           <p className="text-muted-foreground">{productDetails?.description}</p>
 
