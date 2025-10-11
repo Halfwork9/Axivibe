@@ -1,5 +1,3 @@
-import { useState, useEffect, Fragment } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import CommonForm from "@/components/common/form";
@@ -12,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
   addNewProduct,
@@ -22,13 +20,8 @@ import {
 } from "@/store/admin/products-slice";
 import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { useEffect, useState, Fragment } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 const initialFormData = {
   image: null,
@@ -44,45 +37,53 @@ const initialFormData = {
 };
 
 function AdminProducts() {
-  const dispatch = useDispatch();
-  const { toast } = useToast();
+  const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
+  const [formData, setFormData] = useState(initialFormData);
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [currentEditedId, setCurrentEditedId] = useState(null);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
+  const [saleFilter, setSaleFilter] = useState("");
+  const [page, setPage] = useState(1);
+
   const { productList, pagination } = useSelector((state) => state.adminProducts);
   const { brandList } = useSelector((state) => state.adminBrands);
   const { categoryList } = useSelector((state) => state.adminCategories);
 
-  // --- Local UI states ---
-  const [openDialog, setOpenDialog] = useState(false);
-  const [formData, setFormData] = useState(initialFormData);
-  const [currentEditedId, setCurrentEditedId] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const dispatch = useDispatch();
+  const { toast } = useToast();
 
-  // --- Filters + Pagination ---
-  const [filters, setFilters] = useState({
-    search: "",
-    categoryId: "",
-    brandId: "",
-    isOnSale: "",
-  });
-  const [page, setPage] = useState(1);
+  const loadProducts = () => {
+    dispatch(
+      fetchAllProducts({
+        page,
+        categoryId: categoryFilter,
+        brandId: brandFilter,
+        isOnSale: saleFilter,
+      })
+    );
+  };
+
+  // 🔁 Fetch products when filters/pagination change
+  useEffect(() => {
+    loadProducts();
+  }, [dispatch, page, categoryFilter, brandFilter, saleFilter]);
 
   useEffect(() => {
-    dispatch(fetchAllProducts({ page, ...filters }));
     dispatch(fetchAllBrands());
     dispatch(fetchAllCategories());
-  }, [dispatch, page, filters]);
+  }, [dispatch]);
 
-  function handleFilterChange(field, value) {
-    setFilters((prev) => ({ ...prev, [field]: value }));
-    setPage(1);
-  }
+  // Handle search filter
+  const filteredProducts = productList?.filter((product) =>
+    product.title.toLowerCase().includes(search.toLowerCase())
+  );
 
-  function handleSearchChange(e) {
-    const value = e.target.value;
-    setFilters((prev) => ({ ...prev, search: value }));
-    setPage(1);
-  }
-
+  // Add / Edit form submission
   function onSubmit(e) {
     e.preventDefault();
     const payload = { ...formData, image: uploadedImageUrl || formData.image };
@@ -93,127 +94,123 @@ function AdminProducts() {
 
     dispatch(action).then((data) => {
       if (data?.payload?.success) {
-        dispatch(fetchAllProducts());
+        loadProducts();
+        toast({ title: currentEditedId ? "Product updated" : "Product added" });
         resetForm();
-        toast({
-          title: currentEditedId ? "Product updated successfully" : "Product added successfully",
-        });
       }
     });
   }
 
-  function resetForm() {
+  const resetForm = () => {
     setFormData(initialFormData);
-    setOpenDialog(false);
+    setOpenCreateProductsDialog(false);
     setCurrentEditedId(null);
     setImageFile(null);
     setUploadedImageUrl("");
-  }
+  };
 
-  function handleDelete(id) {
+  const handleDelete = (id) => {
     dispatch(deleteProduct(id)).then((data) => {
       if (data?.payload?.success) {
-        dispatch(fetchAllProducts());
+        loadProducts();
         toast({ title: "Product deleted" });
       }
     });
-  }
+  };
 
   return (
     <Fragment>
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between mb-6 gap-3">
-        <h2 className="text-2xl font-bold">Manage Products</h2>
-        <Button onClick={() => setOpenDialog(true)}>Add Product</Button>
-      </div>
-
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
-        <Input
-          placeholder="Search by name..."
-          value={filters.search}
-          onChange={handleSearchChange}
-          className="w-64"
-        />
-
-        <Select onValueChange={(val) => handleFilterChange("categoryId", val)}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
-            {categoryList.map((cat) => (
-              <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select onValueChange={(val) => handleFilterChange("brandId", val)}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by Brand" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Brands</SelectItem>
-            {brandList.map((b) => (
-              <SelectItem key={b._id} value={b._id}>{b.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select onValueChange={(val) => handleFilterChange("isOnSale", val)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Sale Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All</SelectItem>
-            <SelectItem value="true">On Sale</SelectItem>
-            <SelectItem value="false">Not on Sale</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            type="text"
+            placeholder="Search product..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-3 py-2 rounded-md w-48 focus:ring-2 focus:ring-blue-200"
+          />
+          <Select
+            value={categoryFilter}
+            onValueChange={setCategoryFilter}
+            options={categoryList.map((c) => ({
+              id: c._id,
+              label: c.name,
+            }))}
+            placeholder="Filter by Category"
+          />
+          <Select
+            value={brandFilter}
+            onValueChange={setBrandFilter}
+            options={brandList.map((b) => ({
+              id: b._id,
+              label: b.name,
+            }))}
+            placeholder="Filter by Brand"
+          />
+          <Select
+            value={saleFilter}
+            onValueChange={setSaleFilter}
+            options={[
+              { id: "true", label: "On Sale" },
+              { id: "false", label: "Regular" },
+            ]}
+            placeholder="Sale Status"
+          />
+        </div>
+        <Button onClick={() => setOpenCreateProductsDialog(true)}>Add Product</Button>
       </div>
 
-      {/* Products */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {productList?.map((p) => (
-          <AdminProductTile
-            key={p._id}
-            product={p}
-            setFormData={setFormData}
-            setOpenCreateProductsDialog={setOpenDialog}
-            setCurrentEditedId={setCurrentEditedId}
-            handleDelete={handleDelete}
-          />
-        ))}
+      {/* Product Grid */}
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+        {filteredProducts?.length ? (
+          filteredProducts.map((product) => (
+            <AdminProductTile
+              key={product._id}
+              product={product}
+              setFormData={setFormData}
+              setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+              setCurrentEditedId={setCurrentEditedId}
+              handleDelete={handleDelete}
+            />
+          ))
+        ) : (
+          <p className="col-span-full text-center text-gray-500 py-10">
+            No products found.
+          </p>
+        )}
       </div>
 
       {/* Pagination */}
       {pagination && (
-        <div className="flex justify-center items-center gap-3 mt-8">
+        <div className="flex justify-center gap-2 mt-6">
           <Button
             variant="outline"
-            disabled={page <= 1}
-            onClick={() => setPage((prev) => prev - 1)}
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
           >
             Prev
           </Button>
-          <span className="font-medium">
-            Page {pagination.currentPage} of {pagination.totalPages}
+          <span className="px-4 py-2 font-semibold">
+            Page {page} of {pagination.totalPages || 1}
           </span>
           <Button
             variant="outline"
             disabled={page >= pagination.totalPages}
-            onClick={() => setPage((prev) => prev + 1)}
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
           </Button>
         </div>
       )}
 
-      {/* Add/Edit Product Sheet */}
-      <Sheet open={openDialog} onOpenChange={() => resetForm()}>
+      {/* Add/Edit Drawer */}
+      <Sheet open={openCreateProductsDialog} onOpenChange={resetForm}>
         <SheetContent side="right" className="overflow-auto">
           <SheetHeader>
-            <SheetTitle>{currentEditedId ? "Edit Product" : "Add New Product"}</SheetTitle>
+            <SheetTitle>
+              {currentEditedId ? "Edit Product" : "Add New Product"}
+            </SheetTitle>
           </SheetHeader>
 
           <ProductImageUpload
@@ -221,9 +218,6 @@ function AdminProducts() {
             setImageFile={setImageFile}
             uploadedImageUrl={uploadedImageUrl}
             setUploadedImageUrl={setUploadedImageUrl}
-            setImageLoadingState={() => {}}
-            imageLoadingState={false}
-            isEditMode={currentEditedId !== null}
           />
 
           <div className="py-6 space-y-4">
@@ -239,21 +233,24 @@ function AdminProducts() {
                   label: "Category",
                   name: "categoryId",
                   componentType: "select",
-                  options: categoryList.map((c) => ({ id: c._id, label: c.name })),
+                  options: categoryList
+                    .filter((c) => c && c._id && c.name)
+                    .map((c) => ({ id: c._id, label: c.name })),
                 },
                 {
                   label: "Brand",
                   name: "brandId",
                   componentType: "select",
-                  options: brandList.map((b) => ({ id: b._id, label: b.name })),
+                  options: brandList
+                    .filter((b) => b && b._id && b.name)
+                    .map((b) => ({ id: b._id, label: b.name })),
                 },
                 { label: "Price", name: "price", componentType: "input" },
                 { label: "Total Stock", name: "totalStock", componentType: "input" },
               ]}
-              isBtnDisabled={!formData.title || !formData.price}
             />
 
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between">
               <Label htmlFor="isOnSale" className="font-semibold text-md">
                 Is On Sale?
               </Label>
@@ -264,8 +261,8 @@ function AdminProducts() {
             </div>
 
             {formData.isOnSale && (
-              <div className="mt-3">
-                <Label className="font-semibold">Sale Price</Label>
+              <div className="mt-2">
+                <Label className="font-semibold text-md">Sale Price</Label>
                 <input
                   type="number"
                   value={formData.salePrice}
