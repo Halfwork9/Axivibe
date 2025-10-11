@@ -4,28 +4,22 @@ import api from "@/api";
 const initialState = {
   isLoading: false,
   productList: [],
+  pagination: null, // ✅ added pagination
 };
 
 export const addNewProduct = createAsyncThunk(
-  "/products/addnewproduct",
+  "adminProducts/addNewProduct",
   async (formData) => {
-    const result = await api.post(
-      "/admin/products/add",
-      formData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    const result = await api.post("/admin/products/add", formData, {
+      headers: { "Content-Type": "application/json" },
+    });
     return result?.data;
   }
 );
 
 export const fetchAllProducts = createAsyncThunk(
-  "/products/fetchAllProducts",
-  async ({ page = 1, limit = 20, categoryId = "", brandId = "", isOnSale = "" }) => {
+  "adminProducts/fetchAllProducts",
+  async ({ page = 1, limit = 20, categoryId = "", brandId = "", isOnSale = "" } = {}) => {
     const query = new URLSearchParams({
       page,
       limit,
@@ -40,34 +34,24 @@ export const fetchAllProducts = createAsyncThunk(
 );
 
 export const editProduct = createAsyncThunk(
-  "/products/editProduct",
+  "adminProducts/editProduct",
   async ({ id, formData }) => {
-    const result = await api.put(
-      `/admin/products/edit/${id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    const result = await api.put(`/admin/products/edit/${id}`, formData, {
+      headers: { "Content-Type": "application/json" },
+    });
     return result?.data;
   }
 );
 
 export const deleteProduct = createAsyncThunk(
-  "/products/deleteProduct",
+  "adminProducts/deleteProduct",
   async (id) => {
-    const result = await api.delete(
-      `/admin/products/delete/${id}`
-    );
-
+    const result = await api.delete(`/admin/products/delete/${id}`);
     return result?.data;
   }
 );
 
-const AdminProductsSlice = createSlice({
+const adminProductsSlice = createSlice({
   name: "adminProducts",
   initialState,
   reducers: {},
@@ -78,17 +62,14 @@ const AdminProductsSlice = createSlice({
       })
       .addCase(fetchAllProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.productList = action.payload.data;
+        state.productList = action.payload.data || [];
+        state.pagination = action.payload.pagination || null; // ✅ pagination handled here
       })
       .addCase(fetchAllProducts.rejected, (state) => {
         state.isLoading = false;
         state.productList = [];
-      })
-    .addCase(fetchAllProducts.fulfilled, (state, action) => {
-  state.productList = action.payload.data;
-  state.pagination = action.payload.pagination;
-});
+      });
   },
 });
 
-export default AdminProductsSlice.reducer;
+export default adminProductsSlice.reducer;
