@@ -57,6 +57,16 @@ function AdminProducts() {
   const dispatch = useDispatch();
   const { toast } = useToast();
 
+  // --- SAFE OPTIONS ---
+  const categoryOptions = categoryList?.filter(c => c && c._id && c.name)
+    .map(c => ({ id: String(c._id), label: c.name })) || [];
+  const brandOptions = brandList?.filter(b => b && b._id && b.name)
+    .map(b => ({ id: String(b._id), label: b.name })) || [];
+  const saleOptions = [
+    { id: "true", label: "On Sale" },
+    { id: "false", label: "Regular" },
+  ];
+
   const loadProducts = () => {
     dispatch(
       fetchAllProducts({
@@ -133,28 +143,19 @@ function AdminProducts() {
           <Select
             value={categoryFilter}
             onValueChange={setCategoryFilter}
-            options={categoryList.map((c) => ({
-              id: c._id,
-              label: c.name,
-            }))}
+            options={categoryOptions}
             placeholder="Filter by Category"
           />
           <Select
             value={brandFilter}
             onValueChange={setBrandFilter}
-            options={brandList.map((b) => ({
-              id: b._id,
-              label: b.name,
-            }))}
+            options={brandOptions}
             placeholder="Filter by Brand"
           />
           <Select
             value={saleFilter}
             onValueChange={setSaleFilter}
-            options={[
-              { id: "true", label: "On Sale" },
-              { id: "false", label: "Regular" },
-            ]}
+            options={saleOptions}
             placeholder="Sale Status"
           />
         </div>
@@ -233,17 +234,13 @@ function AdminProducts() {
                   label: "Category",
                   name: "categoryId",
                   componentType: "select",
-                  options: categoryList
-                    .filter((c) => c && c._id && c.name)
-                    .map((c) => ({ id: c._id, label: c.name })),
+                  options: categoryOptions,
                 },
                 {
                   label: "Brand",
                   name: "brandId",
                   componentType: "select",
-                  options: brandList
-                    .filter((b) => b && b._id && b.name)
-                    .map((b) => ({ id: b._id, label: b.name })),
+                  options: brandOptions,
                 },
                 { label: "Price", name: "price", componentType: "input" },
                 { label: "Total Stock", name: "totalStock", componentType: "input" },
