@@ -13,10 +13,7 @@ import { ArrowUpDownIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { sortOptions } from "@/config";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import {
-  fetchAllFilteredProducts,
-  fetchProductDetails,
-} from "@/store/shop/products-slice";
+import { fetchShopProducts, fetchProductDetails } from "@/store/shop/products-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
@@ -107,7 +104,7 @@ function ShoppingListing() {
   useEffect(() => {
     const queryString = createSearchParamsHelper(filters);
     setSearchParams(new URLSearchParams(queryString));
-    dispatch(fetchAllFilteredProducts({ filterParams: filters, sortParams: sort, page, limit: 20 }));
+    dispatch(fetchShopProducts({ filterParams: filters, sortParams: sort, page, limit: 20 }));
   }, [dispatch, sort, filters, page, setSearchParams]);
 
   useEffect(() => {
