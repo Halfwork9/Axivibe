@@ -25,12 +25,17 @@ export const addNewProduct = createAsyncThunk(
 
 export const fetchAllProducts = createAsyncThunk(
   "/products/fetchAllProducts",
-  async () => {
-    const result = await api.get(
-      "/admin/products/get"
-    );
+  async ({ page = 1, limit = 20, categoryId = "", brandId = "", isOnSale = "" }) => {
+    const query = new URLSearchParams({
+      page,
+      limit,
+      ...(categoryId && { categoryId }),
+      ...(brandId && { brandId }),
+      ...(isOnSale && { isOnSale }),
+    }).toString();
 
-    return result?.data;
+    const result = await api.get(`/admin/products/get?${query}`, { withCredentials: true });
+    return result.data;
   }
 );
 
