@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
-
+import { getDiscountPercentage } from "@/lib/utils";
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
@@ -30,6 +30,7 @@ StarRating.propTypes = {
 };
 
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart }) {
+  const discount = getDiscountPercentage(product?.price, product?.salePrice);
   return (
     <Card className="w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between">
       <div>
@@ -44,11 +45,18 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
               alt={product?.title}
               className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
             />
-            {product?.salePrice > 0 && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
-                Sale
-              </Badge>
-            )}
+           {/*  On Sale Badge */}
+        {product?.isOnSale && (
+          <Badge className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 text-xs font-bold">
+            🔥 On Sale
+          </Badge>
+        )}
+            {/* Discount Badge */}
+        {discount && (
+          <Badge className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 text-xs font-bold">
+            {discount}% OFF
+          </Badge>
+        )}
           </div>
         </div>
 
@@ -61,18 +69,24 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
             {product?.title}
           </h2>
 
-          {/* ✅ FIX: Star rating now correctly uses the product's actual averageReview or defaults to 0 */}
+          {/*  FIX: Star rating now correctly uses the product's actual averageReview or defaults to 0 */}
           <div className="mb-3">
             <StarRating rating={product.averageReview || 0} />
           </div>
 
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-red-600">
-              ₹{product?.salePrice > 0 ? product.salePrice : product.price}
+         <div>
+            <span
+              className={`${
+                product?.isOnSale && product?.salePrice > 0
+                  ? "line-through text-gray-500"
+                  : ""
+              } text-base font-semibold`}
+            >
+              ₹{product?.price}
             </span>
-            {product?.salePrice > 0 && (
-              <span className="text-sm text-gray-500 line-through">
-                ₹{product.price}
+            {product?.isOnSale && product?.salePrice > 0 && (
+              <span className="text-base font-bold text-red-600 ml-2">
+                ₹{product?.salePrice}
               </span>
             )}
           </div>
