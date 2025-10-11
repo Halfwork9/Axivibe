@@ -36,7 +36,24 @@ function createSearchParamsHelper(filterParams) {
 
   return queryParams.join("&");
 }
+const [page, setPage] = useState(1);
 
+function clearFilters() {
+  setFilters({});
+  sessionStorage.removeItem("filters");
+  setPage(1);
+}
+
+useEffect(() => {
+  dispatch(
+    fetchAllFilteredProducts({
+      filterParams: filters,
+      sortParams: sort,
+      page,
+      limit: 20,
+    })
+  );
+}, [dispatch, sort, filters, page]);
 function ShoppingListing() {
   const dispatch = useDispatch();
   const { productList, productDetails } = useSelector(
@@ -202,6 +219,27 @@ function ShoppingListing() {
         productDetails={productDetails}
       />
     </div>
+    {pagination && (
+  <div className="flex justify-center items-center gap-3 mt-8">
+    <Button
+      variant="outline"
+      disabled={page <= 1}
+      onClick={() => setPage((prev) => prev - 1)}
+    >
+      Prev
+    </Button>
+    <span>
+      Page {pagination.currentPage} of {pagination.totalPages}
+    </span>
+    <Button
+      variant="outline"
+      disabled={page >= pagination.totalPages}
+      onClick={() => setPage((prev) => prev + 1)}
+    >
+      Next
+    </Button>
+  </div>
+)}
   );
 }
 
