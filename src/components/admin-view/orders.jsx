@@ -19,9 +19,21 @@ import {
 } from "@/store/admin/order-slice";
 import { Badge } from "../ui/badge";
 
+const sortOptions = [
+  { value: "date-desc", label: "Latest First" },
+  { value: "date-asc", label: "Oldest First" },
+  { value: "amount-desc", label: "Amount: High to Low" },
+  { value: "amount-asc", label: "Amount: Low to High" },
+  { value: "status", label: "Status" },
+];
+
 function AdminOrdersView() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  const { orderList, orderDetails } = useSelector((state) => state.adminOrder);
+  const [sortBy, setSortBy] = useState("date-desc");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const { orderList, orderDetails, pagination } = useSelector((state) => state.adminOrder);
   const dispatch = useDispatch();
 
   function handleFetchOrderDetails(getId) {
@@ -29,8 +41,8 @@ function AdminOrdersView() {
   }
 
   useEffect(() => {
-    dispatch(getAllOrdersForAdmin());
-  }, [dispatch]);
+    dispatch(getAllOrdersForAdmin({ sortBy, page }));
+  }, [dispatch, sortBy, page]);
 
   useEffect(() => {
     if (orderDetails !== null) {
@@ -43,12 +55,24 @@ function AdminOrdersView() {
     dispatch(resetOrderDetails());
   }
 
-  // Sort orders by date descending (latest first)
-  const sortedOrderList = (orderList || []).slice().sort((a, b) => {
-    const dateA = a.orderDate ? new Date(a.orderDate) : new Date(parseInt(a._id.substring(0, 8), 16) * 1000);
-    const dateB = b.orderDate ? new Date(b.orderDate) : new Date(parseInt(b._id.substring(0, 8), 16) * 1000);
-    return dateB - dateA;
-  });
+  // Sort orders locally if backend doesn't sort
+  let sortedOrderList = (orderList || []).slice();
+  if (sortBy === "date-desc") {
+    sortedOrderList.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+  } else if (sortBy === "date-asc") {
+    sortedOrderList.sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
+  } else if (sortBy === "amount-desc") {
+    sortedOrderList.sort((a, b) => b.totalAmount - a.totalAmount);
+  } else if (sortBy === "amount-asc") {
+    sortedOrderList.sort((a, b) => a.totalAmount - b.totalAmount);
+  } else if (sortBy === "status") {
+    sortedOrderList.sort((a, b) => a.orderStatus.localeCompare(b.orderStatus));
+  }
+
+  // Pagination
+  useEffect(() => {
+    if (pagination?.totalPages) setTotalPages(pagination.totalPages);
+  }, [pagination]);
 
   return (
     <>
@@ -57,6 +81,40 @@ function AdminOrdersView() {
           <CardTitle>All Orders</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Controls */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            {/* Sort */}
+            <select
+              className="border px-3 py-2 rounded-md"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              {sortOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {/* Pagination */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+              >
+                Prev
+              </Button>
+              <span>
+                Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+              </span>
+              <Button
+                variant="outline"
+                disabled={page >= totalPages}
+                onClick={() => setPage(p => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+
           {/* TABLE FOR DESKTOP */}
           <div className="hidden sm:block">
             <Table>
