@@ -6,8 +6,7 @@ export function cn(...inputs) {
 }
 
 // ✅ Calculate discount percentage safely
-export function getDiscountPercentage(price, salePrice) {
-  if (!price || !salePrice || salePrice >= price) return null;
-  const discount = ((price - salePrice) / price) * 100;
-  return Math.round(discount);
+export function getDiscountPercentage(originalPrice, salePrice) {
+  if (!originalPrice || !salePrice || salePrice >= originalPrice) return 0;
+  return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
 }
