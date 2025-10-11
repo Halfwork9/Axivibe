@@ -83,7 +83,11 @@ const AdminProductsSlice = createSlice({
       .addCase(fetchAllProducts.rejected, (state) => {
         state.isLoading = false;
         state.productList = [];
-      });
+      })
+    .addCase(fetchAllProducts.fulfilled, (state, action) => {
+  state.productList = action.payload.data;
+  state.pagination = action.payload.pagination;
+});
   },
 });
 
