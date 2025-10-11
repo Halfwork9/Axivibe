@@ -2,6 +2,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import PropTypes from "prop-types";
 import { Badge } from "../ui/badge";
+import { getDiscountPercentage } from "@/lib/utils";
 
 function AdminProductTile({
   product,
@@ -10,6 +11,8 @@ function AdminProductTile({
   setCurrentEditedId,
   handleDelete,
 }) {
+  const discount = getDiscountPercentage(product?.price, product?.salePrice);
+
   return (
     <Card className="w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition">
       <div className="relative">
@@ -25,6 +28,13 @@ function AdminProductTile({
             🔥 On Sale
           </Badge>
         )}
+
+        {/* ✅ Discount percentage */}
+        {discount && (
+          <Badge className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 text-xs font-bold">
+            {discount}% OFF
+          </Badge>
+        )}
       </div>
 
       <CardContent>
@@ -36,21 +46,19 @@ function AdminProductTile({
           {product?.description}
         </p>
 
-        {/* ✅ Category + Brand with highlight */}
-        <div className="text-sm mb-3">
+        <div className="text-sm mb-3 space-y-1">
           <p>
-            <span className="font-semibold text-gray-800">Category:</span>{" "}
+            <span className="font-semibold text-gray-900">Category:</span>{" "}
             {product?.categoryId?.name || "—"}
           </p>
           <p>
-            <span className="font-semibold text-gray-800">Brand:</span>{" "}
+            <span className="font-semibold text-gray-900">Brand:</span>{" "}
             {product?.brandId?.name || "—"}
           </p>
         </div>
 
-        {/* ✅ Stock */}
         <p className="text-sm mb-3">
-          <span className="font-semibold text-gray-800">Available Stock:</span>{" "}
+          <span className="font-semibold text-gray-900">Available Stock:</span>{" "}
           {product?.totalStock || 0}
         </p>
 
@@ -58,7 +66,9 @@ function AdminProductTile({
           <div>
             <span
               className={`${
-                product?.salePrice > 0 ? "line-through text-gray-500" : ""
+                product?.isOnSale && product?.salePrice > 0
+                  ? "line-through text-gray-500"
+                  : ""
               } text-base font-semibold text-primary`}
             >
               ₹{product?.price}
