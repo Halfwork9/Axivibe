@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchAllFilteredProducts,
+  fetchShopProducts,
   fetchProductDetails,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
@@ -91,7 +91,7 @@ function ShoppingHome() {
 
   useEffect(() => {
     dispatch(
-      fetchAllFilteredProducts({
+      fetchShopProducts({
         filterParams: {},
         sortParams: "price-lowtohigh",
       })
