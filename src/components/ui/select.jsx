@@ -1,148 +1,120 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import PropTypes from "prop-types";
-import { Star, ShoppingCart } from "lucide-react";
-import ProductReviewSection from "@/components/ProductReviewSection";
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
-// Helper component to display star ratings
-const StarRating = ({ rating = 0 }) => {
-  const totalStars = 5;
-  const fullStars = Math.floor(rating);
+import { cn } from "@/lib/utils"
 
-  return (
-    <div className="flex items-center">
-      {[...Array(totalStars)].map((_, i) => (
-        <Star
-          key={i}
-          className={`h-4 w-4 ${
-            i < fullStars
-              ? "text-yellow-400 fill-yellow-400"
-              : "text-gray-300 fill-gray-300"
-          }`}
-        />
-      ))}
-    </div>
-  );
-};
+const Select = SelectPrimitive.Root
 
-StarRating.propTypes = {
-  rating: PropTypes.number,
-};
+const SelectGroup = SelectPrimitive.Group
 
-function ShoppingProductTile({
-  product,
-  handleGetProductDetails,
-  handleAddtoCart,
-  user
-}) {
-  return (
-    <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300">
-      {/* Clickable Image Area */}
-      <div
-        onClick={() => handleGetProductDetails(product?._id)}
-        className="cursor-pointer"
-      >
-        <div className="relative h-72 w-full overflow-hidden">
-          <img
-            src={product?.image}
-            alt={product?.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          {product?.salePrice > 0 && (
-            <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
-              Sale
-            </Badge>
-          )}
-        </div>
-      </div>
+const SelectValue = SelectPrimitive.Value
 
-      {/* Product Information */}
-      <CardContent className="p-4 pb-16 bg-white">
-        {/* Category/Brand */}
-        <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
-          {product?.categoryId?.name || "Category"}
-        </p>
-        <h2 className="mb-2 h-12 text-base font-semibold text-gray-800 truncate-2-lines" title={product?.title}>
-          {product?.title}
-        </h2>
+const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      className
+    )}
+    {...props}>
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
-        {/* Star rating display */}
-        <div className="mb-3">
-          <StarRating rating={product.averageReview || 4.5} />
-        </div>
+const SelectScrollUpButton = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn("flex cursor-default items-center justify-center py-1", className)}
+    {...props}>
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
 
-        {/* Price */}
-        <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-red-600">
-            ₹{product?.salePrice > 0 ? product.salePrice : product.price}
-          </span>
-          {product?.salePrice > 0 && (
-            <span className="text-sm text-gray-500 line-through">
-              ₹{product.price}
-            </span>
-          )}
-        </div>
-      </CardContent>
+const SelectScrollDownButton = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn("flex cursor-default items-center justify-center py-1", className)}
+    {...props}>
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName
 
-      {/* Add to Cart Button (Appears on Hover) */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <Button
-          onClick={() => handleAddtoCart(product?._id)}
-          className="w-full"
-          disabled={product?.totalStock === 0}
-        >
-          {product?.totalStock === 0 ? (
-            "Out Of Stock"
-          ) : (
-            <>
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Add to Cart
-            </>
-          )}
-        </Button>
-      </div>
+const SelectContent = React.forwardRef(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}>
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn("p-1", position === "popper" &&
+          "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]")}>
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
 
-      {/* Review Section for product */}
-      <div className="mt-6">
-        <ProductReviewSection productId={product._id} user={user} />
-      </div>
-    </Card>
-  );
+const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props} />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}>
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props} />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
 }
-
-// Add CSS utility for multi-line truncation to your global CSS file (e.g., index.css)
-/*
-@layer utilities {
-  .truncate-2-lines {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-*/
-
-ShoppingProductTile.propTypes = {
-  handleGetProductDetails: PropTypes.func.isRequired,
-  handleAddtoCart: PropTypes.func.isRequired,
-  user: PropTypes.object, // Pass logged-in user object
-  product: PropTypes.shape({
-    _id: PropTypes.string,
-    image: PropTypes.string,
-    title: PropTypes.string,
-    totalStock: PropTypes.number,
-    salePrice: PropTypes.number,
-    price: PropTypes.number,
-    averageReview: PropTypes.number,
-    categoryId: PropTypes.shape({
-      name: PropTypes.string,
-    }),
-    brandId: PropTypes.shape({
-      name: PropTypes.string,
-    }),
-  }).isRequired,
-};
-
-export default ShoppingProductTile;
