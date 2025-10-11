@@ -11,7 +11,10 @@ function AdminProductTile({
   setCurrentEditedId,
   handleDelete,
 }) {
-  const discount = getDiscountPercentage(product?.price, product?.salePrice);
+  const discount =
+  product.price && product.salePrice && product.salePrice < product.price
+    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+    : 0;
 
   return (
     <Card className="w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition">
