@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
-
+import { getDiscountPercentage } from "@/lib/utils";
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
@@ -34,7 +34,10 @@ function ShoppingProductTile({
   handleGetProductDetails,
   handleAddtoCart,
   user
-}) {
+}) {const discount =
+  product.price && product.salePrice && product.salePrice < product.price
+    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+    : 0;
   return (
     <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between">
       <div>
