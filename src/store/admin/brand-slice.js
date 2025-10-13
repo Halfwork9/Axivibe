@@ -29,11 +29,15 @@ export const createBrand = createAsyncThunk(
 // ✅ NEW: Thunk for editing a brand
 export const editBrand = createAsyncThunk(
   "adminBrands/editBrand",
-  async ({ id, formData }) => {
-    const response = await api.put(`/admin/brands/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
+  async ({ id, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/admin/brands/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data; // returns { success, data, message }
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
 );
 
@@ -62,15 +66,14 @@ const brandSlice = createSlice({
       })
       // ✅ NEW: Handle edit success
       .addCase(editBrand.fulfilled, (state, action) => {
-        if (action.payload.success) {
-          const index = state.brandList.findIndex(
-            (brand) => brand._id === action.payload.data._id
-          );
-          if (index !== -1) {
-            state.brandList[index] = action.payload.data;
-          }
-        }
-      })
+  if (action.payload?.success && action.payload?.data) {
+    const updated = action.payload.data;
+    const idx = state.brandList.findIndex(b => b._id === updated._id);
+    if (idx !== -1) {
+      state.brandList[idx] = updated;
+    }
+  }
+})
       .addCase(deleteBrand.fulfilled, (state, action) => {
         state.brandList = state.brandList.filter(
           (brand) => brand._id !== action.payload
@@ -80,3 +83,4 @@ const brandSlice = createSlice({
 });
 
 export default brandSlice.reducer;
+
