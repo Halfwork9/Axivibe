@@ -30,32 +30,37 @@ function AdminBrandsPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  if (!brandName) {
+    toast({ title: "Brand name is required", variant: "destructive" });
+    return;
+  }
 
-    if (!brandName) {
-      toast({ title: "Brand name is required", variant: "destructive" });
-      return;
-    }
+  const formData = new FormData();
+  formData.append("name", brandName);
+  formData.append("icon", brandIcon);
+  if (logoFile) formData.append("logo", logoFile);
 
-    const formData = new FormData();
-    formData.append("name", brandName);
-    formData.append("icon", brandIcon);
-    if (logoFile) formData.append("logo", logoFile);
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/brands`, {
+      method: "POST",
+      body: formData,
+    });
 
-    try {
-      if (editBrandId) {
-        await dispatch(editBrand({ id: editBrandId, formData }));
-        toast({ title: "Brand updated successfully!" });
-      } else {
-        await dispatch(createBrand(Object.fromEntries(formData)));
-        toast({ title: "Brand created successfully!" });
-      }
+    const data = await res.json();
+    if (data.success) {
+      toast({ title: "Brand created successfully" });
       resetForm();
       dispatch(fetchAllBrands());
-    } catch (error) {
-      toast({ title: "Action failed", variant: "destructive" });
+    } else {
+      toast({ title: data.message || "Failed to create brand", variant: "destructive" });
     }
-  };
+  } catch (error) {
+    console.error("Upload failed", error);
+    toast({ title: "Upload failed", variant: "destructive" });
+  }
+};
+
 
   const resetForm = () => {
     setBrandName("");
@@ -143,14 +148,20 @@ function AdminBrandsPage() {
             <Card key={brand._id}>
               <CardContent className="flex flex-col items-center p-4">
                 {brand.logo ? (
-                  <img src={brand.logo} alt={brand.name} className="w-16 h-16 object-contain mb-2" />
-                ) : IconComp ? (
-                  <IconComp className="w-10 h-10 text-primary mb-2" />
-                ) : (
-                  <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">
-                    {brand.name[0]}
-                  </span>
-                )}
+  <img
+    src={brand.logo}
+    alt={brand.name}
+    className="w-16 h-16 object-contain mb-2 border rounded"
+    onError={(e) => (e.target.style.display = "none")} // fallback if broken URL
+  />
+) : IconComp ? (
+  <IconComp className="w-10 h-10 text-primary mb-2" />
+) : (
+  <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">
+    {brand.name[0]}
+  </span>
+)}
+
                 <span className="font-bold">{brand.name}</span>
               </CardContent>
               <CardFooter className="p-2 flex gap-2">
@@ -174,3 +185,4 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
