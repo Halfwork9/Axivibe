@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createBrand, deleteBrand, fetchAllBrands, editBrand } from "../../../store/admin/brand-slice";
+import { createBrand, deleteBrand, fetchAllBrands, editBrand } from "@/store/admin/brand-slice";
 import { Card, CardContent, CardFooter } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -186,5 +186,6 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
 
