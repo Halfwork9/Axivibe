@@ -16,11 +16,18 @@ function AdminBrandsPage() {
   const [brandName, setBrandName] = useState("");
   const [brandIcon, setBrandIcon] = useState("");
   const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState("");
   const [editBrandId, setEditBrandId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllBrands());
   }, [dispatch]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setLogoFile(file);
+    if (file) setLogoPreview(URL.createObjectURL(file));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,25 +42,34 @@ function AdminBrandsPage() {
     formData.append("icon", brandIcon);
     if (logoFile) formData.append("logo", logoFile);
 
-    if (editBrandId) {
-      await dispatch(editBrand({ id: editBrandId, formData }));
-      toast({ title: "Brand updated successfully!" });
-    } else {
-      await dispatch(createBrand(Object.fromEntries(formData)));
-      toast({ title: "Brand created successfully!" });
+    try {
+      if (editBrandId) {
+        await dispatch(editBrand({ id: editBrandId, formData }));
+        toast({ title: "Brand updated successfully!" });
+      } else {
+        await dispatch(createBrand(Object.fromEntries(formData)));
+        toast({ title: "Brand created successfully!" });
+      }
+      resetForm();
+      dispatch(fetchAllBrands());
+    } catch (error) {
+      toast({ title: "Action failed", variant: "destructive" });
     }
+  };
 
+  const resetForm = () => {
     setBrandName("");
     setBrandIcon("");
     setLogoFile(null);
+    setLogoPreview("");
     setEditBrandId(null);
-    dispatch(fetchAllBrands());
   };
 
   const handleEdit = (brand) => {
     setEditBrandId(brand._id);
     setBrandName(brand.name);
     setBrandIcon(brand.icon);
+    setLogoPreview(brand.logo || "");
   };
 
   const handleDelete = (id) => {
@@ -73,10 +89,8 @@ function AdminBrandsPage() {
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Manage Brands</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col md:flex-row gap-4 mb-8 items-end"
-      >
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 mb-8 items-end">
         <div>
           <Label htmlFor="brandName">Brand Name</Label>
           <Input
@@ -86,6 +100,7 @@ function AdminBrandsPage() {
             placeholder="Enter brand name"
           />
         </div>
+
         <div>
           <Label htmlFor="brandIcon">Icon (optional)</Label>
           <select
@@ -102,15 +117,19 @@ function AdminBrandsPage() {
             ))}
           </select>
         </div>
+
         <div>
           <Label htmlFor="brandLogo">Logo Image</Label>
-          <Input
-            id="brandLogo"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setLogoFile(e.target.files[0])}
-          />
+          <Input id="brandLogo" type="file" accept="image/*" onChange={handleFileChange} />
+          {logoPreview && (
+            <img
+              src={logoPreview}
+              alt="Preview"
+              className="w-16 h-16 object-contain mt-2 border rounded"
+            />
+          )}
         </div>
+
         <Button type="submit" className="self-end">
           {editBrandId ? "Update Brand" : "Create Brand"}
         </Button>
@@ -124,11 +143,7 @@ function AdminBrandsPage() {
             <Card key={brand._id}>
               <CardContent className="flex flex-col items-center p-4">
                 {brand.logo ? (
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    className="w-16 h-16 object-contain mb-2"
-                  />
+                  <img src={brand.logo} alt={brand.name} className="w-16 h-16 object-contain mb-2" />
                 ) : IconComp ? (
                   <IconComp className="w-10 h-10 text-primary mb-2" />
                 ) : (
@@ -139,21 +154,15 @@ function AdminBrandsPage() {
                 <span className="font-bold">{brand.name}</span>
               </CardContent>
               <CardFooter className="p-2 flex gap-2">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => handleEdit(brand)}
-                >
-                  <LucideIcons.Edit className="w-4 h-4 mr-1" />
-                  Edit
+                <Button variant="outline" className="w-full" onClick={() => handleEdit(brand)}>
+                  <LucideIcons.Edit className="w-4 h-4 mr-1" /> Edit
                 </Button>
                 <Button
                   variant="destructive"
                   className="w-full"
                   onClick={() => handleDelete(brand._id)}
                 >
-                  <LucideIcons.Trash2 className="w-4 h-4 mr-1" />
-                  Delete
+                  <LucideIcons.Trash2 className="w-4 h-4 mr-1" /> Delete
                 </Button>
               </CardFooter>
             </Card>
