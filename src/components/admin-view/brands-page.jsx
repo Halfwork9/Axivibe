@@ -29,37 +29,24 @@ function AdminBrandsPage() {
     if (file) setLogoPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
   e.preventDefault();
-  if (!brandName) {
-    toast({ title: "Brand name is required", variant: "destructive" });
-    return;
-  }
 
   const formData = new FormData();
   formData.append("name", brandName);
   formData.append("icon", brandIcon);
-  if (logoFile) formData.append("logo", logoFile);
+  if (brandLogo) formData.append("logo", brandLogo); // ✅ send logo file
 
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/brands`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      toast({ title: "Brand created successfully" });
-      resetForm();
-      dispatch(fetchAllBrands());
-    } else {
-      toast({ title: data.message || "Failed to create brand", variant: "destructive" });
+  dispatch(createBrand(formData)).then((res) => {
+    if (res?.payload?.success) {
+      toast({ title: "Brand created successfully!" });
+      setBrandName("");
+      setBrandIcon("");
+      setBrandLogo(null);
     }
-  } catch (error) {
-    console.error("Upload failed", error);
-    toast({ title: "Upload failed", variant: "destructive" });
-  }
+  });
 };
+
 
 
   const resetForm = () => {
@@ -125,7 +112,8 @@ function AdminBrandsPage() {
 
         <div>
           <Label htmlFor="brandLogo">Logo Image</Label>
-          <Input id="brandLogo" type="file" accept="image/*" onChange={handleFileChange} />
+         <Input type="file" onChange={(e) => setBrandLogo(e.target.files[0])} />
+
           {logoPreview && (
             <img
               src={logoPreview}
@@ -147,23 +135,23 @@ function AdminBrandsPage() {
           return (
             <Card key={brand._id}>
               <CardContent className="flex flex-col items-center p-4">
-                {brand.logo ? (
-  <img
-    src={brand.logo}
-    alt={brand.name}
-    className="w-16 h-16 object-contain mb-2 border rounded"
-    onError={(e) => (e.target.style.display = "none")} // fallback if broken URL
-  />
-) : IconComp ? (
-  <IconComp className="w-10 h-10 text-primary mb-2" />
-) : (
-  <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">
-    {brand.name[0]}
-  </span>
-)}
+  {brand.logo ? (
+    <img
+      src={brand.logo}
+      alt={brand.name}
+      className="w-16 h-16 object-contain mb-2 border rounded bg-white"
+      onError={(e) => (e.target.style.display = "none")}
+    />
+  ) : IconComp ? (
+    <IconComp className="w-10 h-10 text-primary mb-2" />
+  ) : (
+    <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">
+      {brand.name[0]}
+    </span>
+  )}
+  <span className="font-bold">{brand.name}</span>
+</CardContent>
 
-                <span className="font-bold">{brand.name}</span>
-              </CardContent>
               <CardFooter className="p-2 flex gap-2">
                 <Button variant="outline" className="w-full" onClick={() => handleEdit(brand)}>
                   <LucideIcons.Edit className="w-4 h-4 mr-1" /> Edit
@@ -185,4 +173,5 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
