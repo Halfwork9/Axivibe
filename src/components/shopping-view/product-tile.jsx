@@ -49,11 +49,19 @@ function ShoppingProductTile({
               alt={product?.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
-            {product?.salePrice > 0 && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-none">
-                Sale
-              </Badge>
-            )}
+           {/* ✅ On Sale badge */}
+        {product?.isOnSale && (
+          <Badge className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 text-xs font-bold">
+            🔥 On Sale
+          </Badge>
+        )}
+
+        {/* ✅ Discount percentage */}
+        {discount && (
+          <Badge className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 text-xs font-bold">
+            {discount}% OFF
+          </Badge>
+        )}
           </div>
         </div>
 
