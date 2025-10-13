@@ -69,23 +69,32 @@ function AdminBrandsPage() {
     setIsEditDialogOpen(true);
   }
 
-  const handleEditSubmit = () => {
-    if (!editName) {
-       toast({ title: "Brand name is required", variant: "destructive" });
-      return;
-    }
-    const formData = new FormData();
-    formData.append("name", editName);
-    formData.append("icon", editIcon);
-    if(editLogo) formData.append("logo", editLogo);
-    
-    dispatch(editBrand({id: editingBrand._id, formData})).then(res => {
-      if(res?.payload?.success){
-        toast({title: "Brand updated successfully!"});
-        setIsEditDialogOpen(false);
-      }
-    })
+  const handleEditSubmit = async () => {
+  if (!editName) {
+    toast({ title: "Brand name is required", variant: "destructive" });
+    return;
   }
+
+  const formData = new FormData();
+  formData.append("name", editName);
+  formData.append("icon", editIcon);
+  if (editLogo) formData.append("logo", editLogo);
+
+  const res = await dispatch(editBrand({ id: editingBrand._id, formData }));
+
+  if (res?.payload?.success) {
+    toast({ title: "Brand updated successfully!" });
+    setIsEditDialogOpen(false);
+    dispatch(fetchAllBrands()); // ✅ reload the updated list
+  } else {
+    toast({
+      title: "Failed to update brand",
+      description: res?.payload?.message || "Something went wrong",
+      variant: "destructive",
+    });
+  }
+};
+
 
   return (
     <div className="p-6">
@@ -177,4 +186,5 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
