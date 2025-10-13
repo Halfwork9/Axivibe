@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
-import ProductReviewSection from "@/components/ProductReviewSection";
 
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
@@ -85,28 +84,29 @@ function ShoppingProductTile({
         </div>
       </CardContent>
 
-      {/* Add to Cart Button (Appears on Hover) */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <Button
-          onClick={() => handleAddtoCart(product?._id)}
-          className="w-full"
-          disabled={product?.totalStock === 0}
-        >
-          {product?.totalStock === 0 ? (
-            "Out Of Stock"
-          ) : (
-            <>
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Add to Cart
-            </>
-          )}
-        </Button>
-      </div>
+      <div className="flex flex-col justify-between h-full">
+  <div>
+    <img src={product.image} alt={product.title} className="w-full h-48 object-cover rounded-t" />
+    <h3 className="text-lg font-semibold mt-2">{product.title}</h3>
+    <p className="text-sm text-gray-500">{product.categoryId?.name}</p>
+  </div>
 
-      {/* Review Section for product */}
+  <div className="mt-3 flex justify-between items-center">
+    <span className="font-bold text-primary">₹{product.salePrice || product.price}</span>
+    <Button
+      onClick={() => handleAddtoCart(product._id)}
+      className="bg-primary hover:bg-primary/90 text-white"
+    >
+      Add to Cart
+    </Button>
+  </div>
+</div>
+
+
+      {/* Review Section for product 
       <div className="mt-6">
         <ProductReviewSection productId={product._id} user={user} />
-      </div>
+      </div> */}
     </Card>
   );
 }
