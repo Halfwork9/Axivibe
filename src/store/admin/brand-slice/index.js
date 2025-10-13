@@ -1,29 +1,48 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "@/api";
 
 const initialState = {
   brandList: [],
-  isLoading: false,
+  status: "idle",
+  error: null,
 };
 
-// Create a new brand
+// Thunks
+export const fetchAllBrands = createAsyncThunk(
+  "adminBrands/fetchAllBrands",
+  async () => {
+    const response = await api.get("/admin/brands");
+    return response.data.data;
+  }
+);
+
 export const createBrand = createAsyncThunk(
-  "admin/brands/createBrand",
-  async ({ name, icon }) => {
-    const response = await axios.post("http://localhost:5000/api/admin/brands", {
-      name,
-      icon,
+  "adminBrands/createBrand",
+  async (formData) => {
+    const response = await api.post("/admin/brands", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
   }
 );
 
-// Fetch all brands
-export const fetchAllBrands = createAsyncThunk(
-  "admin/brands/fetchAllBrands",
-  async () => {
-    const response = await axios.get("http://localhost:5000/api/admin/brands");
+// ✅ NEW: Thunk for editing a brand
+export const editBrand = createAsyncThunk(
+  "adminBrands/editBrand",
+  async ({ id, formData }) => {
+    const response = await api.put(`/admin/brands/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
+  }
+);
+
+
+export const deleteBrand = createAsyncThunk(
+  "adminBrands/deleteBrand",
+  async (id) => {
+    await api.delete(`/admin/brands/${id}`);
+    return id;
   }
 );
 
@@ -33,31 +52,29 @@ const brandSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Create brand
-      .addCase(createBrand.pending, (state) => {
-        state.isLoading = true;
+      .addCase(fetchAllBrands.fulfilled, (state, action) => {
+        state.brandList = action.payload;
       })
       .addCase(createBrand.fulfilled, (state, action) => {
-        state.isLoading = false;
-        if (action.payload?.success && action.payload?.data) {
+        if (action.payload.success) {
           state.brandList.push(action.payload.data);
         }
       })
-      .addCase(createBrand.rejected, (state) => {
-        state.isLoading = false;
+      // ✅ NEW: Handle edit success
+      .addCase(editBrand.fulfilled, (state, action) => {
+        if (action.payload.success) {
+          const index = state.brandList.findIndex(
+            (brand) => brand._id === action.payload.data._id
+          );
+          if (index !== -1) {
+            state.brandList[index] = action.payload.data;
+          }
+        }
       })
-
-      // Fetch brands
-      .addCase(fetchAllBrands.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(fetchAllBrands.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.brandList = action.payload?.data || [];
-      })
-      .addCase(fetchAllBrands.rejected, (state) => {
-        state.isLoading = false;
-        state.brandList = [];
+      .addCase(deleteBrand.fulfilled, (state, action) => {
+        state.brandList = state.brandList.filter(
+          (brand) => brand._id !== action.payload
+        );
       });
   },
 });
