@@ -41,6 +41,17 @@ export const deleteBrand = createAsyncThunk(
   }
 );
 
+export const editBrand = createAsyncThunk(
+  "admin/brands/editBrand",
+  async ({ id, formData }) => {
+    const response = await api.put(`/admin/brands/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  }
+);
+
+
 const brandSlice = createSlice({
   name: "adminBrands",
   initialState,
@@ -77,11 +88,20 @@ const brandSlice = createSlice({
         state.brandList = state.brandList.filter(
           (brand) => brand._id !== action.payload
         );
-      });
+      })
+    .addCase(editBrand.fulfilled, (state, action) => {
+  const updated = action.payload?.data;
+  if (updated) {
+    const index = state.brandList.findIndex((b) => b._id === updated._id);
+    if (index !== -1) state.brandList[index] = updated;
+  }
+});
+    
   },
 });
 
 export default brandSlice.reducer;
+
 
 
 
