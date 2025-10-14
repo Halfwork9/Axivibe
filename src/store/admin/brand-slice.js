@@ -1,13 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api";
 
+// Helper function to get token
+const getAuthHeader = () => {
+  const token = localStorage.getItem("token"); // or Clerk session if using Clerk
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 const initialState = {
   brandList: [],
   status: "idle",
   error: null,
 };
 
-// Thunks
+// Fetch All Brands
 export const fetchAllBrands = createAsyncThunk(
   "adminBrands/fetchAllBrands",
   async () => {
@@ -16,36 +22,41 @@ export const fetchAllBrands = createAsyncThunk(
   }
 );
 
+// ✅ Create Brand with Token
 export const createBrand = createAsyncThunk(
   "adminBrands/createBrand",
   async (formData) => {
     const response = await api.post("/admin/brands", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+        ...getAuthHeader(),
+      },
     });
     return response.data;
   }
 );
 
-// ✅ NEW: Thunk for editing a brand
+// ✅ Edit Brand with Token
 export const editBrand = createAsyncThunk(
   "adminBrands/editBrand",
-  async ({ id, formData }, { rejectWithValue }) => {
-    try {
-      const response = await api.put(`/admin/brands/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return response.data; // returns { success, data, message }
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
-    }
+  async ({ id, formData }) => {
+    const response = await api.put(`/admin/brands/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        ...getAuthHeader(),
+      },
+    });
+    return response.data;
   }
 );
 
-
+// Delete Brand
 export const deleteBrand = createAsyncThunk(
   "adminBrands/deleteBrand",
   async (id) => {
-    await api.delete(`/admin/brands/${id}`);
+    await api.delete(`/admin/brands/${id}`, {
+      headers: getAuthHeader(),
+    });
     return id;
   }
 );
@@ -60,27 +71,22 @@ const brandSlice = createSlice({
         state.brandList = action.payload;
       })
       .addCase(createBrand.fulfilled, (state, action) => {
+        if (action.payload.success) state.brandList.push(action.payload.data);
+      })
+      .addCase(editBrand.fulfilled, (state, action) => {
         if (action.payload.success) {
-          state.brandList.push(action.payload.data);
+          const index = state.brandList.findIndex(
+            (b) => b._id === action.payload.data._id
+          );
+          if (index !== -1) state.brandList[index] = action.payload.data;
         }
       })
-      // ✅ NEW: Handle edit success
-      .addCase(editBrand.fulfilled, (state, action) => {
-  if (action.payload?.success && action.payload?.data) {
-    const updated = action.payload.data;
-    const idx = state.brandList.findIndex(b => b._id === updated._id);
-    if (idx !== -1) {
-      state.brandList[idx] = updated;
-    }
-  }
-})
       .addCase(deleteBrand.fulfilled, (state, action) => {
         state.brandList = state.brandList.filter(
-          (brand) => brand._id !== action.payload
+          (b) => b._id !== action.payload
         );
       });
   },
 });
 
 export default brandSlice.reducer;
-
