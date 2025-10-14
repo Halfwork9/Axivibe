@@ -154,9 +154,11 @@ function AdminBrandsPage() {
       {/* Edit Brand Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Brand</DialogTitle>
-          </DialogHeader>
+         <DialogHeader>
+  <DialogTitle>Edit Brand</DialogTitle>
+  <DialogDescription>Update brand details and upload a new logo if needed.</DialogDescription>
+</DialogHeader>
+
           <div className="grid gap-4 py-4">
               <div>
                   <Label htmlFor="editBrandName">Brand Name</Label>
@@ -186,6 +188,7 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
 
 
