@@ -209,6 +209,7 @@ function ShoppingHome() {
       </section>
 
      {/* Feature Products with On Sale & % OFF badges */}
+{/* ✅ Featured Products with On Sale & % OFF badges */}
 <section className="py-12">
   <div className="container mx-auto px-4">
     <h2 className="text-3xl font-bold text-center mb-8">
@@ -216,43 +217,18 @@ function ShoppingHome() {
     </h2>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {productList?.map((p) => {
-        const isOnSale = p.isOnSale && p.salePrice < p.price;
-        const discount = isOnSale
-          ? Math.round(((p.price - p.salePrice) / p.price) * 100)
-          : 0;
-
-        return (
-          <div
-            key={p._id}
-            className="relative border rounded-lg shadow-sm hover:shadow-lg transition-all overflow-hidden bg-white"
-          >
-            {/* 🔴 On Sale Badge */}
-            {isOnSale && (
-              <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-                🔥 On Sale
-              </div>
-            )}
-
-            {/* 🟢 % OFF Badge */}
-            {isOnSale && (
-              <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                {discount}% OFF
-              </div>
-            )}
-
-            {/* Product Tile */}
-            <ShoppingProductTile
-              handleGetProductDetails={handleGetProductDetails}
-              handleAddtoCart={handleAddtoCart}
-              product={p}
-            />
-          </div>
-        );
-      })}
+      {productList?.map((product) => (
+        <ShoppingProductTile
+          key={product._id}
+          handleGetProductDetails={handleGetProductDetails}
+          handleAddtoCart={handleAddtoCart}
+          product={product}
+        />
+      ))}
     </div>
   </div>
 </section>
+
 
 
       <ProductDetailsDialog
