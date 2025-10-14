@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import * as LucideIcons from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,DialogDescription } from "../ui/dialog";
 
 
 function AdminBrandsPage() {
@@ -188,6 +188,7 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
 
 
