@@ -209,29 +209,25 @@ function ShoppingHome() {
       </section>
 
      
-{/*  Featured Products */}
-<section className="py-12">
+{/* Feature Products Section */}
+<section className="py-12 bg-white">
   <div className="container mx-auto px-4">
-    <h2 className="text-3xl font-bold text-center mb-8">
-      Featured Products
-    </h2>
+    <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
 
-    {productList?.length === 0 ? (
-      <p className="text-center text-gray-500">No products available.</p>
-    ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {productList.map((product) => (
-          <ShoppingProductTile
-            key={product._id}
-            handleGetProductDetails={handleGetProductDetails}
-            handleAddtoCart={handleAddtoCart}
-            product={product}
-          />
-        ))}
-      </div>
-    )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {productList?.map((p) => (
+        <ShoppingProductTile
+          key={p._id}
+          product={p}
+          handleGetProductDetails={handleGetProductDetails}
+          handleAddtoCart={handleAddtoCart}
+          user={user}
+        />
+      ))}
+    </div>
   </div>
 </section>
+
 
 
 
