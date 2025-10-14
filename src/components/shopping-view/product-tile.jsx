@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
 
-// ⭐ Helper component for rating
+// ⭐ Helper: Star Rating
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
   const fullStars = Math.floor(rating);
@@ -28,58 +28,71 @@ StarRating.propTypes = {
 };
 
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart, user }) {
-  // 🔢 Calculate Discount %
+  // 🔢 Sale Logic
   const isOnSale = product?.salePrice && product?.salePrice < product?.price;
   const discountPercent = isOnSale
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
 
   return (
-    <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between bg-white">
-      {/* 🔴 On Sale Badge */}
+    <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+      {/* 🔴 Angled On Sale Ribbon */}
       {isOnSale && (
-        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-          🔥 On Sale
+        <div className="absolute top-3 left-[-40px] bg-red-600 text-white text-xs font-bold px-12 py-1 rotate-[-45deg] shadow-md">
+          🔥 ON SALE
         </div>
       )}
 
       {/* 🟢 Discount Badge */}
       {isOnSale && (
-        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+        <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
           {discountPercent}% OFF
         </div>
       )}
 
-      {/* Clickable Image */}
-      <div onClick={() => handleGetProductDetails(product?._id)} className="cursor-pointer">
-        <div className="relative h-72 w-full overflow-hidden">
+      {/* 🖼️ Product Image */}
+      <div
+        onClick={() => handleGetProductDetails(product?._id)}
+        className="cursor-pointer"
+      >
+        <div className="relative h-72 w-full overflow-hidden bg-gray-50">
           <img
-            src={product?.image}
+            src={product?.image || "/placeholder.png"}
             alt={product?.title}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         </div>
       </div>
 
-      {/* Product Info */}
+      {/* 📋 Product Details */}
       <CardContent className="p-4 bg-white">
         <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
           {product?.categoryId?.name || "Category"}
         </p>
 
         <h2
-          className="mb-2 h-12 text-base font-semibold text-gray-800 truncate-2-lines"
+          className="mb-1 text-base font-semibold text-gray-800 truncate"
           title={product?.title}
         >
           {product?.title}
         </h2>
 
-        {/* Star Rating */}
+        {/* 🏷️ Brand Name */}
+        {product?.brandId?.name && (
+          <p className="text-sm text-gray-600 mb-2">
+            <span className="font-medium text-gray-800">
+              Brand:
+            </span>{" "}
+            {product.brandId.name}
+          </p>
+        )}
+
+        {/* ⭐ Star Rating */}
         <div className="mb-3">
           <StarRating rating={product.averageReview || 4.5} />
         </div>
 
-        {/* Price Display */}
+        {/* 💰 Price */}
         <div className="flex items-baseline gap-2">
           {isOnSale ? (
             <>
@@ -98,11 +111,11 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
         </div>
       </CardContent>
 
-      {/* Add to Cart */}
+      {/* 🛒 Add to Cart Button */}
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={() => handleAddtoCart(product?._id)}
-          className="w-full"
+          className="w-full font-semibold"
           disabled={product?.totalStock === 0}
         >
           {product?.totalStock === 0 ? (
