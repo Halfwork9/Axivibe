@@ -1,7 +1,6 @@
-import { Button } from "../ui/button";
-import { Card, CardContent, CardFooter } from "../ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import PropTypes from "prop-types";
-import { getDiscountPercentage } from "@/lib/utils";
 
 function AdminProductTile({
   product,
@@ -10,85 +9,91 @@ function AdminProductTile({
   setCurrentEditedId,
   handleDelete,
 }) {
-  const isOnSale = product?.isOnSale && product?.salePrice < product?.price;
+  const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
+  
+  // ✅ FIX: The discount percentage is now calculated directly inside the component.
   const discount = isOnSale
-    ? getDiscountPercentage(product.price, product.salePrice)
+    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
+    
+  const isLowStock = product?.totalStock > 0 && product?.totalStock <= 10;
 
   return (
-    <Card className="relative w-full max-w-sm mx-auto overflow-visible shadow-lg hover:shadow-xl transition-all bg-white rounded-lg">
-      {/* ✅ Image with badges */}
-      <div className="relative h-[280px] overflow-visible">
-        {/* 🔥 On Sale badge */}
-        {isOnSale && (
-          <div className="absolute top-2 left-2 z-20 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-            🔥 On Sale
+    <Card className="relative w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border">
+      {/* Sale Ribbon */}
+      {isOnSale && (
+        <div className="absolute top-0 left-0 h-24 w-24">
+          <div className="absolute transform -rotate-45 bg-red-600 text-center text-white font-semibold py-1 left-[-50px] top-[32px] w-[170px]">
+            Sale
           </div>
-        )}
+        </div>
+      )}
 
-        {/* 🟢 % OFF badge */}
+      {/* Image Section */}
+      <div className="relative h-[280px]">
+        {/* Discount Badge */}
         {discount > 0 && (
-          <div className="absolute top-2 right-2 z-20 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+          <div className="absolute top-2 right-2 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
             {discount}% OFF
           </div>
         )}
-
         <img
           src={product?.image}
           alt={product?.title}
-          className="w-full h-full object-cover rounded-t-lg transition-transform duration-500 hover:scale-105"
+          className="w-full h-full object-cover rounded-t-lg"
         />
       </div>
 
-      {/* ✅ Product Info */}
+      {/* Product Info */}
       <CardContent className="p-4">
-        <h2 className="text-lg font-bold mb-2 mt-2 truncate">
+        <h2 className="text-lg font-bold mb-2 mt-2 truncate" title={product?.title}>
           {product?.title}
         </h2>
 
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {product?.description}
-        </p>
-
-        <div className="text-sm mb-3 space-y-1">
+        <div className="text-sm mb-3 space-y-1 text-gray-700">
           <p>
             <span className="font-semibold text-gray-900">Category:</span>{" "}
-            {product?.categoryId?.name || "—"}
+            {product?.categoryId?.name || "N/A"}
           </p>
           <p>
             <span className="font-semibold text-gray-900">Brand:</span>{" "}
-            {product?.brandId?.name || "—"}
+            {product?.brandId?.name || "N/A"}
           </p>
         </div>
 
-        <p className="text-sm mb-3">
-          <span className="font-semibold text-gray-900">Available Stock:</span>{" "}
-          {product?.totalStock || 0}
-        </p>
-
-        <div className="flex justify-between items-center">
-          <div>
-            {isOnSale ? (
-              <>
-                <span className="text-base font-semibold text-gray-500 line-through">
+        {/* Stock and Price Info */}
+        <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center">
+                <span className="font-semibold text-gray-900 mr-2">Stock:</span>
+                {isLowStock ? (
+                    <span className="text-xs font-bold bg-yellow-500 text-white px-2 py-1 rounded-full">{product?.totalStock} Low</span>
+                ) : (
+                    <span className="text-sm">{product?.totalStock || 0}</span>
+                )}
+            </div>
+             <div>
+              {isOnSale ? (
+                <div className="text-right">
+                  <span className="text-sm font-semibold text-gray-500 line-through">
+                    ₹{product?.price}
+                  </span>
+                  <span className="text-lg font-bold text-red-600 ml-2">
+                    ₹{product?.salePrice}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-lg font-semibold text-primary">
                   ₹{product?.price}
                 </span>
-                <span className="text-base font-bold text-red-600 ml-2">
-                  ₹{product?.salePrice}
-                </span>
-              </>
-            ) : (
-              <span className="text-base font-semibold text-primary">
-                ₹{product?.price}
-              </span>
-            )}
-          </div>
+              )}
+            </div>
         </div>
       </CardContent>
 
-      {/* ✅ Buttons */}
-      <CardFooter className="flex justify-between items-center border-t pt-3">
+      {/* Action Buttons */}
+      <CardFooter className="flex justify-between items-center border-t p-3 bg-gray-50">
         <Button
+          variant="outline"
           onClick={() => {
             setOpenCreateProductsDialog(true);
             setCurrentEditedId(product?._id);
@@ -99,13 +104,14 @@ function AdminProductTile({
               isOnSale: product?.isOnSale || false,
             });
           }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+          className="w-[48%]"
         >
           Edit
         </Button>
         <Button
+          variant="destructive"
           onClick={() => handleDelete(product?._id)}
-          className="bg-red-500 hover:bg-red-600 text-white font-semibold"
+          className="w-[48%]"
         >
           Delete
         </Button>
@@ -134,3 +140,4 @@ AdminProductTile.propTypes = {
 };
 
 export default AdminProductTile;
+
