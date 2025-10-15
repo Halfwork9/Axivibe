@@ -18,10 +18,11 @@ function AdminProductTile({
   const isLowStock = product?.totalStock > 0 && product?.totalStock <= 10;
 
   return (
-    <Card className="relative w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border">
-      {/* ✅ FIX: Replaced the floating pill with a corner ribbon style */}
+    // ✅ FIX: Removed `overflow-hidden` from the main card to allow the ribbon to be visible.
+    <Card className="relative w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border">
+      {/* On Sale Ribbon */}
       {isOnSale && (
-        <div className="absolute top-0 left-0 h-24 w-24">
+        <div className="absolute top-0 left-0 h-24 w-24 z-10">
           <div className="absolute transform -rotate-45 bg-red-600 text-center text-white font-semibold py-1 left-[-50px] top-[32px] w-[170px]">
             On Sale
           </div>
@@ -29,7 +30,8 @@ function AdminProductTile({
       )}
 
       {/* Image Section */}
-      <div className="relative h-[280px]">
+      {/* ✅ FIX: Moved `overflow-hidden` here to clip the image and maintain rounded corners. */}
+      <div className="relative h-[280px] overflow-hidden rounded-t-lg">
         {/* Discount Badge */}
         {discount > 0 && (
           <div className="absolute top-2 right-2 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
@@ -39,7 +41,7 @@ function AdminProductTile({
         <img
           src={product?.image}
           alt={product?.title}
-          className="w-full h-full object-cover rounded-t-lg"
+          className="w-full h-full object-cover"
         />
       </div>
 
