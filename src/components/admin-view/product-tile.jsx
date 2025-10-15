@@ -11,7 +11,6 @@ function AdminProductTile({
 }) {
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
   
-  // ✅ FIX: The discount percentage is now calculated directly inside the component.
   const discount = isOnSale
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
@@ -20,11 +19,11 @@ function AdminProductTile({
 
   return (
     <Card className="relative w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border">
-      {/* Sale Ribbon */}
+      {/* ✅ FIX: Replaced the floating pill with a corner ribbon style */}
       {isOnSale && (
         <div className="absolute top-0 left-0 h-24 w-24">
           <div className="absolute transform -rotate-45 bg-red-600 text-center text-white font-semibold py-1 left-[-50px] top-[32px] w-[170px]">
-            Sale
+            On Sale
           </div>
         </div>
       )}
