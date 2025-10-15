@@ -10,50 +10,45 @@ function AdminProductTile({
   setCurrentEditedId,
   handleDelete,
 }) {
-  // Ensure numeric values for safe comparison
-  const price = Number(product?.price || 0);
-  const salePrice = Number(product?.salePrice || 0);
-
-  // Show badges only if admin marked as on sale AND salePrice < price
-  const isOnSale = product?.isOnSale === true && salePrice > 0 && salePrice < price;
-  const discountPercent = isOnSale ? getDiscountPercentage(price, salePrice) : 0;
+  const isOnSale = product?.isOnSale && product?.salePrice < product?.price;
+  const discount = isOnSale
+    ? getDiscountPercentage(product.price, product.salePrice)
+    : 0;
 
   return (
-    <Card className="relative w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition">
-      {/* 🔴 On Sale ribbon (top-left) */}
-      {isOnSale && (
-        <div className="absolute -top-3 -left-3 z-30 pointer-events-none">
-          <div className="rotate-[-45deg] origin-top-left shadow-md">
-            <div className="bg-red-600 text-white text-[11px] font-bold px-10 py-1 text-center select-none">
-              🔥 ON SALE
-            </div>
+    <Card className="relative w-full max-w-sm mx-auto overflow-visible shadow-lg hover:shadow-xl transition-all bg-white rounded-lg">
+      {/* ✅ Image with badges */}
+      <div className="relative h-[280px] overflow-visible">
+        {/* 🔥 On Sale badge */}
+        {isOnSale && (
+          <div className="absolute top-2 left-2 z-20 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+            🔥 On Sale
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 🟢 % OFF badge (top-right) */}
-      {isOnSale && discountPercent > 0 && (
-        <div className="absolute top-2 right-2 z-30">
-          <div className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-            {discountPercent}% OFF
+        {/* 🟢 % OFF badge */}
+        {discount > 0 && (
+          <div className="absolute top-2 right-2 z-20 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+            {discount}% OFF
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Product image */}
-      <div className="relative">
         <img
           src={product?.image}
           alt={product?.title}
-          className="w-full h-[280px] object-cover"
+          className="w-full h-full object-cover rounded-t-lg transition-transform duration-500 hover:scale-105"
         />
       </div>
 
-      {/* Product content */}
-      <CardContent>
-        <h2 className="text-lg font-bold mb-2 mt-2 truncate">{product?.title}</h2>
+      {/* ✅ Product Info */}
+      <CardContent className="p-4">
+        <h2 className="text-lg font-bold mb-2 mt-2 truncate">
+          {product?.title}
+        </h2>
 
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product?.description}</p>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          {product?.description}
+        </p>
 
         <div className="text-sm mb-3 space-y-1">
           <p>
@@ -71,28 +66,27 @@ function AdminProductTile({
           {product?.totalStock || 0}
         </p>
 
-        {/* Price */}
         <div className="flex justify-between items-center">
           <div>
             {isOnSale ? (
               <>
                 <span className="text-base font-semibold text-gray-500 line-through">
-                  ₹{price}
+                  ₹{product?.price}
                 </span>
                 <span className="text-base font-bold text-red-600 ml-2">
-                  ₹{salePrice}
+                  ₹{product?.salePrice}
                 </span>
               </>
             ) : (
               <span className="text-base font-semibold text-primary">
-                ₹{price}
+                ₹{product?.price}
               </span>
             )}
           </div>
         </div>
       </CardContent>
 
-      {/* Actions */}
+      {/* ✅ Buttons */}
       <CardFooter className="flex justify-between items-center border-t pt-3">
         <Button
           onClick={() => {
@@ -109,7 +103,6 @@ function AdminProductTile({
         >
           Edit
         </Button>
-
         <Button
           onClick={() => handleDelete(product?._id)}
           className="bg-red-500 hover:bg-red-600 text-white font-semibold"
