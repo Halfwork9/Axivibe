@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
 import { getDiscountPercentage } from "@/lib/utils";
 
-// ⭐ Rating stars
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
   const fullStars = Math.floor(rating);
@@ -25,6 +24,7 @@ const StarRating = ({ rating = 0 }) => {
 };
 
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart }) {
+  // ✅ Only show sale if admin explicitly set `isOnSale`
   const isOnSale = product?.isOnSale === true;
   const discountPercent =
     isOnSale && product?.salePrice && product?.salePrice < product?.price
@@ -33,14 +33,10 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
 
   return (
     <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between bg-white">
-      {/* 🎀 Diagonal “On Sale” Ribbon */}
+      {/* 🔴 On Sale Badge */}
       {isOnSale && (
-        <div className="absolute -top-2 -left-2">
-          <div className="relative">
-            <div className="bg-red-600 text-white text-[11px] font-bold px-8 py-1.5 rotate-[-45deg] shadow-md w-[110px] text-center select-none">
-              🔥 ON SALE
-            </div>
-          </div>
+        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">
+          🔥 On Sale
         </div>
       )}
 
@@ -51,7 +47,7 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
         </div>
       )}
 
-      {/* Product Image */}
+      {/* Clickable Image */}
       <div
         onClick={() => handleGetProductDetails(product?._id)}
         className="cursor-pointer"
@@ -82,7 +78,6 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
           <StarRating rating={product?.averageReview || 4.5} />
         </div>
 
-        {/* Pricing */}
         <div className="flex items-baseline gap-2">
           {isOnSale && product?.salePrice < product?.price ? (
             <>
@@ -101,7 +96,6 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
         </div>
       </CardContent>
 
-      {/* Add to Cart */}
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={() => handleAddtoCart(product?._id)}
