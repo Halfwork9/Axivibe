@@ -24,8 +24,12 @@ const StarRating = ({ rating = 0 }) => {
 };
 
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart }) {
-  const isOnSale = product?.salePrice && product?.salePrice < product?.price;
-  const discountPercent = getDiscountPercentage(product?.price, product?.salePrice);
+  // ✅ Only show sale if admin explicitly set `isOnSale`
+  const isOnSale = product?.isOnSale === true;
+  const discountPercent =
+    isOnSale && product?.salePrice && product?.salePrice < product?.price
+      ? getDiscountPercentage(product?.price, product?.salePrice)
+      : 0;
 
   return (
     <Card className="group relative w-full max-w-sm mx-auto overflow-hidden rounded-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between bg-white">
@@ -37,13 +41,13 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
       )}
 
       {/* 🟢 Discount % Badge */}
-      {discountPercent > 0 && (
+      {isOnSale && discountPercent > 0 && (
         <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">
           {discountPercent}% OFF
         </div>
       )}
 
-      {/* Image */}
+      {/* Clickable Image */}
       <div
         onClick={() => handleGetProductDetails(product?._id)}
         className="cursor-pointer"
@@ -57,40 +61,41 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
         </div>
       </div>
 
-      {/* Info */}
+      {/* Product Info */}
       <CardContent className="p-4 bg-white">
         <p className="mb-1 text-xs font-medium uppercase text-gray-500 tracking-wide">
           {product?.categoryId?.name || "Category"}
         </p>
+
         <h2
           className="mb-2 h-12 text-base font-semibold text-gray-800 truncate-2-lines"
           title={product?.title}
         >
           {product?.title}
         </h2>
+
         <div className="mb-3">
-          <StarRating rating={product.averageReview || 4.5} />
+          <StarRating rating={product?.averageReview || 4.5} />
         </div>
 
         <div className="flex items-baseline gap-2">
-          {isOnSale ? (
+          {isOnSale && product?.salePrice < product?.price ? (
             <>
               <span className="text-lg font-bold text-red-600">
-                ₹{product.salePrice}
+                ₹{product?.salePrice}
               </span>
               <span className="text-sm text-gray-500 line-through">
-                ₹{product.price}
+                ₹{product?.price}
               </span>
             </>
           ) : (
             <span className="text-lg font-bold text-gray-900">
-              ₹{product.price}
+              ₹{product?.price}
             </span>
           )}
         </div>
       </CardContent>
 
-      {/* Add to Cart */}
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={() => handleAddtoCart(product?._id)}
