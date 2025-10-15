@@ -19,18 +19,24 @@ function AdminProductTile({
 
   return (
     // ✅ FIX: Removed `overflow-hidden` from the main card to allow the ribbon to be visible.
-    <Card className="relative w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border">
-      {/* On Sale Ribbon */}
+    <Card className="relative w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
+      {/* ✅ FIX: New, more refined "On Sale" Ribbon */}
       {isOnSale && (
-        <div className="absolute top-0 left-0 h-24 w-24 z-10">
-          <div className="absolute transform -rotate-45 bg-red-600 text-center text-white font-semibold py-1 left-[-50px] top-[32px] w-[170px]">
+        <div className="absolute top-0 left-0 w-28 h-28 overflow-hidden z-10">
+          <div
+            className="absolute transform -rotate-45 bg-red-600 text-center text-white font-semibold text-xs py-1 shadow-md"
+            style={{
+              width: '150px',
+              left: '-38px',
+              top: '28px',
+            }}
+          >
             On Sale
           </div>
         </div>
       )}
 
       {/* Image Section */}
-      {/* ✅ FIX: Moved `overflow-hidden` here to clip the image and maintain rounded corners. */}
       <div className="relative h-[280px] overflow-hidden rounded-t-lg">
         {/* Discount Badge */}
         {discount > 0 && (
