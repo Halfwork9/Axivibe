@@ -2,11 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import PropTypes from "prop-types";
 
-function AdminProductTile({
-  product,
-  handleEdit,
-  handleDelete,
-}) {
+function AdminProductTile({ product, handleEdit, handleDelete }) {
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
   
   const discount = isOnSale
@@ -15,59 +11,46 @@ function AdminProductTile({
     
   const isLowStock = product?.totalStock > 0 && product?.totalStock <= 10;
 
+  // ✅ FIX: Handle both old string and new array for image display
+  const displayImage = Array.isArray(product.images) && product.images.length > 0
+    ? product.images[0]
+    : product.image;
+
   return (
     <Card className="relative w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
-      {/* On Sale Ribbon */}
       {isOnSale && (
         <div className="absolute top-0 left-0 w-28 h-28 overflow-hidden z-10">
           <div
             className="absolute transform -rotate-45 bg-red-600 text-center text-white font-semibold text-xs py-1 shadow-md"
-            style={{
-              width: '150px',
-              left: '-38px',
-              top: '28px',
-            }}
+            style={{ width: '150px', left: '-38px', top: '28px' }}
           >
             On Sale
           </div>
         </div>
       )}
-
-      {/* Image Section */}
-      <div className="relative h-[280px]">
-        {/* Discount Badge */}
+      <div className="relative h-[280px] overflow-hidden rounded-t-lg">
         {discount > 0 && (
           <div className="absolute top-2 right-2 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
             {discount}% OFF
           </div>
         )}
         <img
-          src={product?.images?.[0]} // Display the first image
+          src={displayImage}
           alt={product?.title}
-          className="w-full h-full object-cover rounded-t-lg"
+          className="w-full h-full object-cover"
         />
       </div>
-
-      {/* Product Info */}
       <CardContent className="p-4">
         <h2 className="text-lg font-bold mb-2 mt-2 truncate" title={product?.title}>
           {product?.title}
         </h2>
-
         <div className="text-sm mb-3 space-y-1 text-gray-700">
-          <p>
-            <span className="font-semibold text-gray-900">Category:</span>{" "}
-            {product?.categoryId?.name || "N/A"}
-          </p>
-          <p>
-            <span className="font-semibold text-gray-900">Brand:</span>{" "}
-            {product?.brandId?.name || "N/A"}
-          </p>
+          <p><span className="font-semibold">Category:</span> {product?.categoryId?.name || "N/A"}</p>
+          <p><span className="font-semibold">Brand:</span> {product?.brandId?.name || "N/A"}</p>
         </div>
-
         <div className="flex justify-between items-center mb-3">
             <div className="flex items-center">
-                <span className="font-semibold text-gray-900 mr-2">Stock:</span>
+                <span className="font-semibold mr-2">Stock:</span>
                 {isLowStock ? (
                     <span className="text-xs font-bold bg-yellow-500 text-white px-2 py-1 rounded-full">{product?.totalStock} Low</span>
                 ) : (
@@ -77,37 +60,18 @@ function AdminProductTile({
              <div>
               {isOnSale ? (
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-gray-500 line-through">
-                    ₹{product?.price}
-                  </span>
-                  <span className="text-lg font-bold text-red-600 ml-2">
-                    ₹{product?.salePrice}
-                  </span>
+                  <span className="text-sm font-semibold text-gray-500 line-through">₹{product?.price}</span>
+                  <span className="text-lg font-bold text-red-600 ml-2">₹{product?.salePrice}</span>
                 </div>
               ) : (
-                <span className="text-lg font-semibold text-primary">
-                  ₹{product?.price}
-                </span>
+                <span className="text-lg font-semibold text-primary">₹{product?.price}</span>
               )}
             </div>
         </div>
       </CardContent>
-
       <CardFooter className="flex justify-between items-center border-t p-3 bg-gray-50">
-        <Button
-          variant="outline"
-          onClick={() => handleEdit(product)}
-          className="w-[48%]"
-        >
-          Edit
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => handleDelete(product?._id)}
-          className="w-[48%]"
-        >
-          Delete
-        </Button>
+        <Button variant="outline" onClick={() => handleEdit(product)} className="w-[48%]">Edit</Button>
+        <Button variant="destructive" onClick={() => handleDelete(product?._id)} className="w-[48%]">Delete</Button>
       </CardFooter>
     </Card>
   );
@@ -115,9 +79,9 @@ function AdminProductTile({
 
 AdminProductTile.propTypes = {
   product: PropTypes.shape({
+    image: PropTypes.string, // For backward compatibility
     images: PropTypes.arrayOf(PropTypes.string),
     title: PropTypes.string,
-    description: PropTypes.string,
     price: PropTypes.number,
     salePrice: PropTypes.number,
     totalStock: PropTypes.number,
