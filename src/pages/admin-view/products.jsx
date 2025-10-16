@@ -2,14 +2,10 @@ import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import {
   addNewProduct,
@@ -21,8 +17,6 @@ import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
 import { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Input } from "@/components/ui/input";
-
 
 const initialFormData = {
   images: [],
@@ -62,7 +56,7 @@ function AdminProducts() {
       categoryId: product.categoryId?._id || "",
       brandId: product.brandId?._id || "",
     });
-    // ✅ FIX: Handles both old 'image' strings and new 'images' arrays
+    // ✅ FIX: Handles both old 'image' (string) and new 'images' (array) formats
     const images = Array.isArray(product.images) && product.images.length > 0 
       ? product.images 
       : (product.image ? [product.image] : []);
@@ -131,11 +125,11 @@ function AdminProducts() {
       </div>
       
       <Sheet open={openCreateProductsDialog} onOpenChange={setOpenCreateProductsDialog}>
-        <SheetContent side="right" className="overflow-auto w-full max-w-2xl">
+        <SheetContent side="right" className="overflow-hidden flex flex-col w-full max-w-2xl">
           <SheetHeader>
             <SheetTitle>{currentEditedId ? "Edit Product" : "Add New Product"}</SheetTitle>
           </SheetHeader>
-          {/* The form now wraps everything, including the image upload */}
+          {/* The form now wraps everything and controls the single submit button */}
           <form onSubmit={onSubmit} className="flex flex-col h-full">
             <div className="flex-grow overflow-y-auto pr-4">
               <ProductImageUpload
