@@ -1,16 +1,12 @@
+import { Fragment, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
   addNewProduct,
@@ -20,35 +16,24 @@ import {
 } from "@/store/admin/products-slice";
 import { fetchAllBrands } from "@/store/admin/brand-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
-import { useEffect, useState, Fragment } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 const initialFormData = {
-  image: null,
+  images: [],
   title: "",
   description: "",
   categoryId: "",
   brandId: "",
-  price: "",
-  salePrice: "",
-  totalStock: "",
+  price: 0,
+  salePrice: 0,
+  totalStock: 0,
   isOnSale: false,
-  averageReview: 0,
 };
 
 function AdminProducts() {
   const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
-  const [imageFile, setImageFile] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
   const [currentEditedId, setCurrentEditedId] = useState(null);
-
-  // Filters
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [brandFilter, setBrandFilter] = useState("");
-  const [saleFilter, setSaleFilter] = useState("");
-  const [page, setPage] = useState(1);
 
   const { productList, pagination } = useSelector((state) => state.adminProducts);
   const { brandList } = useSelector((state) => state.adminBrands);
@@ -57,46 +42,25 @@ function AdminProducts() {
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  // --- SAFE OPTIONS ---
-  const categoryOptions = categoryList?.filter(c => c && c._id && c.name)
-    .map(c => ({ id: String(c._id), label: c.name })) || [];
-  const brandOptions = brandList?.filter(b => b && b._id && b.name)
-    .map(b => ({ id: String(b._id), label: b.name })) || [];
-  const saleOptions = [
-    { id: "true", label: "On Sale" },
-    { id: "false", label: "Regular" },
-  ];
-
   const loadProducts = () => {
-    dispatch(
-      fetchAllProducts({
-        page,
-        categoryId: categoryFilter,
-        brandId: brandFilter,
-        isOnSale: saleFilter,
-      })
-    );
+    dispatch(fetchAllProducts());
   };
 
-  // 🔁 Fetch products when filters/pagination change
   useEffect(() => {
     loadProducts();
-  }, [dispatch, page, categoryFilter, brandFilter, saleFilter]);
-
-  useEffect(() => {
     dispatch(fetchAllBrands());
     dispatch(fetchAllCategories());
   }, [dispatch]);
 
-  // Handle search filter
-  const filteredProducts = productList?.filter((product) =>
-    product.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = productList; // Assuming search/filter logic is handled elsewhere or not needed for now
 
-  // Add / Edit form submission
   function onSubmit(e) {
     e.preventDefault();
-    const payload = { ...formData, image: uploadedImageUrl || formData.image };
+    if (uploadedImageUrls.length === 0) {
+      toast({ title: "Please upload at least one image.", variant: "destructive" });
+      return;
+    }
+    const payload = { ...formData, images: uploadedImageUrls };
 
     const action = currentEditedId
       ? editProduct({ id: currentEditedId, formData: payload })
@@ -105,8 +69,10 @@ function AdminProducts() {
     dispatch(action).then((data) => {
       if (data?.payload?.success) {
         loadProducts();
-        toast({ title: currentEditedId ? "Product updated" : "Product added" });
+        toast({ title: `Product ${currentEditedId ? "updated" : "added"} successfully!` });
         resetForm();
+      } else {
+        toast({ title: data.payload.message || "An error occurred.", variant: "destructive" });
       }
     });
   }
@@ -115,161 +81,96 @@ function AdminProducts() {
     setFormData(initialFormData);
     setOpenCreateProductsDialog(false);
     setCurrentEditedId(null);
-    setImageFile(null);
-    setUploadedImageUrl("");
+    setUploadedImageUrls([]);
   };
 
   const handleDelete = (id) => {
-    dispatch(deleteProduct(id)).then((data) => {
-      if (data?.payload?.success) {
-        loadProducts();
-        toast({ title: "Product deleted" });
-      }
-    });
+    dispatch(deleteProduct(id)).then(loadProducts);
   };
+
+  const handleEdit = (product) => {
+    setCurrentEditedId(product._id);
+    setFormData({
+      ...product,
+      categoryId: product.categoryId?._id || "",
+      brandId: product.brandId?._id || "",
+    });
+    setUploadedImageUrls(product.images || []);
+    setOpenCreateProductsDialog(true);
+  };
+
+  const formControls = [
+    { label: "Title", name: "title", componentType: "input" },
+    { label: "Description", name: "description", componentType: "textarea" },
+    { label: "Category", name: "categoryId", componentType: "select", options: categoryList?.map(c => ({ id: c._id, label: c.name })) || [] },
+    { label: "Brand", name: "brandId", componentType: "select", options: brandList?.map(b => ({ id: b._id, label: b.name })) || [] },
+    { label: "Price", name: "price", componentType: "input", type: "number" },
+    { label: "Total Stock", name: "totalStock", componentType: "input", type: "number" },
+  ];
 
   return (
     <Fragment>
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
-        <div className="flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            placeholder="Search product..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border px-3 py-2 rounded-md w-48 focus:ring-2 focus:ring-blue-200"
-          />
-          <Select
-            value={categoryFilter}
-            onValueChange={setCategoryFilter}
-            options={categoryOptions}
-            placeholder="Filter by Category"
-          />
-          <Select
-            value={brandFilter}
-            onValueChange={setBrandFilter}
-            options={brandOptions}
-            placeholder="Filter by Brand"
-          />
-          <Select
-            value={saleFilter}
-            onValueChange={setSaleFilter}
-            options={saleOptions}
-            placeholder="Sale Status"
-          />
-        </div>
+      <div className="flex justify-end mb-6">
         <Button onClick={() => setOpenCreateProductsDialog(true)}>Add Product</Button>
       </div>
 
-      {/* Product Grid */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredProducts?.length ? (
           filteredProducts.map((product) => (
             <AdminProductTile
               key={product._id}
               product={product}
-              setFormData={setFormData}
-              setOpenCreateProductsDialog={setOpenCreateProductsDialog}
-              setCurrentEditedId={setCurrentEditedId}
               handleDelete={handleDelete}
+              handleEdit={handleEdit}
             />
           ))
         ) : (
-          <p className="col-span-full text-center text-gray-500 py-10">
-            No products found.
-          </p>
+          <p className="col-span-full text-center text-gray-500 py-10">No products found.</p>
         )}
       </div>
 
-      {/* Pagination */}
-      {pagination && (
-        <div className="flex justify-center gap-2 mt-6">
-          <Button
-            variant="outline"
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Prev
-          </Button>
-          <span className="px-4 py-2 font-semibold">
-            Page {page} of {pagination.totalPages || 1}
-          </span>
-          <Button
-            variant="outline"
-            disabled={page >= pagination.totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      )}
-
-      {/* Add/Edit Drawer */}
       <Sheet open={openCreateProductsDialog} onOpenChange={resetForm}>
-        <SheetContent side="right" className="overflow-auto">
+        <SheetContent side="right" className="overflow-auto w-full max-w-2xl">
           <SheetHeader>
-            <SheetTitle>
-              {currentEditedId ? "Edit Product" : "Add New Product"}
-            </SheetTitle>
+            <SheetTitle>{currentEditedId ? "Edit Product" : "Add New Product"}</SheetTitle>
           </SheetHeader>
-
+          
           <ProductImageUpload
-            imageFile={imageFile}
-            setImageFile={setImageFile}
-            uploadedImageUrl={uploadedImageUrl}
-            setUploadedImageUrl={setUploadedImageUrl}
+            uploadedImageUrls={uploadedImageUrls}
+            setUploadedImageUrls={setUploadedImageUrls}
           />
-
-          <div className="py-6 space-y-4">
+          
+          <form onSubmit={onSubmit} className="py-6 space-y-4">
             <CommonForm
-              onSubmit={onSubmit}
               formData={formData}
               setFormData={setFormData}
+              formControls={formControls}
               buttonText={currentEditedId ? "Update Product" : "Add Product"}
-              formControls={[
-                { label: "Title", name: "title", componentType: "input" },
-                { label: "Description", name: "description", componentType: "textarea" },
-                {
-                  label: "Category",
-                  name: "categoryId",
-                  componentType: "select",
-                  options: categoryOptions,
-                },
-                {
-                  label: "Brand",
-                  name: "brandId",
-                  componentType: "select",
-                  options: brandOptions,
-                },
-                { label: "Price", name: "price", componentType: "input" },
-                { label: "Total Stock", name: "totalStock", componentType: "input" },
-              ]}
             />
-
             <div className="flex items-center justify-between">
-              <Label htmlFor="isOnSale" className="font-semibold text-md">
-                Is On Sale?
-              </Label>
+              <Label htmlFor="isOnSale" className="font-semibold text-md">Is On Sale?</Label>
               <Switch
+                id="isOnSale"
                 checked={formData.isOnSale}
                 onCheckedChange={(val) => setFormData({ ...formData, isOnSale: val })}
               />
             </div>
-
             {formData.isOnSale && (
-              <div className="mt-2">
+              <div>
                 <Label className="font-semibold text-md">Sale Price</Label>
                 <input
                   type="number"
                   value={formData.salePrice}
                   onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2 mt-1 focus:ring focus:ring-blue-200"
-                  placeholder="Enter discounted price"
+                  className="w-full border rounded-md px-3 py-2 mt-1"
+                  placeholder="Enter sale price"
                 />
               </div>
             )}
-          </div>
+             <Button type="submit" className="w-full">
+                {currentEditedId ? "Update Product" : "Add Product"}
+            </Button>
+          </form>
         </SheetContent>
       </Sheet>
     </Fragment>
@@ -277,3 +178,4 @@ function AdminProducts() {
 }
 
 export default AdminProducts;
+
