@@ -23,6 +23,7 @@ import { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Input } from "@/components/ui/input";
 
+
 const initialFormData = {
   images: [],
   title: "",
@@ -61,7 +62,7 @@ function AdminProducts() {
       categoryId: product.categoryId?._id || "",
       brandId: product.brandId?._id || "",
     });
-    // This logic handles both old (single image string) and new (multiple images array) data structures.
+    // ✅ FIX: Handles both old 'image' strings and new 'images' arrays
     const images = Array.isArray(product.images) && product.images.length > 0 
       ? product.images 
       : (product.image ? [product.image] : []);
@@ -112,13 +113,13 @@ function AdminProducts() {
 
   return (
     <Fragment>
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-4">
         <Button onClick={() => {
-          resetForm();
+          resetForm(); // Ensure form is clear for adding new product
           setOpenCreateProductsDialog(true);
         }}>Add Product</Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mt-6">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {productList?.map((product) => (
           <AdminProductTile
             key={product._id}
@@ -128,47 +129,55 @@ function AdminProducts() {
           />
         ))}
       </div>
+      
       <Sheet open={openCreateProductsDialog} onOpenChange={setOpenCreateProductsDialog}>
         <SheetContent side="right" className="overflow-auto w-full max-w-2xl">
           <SheetHeader>
             <SheetTitle>{currentEditedId ? "Edit Product" : "Add New Product"}</SheetTitle>
           </SheetHeader>
-          <form onSubmit={onSubmit}>
-            <ProductImageUpload
-              uploadedImageUrls={uploadedImageUrls}
-              setUploadedImageUrls={setUploadedImageUrls}
-              isEditMode={!!currentEditedId}
-            />
-            <div className="py-6 space-y-4">
-              <CommonForm
-                isBtn={false}
-                formData={formData}
-                setFormData={setFormData}
-                formControls={formControls}
+          {/* The form now wraps everything, including the image upload */}
+          <form onSubmit={onSubmit} className="flex flex-col h-full">
+            <div className="flex-grow overflow-y-auto pr-4">
+              <ProductImageUpload
+                uploadedImageUrls={uploadedImageUrls}
+                setUploadedImageUrls={setUploadedImageUrls}
+                isEditMode={!!currentEditedId}
               />
-              <div className="flex items-center justify-between">
-                <Label htmlFor="isOnSale" className="font-semibold text-md">Is On Sale?</Label>
-                <Switch
-                  id="isOnSale"
-                  checked={formData.isOnSale}
-                  onCheckedChange={(val) => setFormData({ ...formData, isOnSale: val })}
+              <div className="py-6 space-y-4">
+                {/* ✅ FIX: CommonForm no longer renders its own button */}
+                <CommonForm
+                  isBtn={false} 
+                  formData={formData}
+                  setFormData={setFormData}
+                  formControls={formControls}
                 />
-              </div>
-              {formData.isOnSale && (
-                <div>
-                  <Label className="font-semibold text-md">Sale Price</Label>
-                  <Input
-                    type="number"
-                    value={formData.salePrice}
-                    onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-                    placeholder="Enter sale price"
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isOnSale" className="font-semibold text-md">Is On Sale?</Label>
+                  <Switch
+                    id="isOnSale"
+                    checked={formData.isOnSale}
+                    onCheckedChange={(val) => setFormData({ ...formData, isOnSale: val })}
                   />
                 </div>
-              )}
+                {formData.isOnSale && (
+                  <div>
+                    <Label className="font-semibold text-md">Sale Price</Label>
+                    <Input
+                      type="number"
+                      value={formData.salePrice}
+                      onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+                      placeholder="Enter sale price"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-            <Button type="submit" className="w-full">
-              {currentEditedId ? "Update Product" : "Add Product"}
-            </Button>
+            {/* ✅ FIX: Single submit button at the bottom */}
+            <div className="mt-auto pt-4 border-t">
+              <Button type="submit" className="w-full">
+                {currentEditedId ? "Update Product" : "Add Product"}
+              </Button>
+            </div>
           </form>
         </SheetContent>
       </Sheet>
