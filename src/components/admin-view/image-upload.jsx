@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PropTypes from "prop-types";
 import api from "@/api";
 
-function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMode }) {
+function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls, isEditMode = false }) {
   const inputRef = useRef(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -15,15 +15,15 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMod
   const handleFileChange = (event) => {
     const selectedFiles = Array.from(event.target.files);
     if (selectedFiles.length) {
-      const remainingSlots = 5 - uploadedImageUrls.length;
+      const remainingSlots = 5 - (uploadedImageUrls?.length || 0);
       setImageFiles(selectedFiles.slice(0, remainingSlots));
     }
   };
-  
+
   const handleRemoveImage = (indexToRemove) => {
     setUploadedImageUrls((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
-  
+
   const uploadImages = useCallback(async () => {
     if (imageFiles.length === 0) return;
     
@@ -36,11 +36,11 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMod
     try {
       const response = await api.post("/admin/upload/upload-images", data);
       if (response?.data?.success) {
-        setUploadedImageUrls((prev) => [...prev, ...response.data.data].slice(0, 5));
+        setUploadedImageUrls((prev) => [...(prev || []), ...response.data.data].slice(0, 5));
         setImageFiles([]);
         if(inputRef.current) inputRef.current.value = "";
       }
-    } catch (err) { // ✅ FIX: Added the opening curly brace for the catch block
+    } catch (err) {
       console.error("Image upload failed:", err);
     } finally {
       setIsUploading(false);
@@ -53,14 +53,14 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMod
     }
   }, [imageFiles, uploadImages]);
 
-  const canUploadMore = uploadedImageUrls.length < 5;
+  const canUploadMore = (uploadedImageUrls?.length || 0) < 5;
 
   return (
     <div className="w-full mt-4">
       <Label className="text-lg font-semibold mb-2 block">Product Images</Label>
       
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 min-h-[6rem]">
-        {uploadedImageUrls.map((url, index) => (
+        {uploadedImageUrls?.map((url, index) => (
           <div key={index} className="relative aspect-square">
             <img src={url} alt={`upload-preview-${index}`} className="w-full h-full object-cover rounded-md" />
             <Button
@@ -93,7 +93,7 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMod
           >
             <UploadCloudIcon className="w-8 h-8 text-muted-foreground mb-2" />
             <span>Click or Drag & Drop to Upload</span>
-            <span className="text-xs text-muted-foreground">({5 - uploadedImageUrls.length} remaining)</span>
+            <span className="text-xs text-muted-foreground">({5 - (uploadedImageUrls?.length || 0)} remaining)</span>
           </Label>
         </div>
       )}
@@ -102,9 +102,10 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMod
 }
 
 ProductImageUpload.propTypes = {
-  uploadedImageUrls: PropTypes.array.isRequired,
+  uploadedImageUrls: PropTypes.array,
   setUploadedImageUrls: PropTypes.func.isRequired,
   isEditMode: PropTypes.bool,
 };
 
 export default ProductImageUpload;
+
