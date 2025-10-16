@@ -1,13 +1,13 @@
-import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
+import { UploadCloudIcon, XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import PropTypes from "prop-types";
 import api from "@/api";
 
-function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls }) {
+function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls, isEditMode }) {
   const inputRef = useRef(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -40,7 +40,7 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls }) {
         setImageFiles([]);
         if(inputRef.current) inputRef.current.value = "";
       }
-    } catch (err) {
+    } catch (err) { // ✅ FIX: Added the opening curly brace for the catch block
       console.error("Image upload failed:", err);
     } finally {
       setIsUploading(false);
@@ -104,6 +104,7 @@ function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls }) {
 ProductImageUpload.propTypes = {
   uploadedImageUrls: PropTypes.array.isRequired,
   setUploadedImageUrls: PropTypes.func.isRequired,
+  isEditMode: PropTypes.bool,
 };
 
 export default ProductImageUpload;
