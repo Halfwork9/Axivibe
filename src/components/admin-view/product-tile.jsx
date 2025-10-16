@@ -10,9 +10,9 @@ function AdminProductTile({ product, handleEdit, handleDelete }) {
     : 0;
     
   const isLowStock = product?.totalStock > 0 && product?.totalStock <= 10;
-
-  // ✅ FIX: Handle both old string and new array for image display
-  const displayImage = Array.isArray(product.images) && product.images.length > 0
+  
+  // ✅ FIX: Handles both old and new image formats for display
+  const displayImage = (Array.isArray(product.images) && product.images.length > 0)
     ? product.images[0]
     : product.image;
 
@@ -28,7 +28,8 @@ function AdminProductTile({ product, handleEdit, handleDelete }) {
           </div>
         </div>
       )}
-      <div className="relative h-[280px] overflow-hidden rounded-t-lg">
+
+      <div className="relative h-[280px]">
         {discount > 0 && (
           <div className="absolute top-2 right-2 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
             {discount}% OFF
@@ -40,17 +41,18 @@ function AdminProductTile({ product, handleEdit, handleDelete }) {
           className="w-full h-full object-cover"
         />
       </div>
+
       <CardContent className="p-4">
         <h2 className="text-lg font-bold mb-2 mt-2 truncate" title={product?.title}>
           {product?.title}
         </h2>
         <div className="text-sm mb-3 space-y-1 text-gray-700">
-          <p><span className="font-semibold">Category:</span> {product?.categoryId?.name || "N/A"}</p>
-          <p><span className="font-semibold">Brand:</span> {product?.brandId?.name || "N/A"}</p>
+          <p><span className="font-semibold text-gray-900">Category:</span> {product?.categoryId?.name || "N/A"}</p>
+          <p><span className="font-semibold text-gray-900">Brand:</span> {product?.brandId?.name || "N/A"}</p>
         </div>
         <div className="flex justify-between items-center mb-3">
             <div className="flex items-center">
-                <span className="font-semibold mr-2">Stock:</span>
+                <span className="font-semibold text-gray-900 mr-2">Stock:</span>
                 {isLowStock ? (
                     <span className="text-xs font-bold bg-yellow-500 text-white px-2 py-1 rounded-full">{product?.totalStock} Low</span>
                 ) : (
@@ -70,8 +72,12 @@ function AdminProductTile({ product, handleEdit, handleDelete }) {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center border-t p-3 bg-gray-50">
-        <Button variant="outline" onClick={() => handleEdit(product)} className="w-[48%]">Edit</Button>
-        <Button variant="destructive" onClick={() => handleDelete(product?._id)} className="w-[48%]">Delete</Button>
+        <Button variant="outline" onClick={() => handleEdit(product)} className="w-[48%]">
+          Edit
+        </Button>
+        <Button variant="destructive" onClick={() => handleDelete(product?._id)} className="w-[48%]">
+          Delete
+        </Button>
       </CardFooter>
     </Card>
   );
