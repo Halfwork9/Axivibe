@@ -7,125 +7,103 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PropTypes from "prop-types";
 import api from "@/api";
 
-function ProductImageUpload({
-  imageFile,
-  setImageFile,
-  imageLoadingState,
-  uploadedImageUrl,
-  setUploadedImageUrl,
-  setImageLoadingState,
-  isEditMode,
-  isCustomStyling = false,
-}) {
+function ProductImageUpload({ uploadedImageUrls, setUploadedImageUrls }) {
   const inputRef = useRef(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-  function handleImageFileChange(event) {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) setImageFile(selectedFile);
-  }
-
-  function handleRemoveImage() {
-    setImageFile(null);
-    setUploadedImageUrl("");
-    if (inputRef.current) inputRef.current.value = "";
-  }
-
-  const uploadImageToCloudinary = useCallback(async () => {
-  if (!imageFile) return;
-  setImageLoadingState(true);
-
-  try {
+  const handleFileChange = (event) => {
+    const selectedFiles = Array.from(event.target.files);
+    if (selectedFiles.length) {
+      const remainingSlots = 5 - uploadedImageUrls.length;
+      setImageFiles(selectedFiles.slice(0, remainingSlots));
+    }
+  };
+  
+  const handleRemoveImage = (indexToRemove) => {
+    setUploadedImageUrls((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+  
+  const uploadImages = useCallback(async () => {
+    if (imageFiles.length === 0) return;
+    
+    setIsUploading(true);
     const data = new FormData();
-    // ✅ Must exactly match multer key below
-    data.append("image", imageFile);
-
-    const response = await api.post("/admin/upload/upload-image", data, {
-      headers: { "Content-Type": "multipart/form-data" },
+    imageFiles.forEach(file => {
+      data.append("images", file);
     });
 
-    if (response?.data?.success) {
-      setUploadedImageUrl(response.data.result.secure_url);
+    try {
+      const response = await api.post("/admin/upload/upload-images", data);
+      if (response?.data?.success) {
+        setUploadedImageUrls((prev) => [...prev, ...response.data.data].slice(0, 5));
+        setImageFiles([]);
+        if(inputRef.current) inputRef.current.value = "";
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    } finally {
+      setIsUploading(false);
     }
-  } catch (err) {
-    console.error("Image upload failed:", err);
-  } finally {
-    setImageLoadingState(false);
-  }
-}, [imageFile, setImageLoadingState, setUploadedImageUrl]);
-
+  }, [imageFiles, setUploadedImageUrls]);
 
   useEffect(() => {
-    if (imageFile !== null) uploadImageToCloudinary();
-  }, [imageFile, uploadImageToCloudinary]);
+    if(imageFiles.length > 0) {
+        uploadImages();
+    }
+  }, [imageFiles, uploadImages]);
+
+  const canUploadMore = uploadedImageUrls.length < 5;
 
   return (
-    <div className={`w-full mt-4 ${isCustomStyling ? "" : "max-w-md mx-auto"}`}>
-      <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
-      <div className="border-2 border-dashed rounded-lg p-4">
-        <Input
-          id="image-upload"
-          type="file"
-          className="hidden"
-          ref={inputRef}
-          onChange={handleImageFileChange}
-          disabled={isEditMode}
-        />
+    <div className="w-full mt-4">
+      <Label className="text-lg font-semibold mb-2 block">Product Images</Label>
+      
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 min-h-[6rem]">
+        {uploadedImageUrls.map((url, index) => (
+          <div key={index} className="relative aspect-square">
+            <img src={url} alt={`upload-preview-${index}`} className="w-full h-full object-cover rounded-md" />
+            <Button
+              variant="destructive" size="icon"
+              className="absolute top-1 right-1 h-6 w-6 rounded-full"
+              onClick={() => handleRemoveImage(index)}
+            >
+              <XIcon className="w-4 h-4" />
+            </Button>
+          </div>
+        ))}
+        {isUploading && <Skeleton className="w-full h-full aspect-square" />}
+      </div>
 
-        {!imageFile && !uploadedImageUrl ? (
+      {canUploadMore && (
+        <div className="border-2 border-dashed rounded-lg p-4">
+          <Input
+            id="image-upload"
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            ref={inputRef}
+            onChange={handleFileChange}
+            disabled={isUploading}
+          />
           <Label
             htmlFor="image-upload"
-            className="flex flex-col items-center justify-center h-32 cursor-pointer"
+            className={`flex flex-col items-center justify-center h-24 ${isUploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
           >
-            <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-            <span>Drag & drop or click to upload image</span>
+            <UploadCloudIcon className="w-8 h-8 text-muted-foreground mb-2" />
+            <span>Click or Drag & Drop to Upload</span>
+            <span className="text-xs text-muted-foreground">({5 - uploadedImageUrls.length} remaining)</span>
           </Label>
-        ) : imageLoadingState ? (
-          <Skeleton className="h-48 w-full bg-gray-200" />
-        ) : uploadedImageUrl ? (
-          <div className="relative">
-            <img
-              src={uploadedImageUrl}
-              alt="Uploaded"
-              className="w-full h-48 object-cover rounded-lg"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 bg-white/70 hover:bg-white"
-              onClick={handleRemoveImage}
-            >
-              <XIcon className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <FileIcon className="w-8 text-primary mr-2 h-8" />
-            <p className="text-sm font-medium">{imageFile?.name}</p>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={handleRemoveImage}
-            >
-              <XIcon className="w-4 h-4" />
-              <span className="sr-only">Remove File</span>
-            </Button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
 ProductImageUpload.propTypes = {
-  imageFile: PropTypes.object,
-  setImageFile: PropTypes.func.isRequired,
-  imageLoadingState: PropTypes.bool.isRequired,
-  uploadedImageUrl: PropTypes.string,
-  setUploadedImageUrl: PropTypes.func.isRequired,
-  setImageLoadingState: PropTypes.func.isRequired,
-  isEditMode: PropTypes.bool,
-  isCustomStyling: PropTypes.bool,
+  uploadedImageUrls: PropTypes.array.isRequired,
+  setUploadedImageUrls: PropTypes.func.isRequired,
 };
 
 export default ProductImageUpload;
