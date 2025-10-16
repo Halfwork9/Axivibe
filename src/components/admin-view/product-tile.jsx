@@ -4,9 +4,7 @@ import PropTypes from "prop-types";
 
 function AdminProductTile({
   product,
-  setFormData,
-  setOpenCreateProductsDialog,
-  setCurrentEditedId,
+  handleEdit,
   handleDelete,
 }) {
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
@@ -18,9 +16,8 @@ function AdminProductTile({
   const isLowStock = product?.totalStock > 0 && product?.totalStock <= 10;
 
   return (
-    // ✅ FIX: Removed `overflow-hidden` from the main card to allow the ribbon to be visible.
     <Card className="relative w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
-      {/* ✅ FIX: New, more refined "On Sale" Ribbon */}
+      {/* On Sale Ribbon */}
       {isOnSale && (
         <div className="absolute top-0 left-0 w-28 h-28 overflow-hidden z-10">
           <div
@@ -37,7 +34,7 @@ function AdminProductTile({
       )}
 
       {/* Image Section */}
-      <div className="relative h-[280px] overflow-hidden rounded-t-lg">
+      <div className="relative h-[280px]">
         {/* Discount Badge */}
         {discount > 0 && (
           <div className="absolute top-2 right-2 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
@@ -45,9 +42,9 @@ function AdminProductTile({
           </div>
         )}
         <img
-          src={product?.image}
+          src={product?.images?.[0]} // Display the first image
           alt={product?.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-t-lg"
         />
       </div>
 
@@ -68,7 +65,6 @@ function AdminProductTile({
           </p>
         </div>
 
-        {/* Stock and Price Info */}
         <div className="flex justify-between items-center mb-3">
             <div className="flex items-center">
                 <span className="font-semibold text-gray-900 mr-2">Stock:</span>
@@ -97,20 +93,10 @@ function AdminProductTile({
         </div>
       </CardContent>
 
-      {/* Action Buttons */}
       <CardFooter className="flex justify-between items-center border-t p-3 bg-gray-50">
         <Button
           variant="outline"
-          onClick={() => {
-            setOpenCreateProductsDialog(true);
-            setCurrentEditedId(product?._id);
-            setFormData({
-              ...product,
-              categoryId: product?.categoryId?._id || "",
-              brandId: product?.brandId?._id || "",
-              isOnSale: product?.isOnSale || false,
-            });
-          }}
+          onClick={() => handleEdit(product)}
           className="w-[48%]"
         >
           Edit
@@ -129,7 +115,7 @@ function AdminProductTile({
 
 AdminProductTile.propTypes = {
   product: PropTypes.shape({
-    image: PropTypes.string,
+    images: PropTypes.arrayOf(PropTypes.string),
     title: PropTypes.string,
     description: PropTypes.string,
     price: PropTypes.number,
@@ -140,9 +126,7 @@ AdminProductTile.propTypes = {
     isOnSale: PropTypes.bool,
     _id: PropTypes.string,
   }).isRequired,
-  setFormData: PropTypes.func.isRequired,
-  setOpenCreateProductsDialog: PropTypes.func.isRequired,
-  setCurrentEditedId: PropTypes.func.isRequired,
+  handleEdit: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
 };
 
