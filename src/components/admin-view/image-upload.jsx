@@ -41,7 +41,7 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
     });
 
     try {
-      const response = await api.post("/admin/upload/upload-images", data);
+      const response = await api.post("/api/admin/upload/upload-images", data);
       if (response?.data?.success) {
         setUploadedImageUrls((prev) => [...prev, ...response.data.data].slice(0, 5));
         setImageFiles([]);
