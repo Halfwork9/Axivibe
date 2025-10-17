@@ -4,22 +4,20 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+} from "../ui/dialog";
+import { Badge } from "../ui/badge";
 import PropTypes from "prop-types";
-import { Star } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import StarRatingInput from "@/components/shopping-view/star-rating-input";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
+import StarRatingInput from "./star-rating-input";
 import { useDispatch, useSelector } from "react-redux";
-import { addReviewToProduct } from "@/store/shop/products-slice";
-import { useToast } from "@/components/ui/use-toast";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const [currentIndex, setCurrentIndex] = useState(0);
+import { addReviewToProduct } from "../../store/shop/products-slice";
+import { useToast } from "../ui/use-toast";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { toast } = useToast();
@@ -28,7 +26,18 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (productDetails) {
+      setCurrentIndex(0);
+    }
+  }, [productDetails]);
+
   if (!productDetails) return null;
+  
+  const productImages = Array.isArray(productDetails.images) && productDetails.images.length > 0
+    ? productDetails.images
+    : (productDetails.image ? [productDetails.image] : []);
+
 
   const handleSubmitReview = async () => {
     if (!rating || !comment.trim()) {
@@ -53,8 +62,8 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       setRating(0);
       setComment("");
       toast({
-        title: "✅ Review added successfully!",
-        className: "bg-green-600 text-white",
+        title: " Review added successfully!",
+        className: "bg-green-400 text-white",
       });
     } catch (err) {
       console.error("Failed to add review:", err);
@@ -74,65 +83,58 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       <DialogContent className="sm:max-w-[600px] w-full max-h-[90vh] overflow-y-auto p-4">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">{productDetails?.title}</DialogTitle>
-          {/* ✅ FIX: Added DialogDescription for accessibility */}
           <DialogDescription className="sr-only" id="product-description">
             Details for {productDetails?.title}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6">
-         {/* ✅ Product Images Carousel */}
-<div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
-  {Array.isArray(productDetails?.images) && productDetails.images.length > 0 ? (
-    <img
-      src={productDetails.images[currentIndex]}
-      alt={`${productDetails?.title} - ${currentIndex + 1}`}
-      className="w-full h-full object-contain transition-transform duration-500"
-    />
-  ) : (
-    <img
-      src={productDetails?.image || "/placeholder-image.jpg"}
-      alt={productDetails?.title}
-      className="w-full h-full object-contain"
-    />
-  )}
+          {/* Product Images Carousel */}
+          <div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
+            {productImages.length > 0 ? (
+              <img
+                src={productImages[currentIndex]}
+                alt={`${productDetails?.title} - ${currentIndex + 1}`}
+                className="w-full h-full object-contain transition-transform duration-500"
+              />
+            ) : (
+              <span className="text-gray-500">No image available</span>
+            )}
 
-  {/* ✅ Carousel Controls */}
-  {Array.isArray(productDetails?.images) && productDetails.images.length > 1 && (
-    <>
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-2 top-1/2 -translate-y-1/2"
-        onClick={() => setCurrentIndex((prev) =>
-          prev === 0 ? productDetails.images.length - 1 : prev - 1
-        )}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+            {/* Carousel Controls */}
+            {productImages.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setCurrentIndex((prev) =>
+                    prev === 0 ? productImages.length - 1 : prev - 1
+                  )}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setCurrentIndex((prev) =>
+                    prev === productImages.length - 1 ? 0 : prev + 1
+                  )}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
 
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2"
-        onClick={() => setCurrentIndex((prev) =>
-          prev === productDetails.images.length - 1 ? 0 : prev + 1
-        )}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-    </>
-  )}
-</div>
-
-
-{/* ✅ Product Description Section */}
-<div className="mt-4">
-  <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
-  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-    {productDetails?.description || "No description available for this product."}
-  </p>
-</div>
+          {/* Product Description Section */}
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+              {productDetails?.description || "No description available for this product."}
+            </p>
+          </div>
 
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Category: {productDetails?.categoryId?.name}</span>
@@ -140,11 +142,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           </div>
 
           <div className="flex gap-4 items-center">
-            <span
-              className={`${
-                productDetails?.salePrice > 0 ? "line-through text-gray-500" : ""
-              } text-2xl font-bold`}
-            >
+            <span className={`${productDetails?.salePrice > 0 ? "line-through text-gray-500" : ""} text-2xl font-bold`}>
               ₹{productDetails?.price}
             </span>
             {productDetails?.salePrice > 0 && (
@@ -158,23 +156,23 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             <h3 className="text-lg font-semibold mb-3">Customer Reviews</h3>
             {productDetails?.reviews && productDetails.reviews.length > 0 ? (
               <>
-                 <div className="flex items-center gap-2 mb-3">
-                    <div className="flex text-yellow-500">
-                      {Array.from({ length: 5 }).map((_, idx) => (
-                        <Star
-                          key={idx}
-                          className={`w-5 h-5 ${
-                            idx < productDetails.averageReview
-                              ? "fill-yellow-500"
-                              : "fill-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {productDetails.averageReview.toFixed(1)} / 5
-                    </span>
-                 </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex text-yellow-500">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <Star
+                        key={idx}
+                        className={`w-5 h-5 ${
+                          idx < productDetails.averageReview
+                            ? "fill-yellow-500"
+                            : "fill-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {productDetails.averageReview.toFixed(1)} / 5
+                  </span>
+                </div>
                 <ul className="space-y-3 mt-4 max-h-40 overflow-y-auto">
                   {productDetails.reviews.map((review) => (
                     <li key={review._id} className="p-3 border rounded-md bg-muted/30">
@@ -194,7 +192,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               <p className="text-sm text-muted-foreground">No reviews yet. Be the first to write one!</p>
             )}
           </div>
-
+          
           {user && (
             <div className="mt-6 border-t pt-4">
               <h3 className="text-lg font-semibold mb-3">Add Your Review</h3>
