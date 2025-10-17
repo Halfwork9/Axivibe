@@ -15,6 +15,9 @@ import StarRatingInput from "@/components/shopping-view/star-rating-input";
 import { useDispatch, useSelector } from "react-redux";
 import { addReviewToProduct } from "@/store/shop/products-slice";
 import { useToast } from "@/components/ui/use-toast";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const [currentIndex, setCurrentIndex] = useState(0);
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const dispatch = useDispatch();
@@ -78,11 +81,50 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         </DialogHeader>
 
         <div className="grid gap-6">
-          <img
-  src={productDetails?.image}
-  alt={productDetails?.title}
-  className="w-full max-h-[400px] object-contain rounded bg-gray-50"
-/>
+         {/* ✅ Product Images Carousel */}
+<div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
+  {Array.isArray(productDetails?.images) && productDetails.images.length > 0 ? (
+    <img
+      src={productDetails.images[currentIndex]}
+      alt={`${productDetails?.title} - ${currentIndex + 1}`}
+      className="w-full h-full object-contain transition-transform duration-500"
+    />
+  ) : (
+    <img
+      src={productDetails?.image || "/placeholder-image.jpg"}
+      alt={productDetails?.title}
+      className="w-full h-full object-contain"
+    />
+  )}
+
+  {/* ✅ Carousel Controls */}
+  {Array.isArray(productDetails?.images) && productDetails.images.length > 1 && (
+    <>
+      <Button
+        variant="outline"
+        size="icon"
+        className="absolute left-2 top-1/2 -translate-y-1/2"
+        onClick={() => setCurrentIndex((prev) =>
+          prev === 0 ? productDetails.images.length - 1 : prev - 1
+        )}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="absolute right-2 top-1/2 -translate-y-1/2"
+        onClick={() => setCurrentIndex((prev) =>
+          prev === productDetails.images.length - 1 ? 0 : prev + 1
+        )}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </>
+  )}
+</div>
+
 
 {/* ✅ Product Description Section */}
 <div className="mt-4">
