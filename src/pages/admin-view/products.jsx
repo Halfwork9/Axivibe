@@ -166,12 +166,13 @@ function AdminProducts() {
                 )}
               </div>
             </div>
-            {/* ✅ FIX: Single submit button at the bottom */}
-            <div className="mt-auto pt-4 border-t">
-              <Button type="submit" className="w-full">
-                {currentEditedId ? "Update Product" : "Add Product"}
-              </Button>
-            </div>
+           
+           <div className="sticky bottom-0 left-0 bg-white border-t p-4 mt-6 shadow-inner">
+  <Button type="submit" className="w-full h-11 text-base font-semibold">
+    {currentEditedId ? "Update Product" : "Add Product"}
+  </Button>
+</div>
+
           </form>
         </SheetContent>
       </Sheet>
