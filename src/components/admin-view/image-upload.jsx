@@ -53,7 +53,7 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
     imageFiles.forEach((file) => data.append("images", file));
 
     try {
-      const response = await api.post("/api/admin/upload/upload-images", data, {
+      const response = await api.post("/admin/upload/upload-images", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
