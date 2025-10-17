@@ -62,12 +62,17 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
             {discount}% OFF
           </div>
         )}
-        <img
-          onClick={() => handleGetProductDetails(product?._id)}
-          src={product?.image}
-          alt={product?.title}
-          className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
-        />
+       <img
+  onClick={() => handleGetProductDetails(product?._id)}
+  src={
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images[0]
+      : product.image || "/placeholder-image.jpg"
+  }
+  alt={product?.title}
+  className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
+/>
+
       </div>
 
       {/* Product Info */}
