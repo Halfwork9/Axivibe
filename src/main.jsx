@@ -3,24 +3,42 @@ import ReactDOM from "react-dom/client";
 import App from "@/App.jsx";
 import "@/index.css";
 import { Provider } from "react-redux";
-import store from "./store/store.js";
+import store from "@/store/store.js";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster.jsx";
 
-// This line reads your Google Client ID from your .env file
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+if (!googleClientId) {
+  console.error(
+    "❌ Missing VITE_GOOGLE_CLIENT_ID in environment. Add it to your .env and Vercel settings."
+  );
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* ✅ FIX: The entire application is now wrapped with the GoogleOAuthProvider */}
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <Provider store={store}>
-        <HelmetProvider>
-          <App />
-          <Toaster />
-        </HelmetProvider>
-      </Provider>
-    </GoogleOAuthProvider>
+    {googleClientId ? (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <Provider store={store}>
+          <HelmetProvider>
+            <App />
+            <Toaster />
+          </HelmetProvider>
+        </Provider>
+      </GoogleOAuthProvider>
+    ) : (
+      <div className="flex items-center justify-center h-screen text-center text-red-600">
+        <div>
+          <h2 className="text-xl font-semibold mb-2">
+            Missing Google Client ID
+          </h2>
+          <p>
+            Please set <strong>VITE_GOOGLE_CLIENT_ID</strong> in your environment
+            configuration and redeploy.
+          </p>
+        </div>
+      </div>
+    )}
   </React.StrictMode>
 );
