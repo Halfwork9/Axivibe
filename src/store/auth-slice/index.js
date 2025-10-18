@@ -41,10 +41,19 @@ export const logoutUser = createAsyncThunk("/auth/logout", async () => {
   return response.data;
 });
 
-export const loginWithGoogle = createAsyncThunk("auth/loginWithGoogle", async (token) => {
-  const result = await api.post("/auth/google", { token });
-  return result.data;
-});
+// ✅ Google Login Action
+export const loginWithGoogle = createAsyncThunk(
+  "auth/googleLogin",
+  async (credential, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/auth/google-login", { token: credential });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || { success: false, message: "Google login failed." });
+    }
+  }
+);
+
 // CHECK AUTH
 export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
   const response = await api.get(
