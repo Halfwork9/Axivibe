@@ -9,24 +9,17 @@ import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster.jsx";
 
 //  Load Google Client ID safely from .env
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-if (!googleClientId) {
-  console.error("❌ Missing Google Client ID. Please add VITE_GOOGLE_CLIENT_ID in your .env file.");
-}
+// This line reads your Google Client ID from your .env file
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/*  Wrap the entire app with GoogleOAuthProvider so GoogleLogin works everywhere */}
+    {/* This provider makes Google authentication available to your entire app */}
     <GoogleOAuthProvider clientId={googleClientId}>
-      {/* Redux store provider */}
       <Provider store={store}>
-        {/* React Helmet for dynamic titles and meta tags */}
         <HelmetProvider>
-          {/* Your main App (should include Router inside) */}
           <App />
-
-          {/*  Keep toaster here so it renders at root level */}
           <Toaster />
         </HelmetProvider>
       </Provider>
