@@ -8,14 +8,12 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster.jsx";
 
-//  Load Google Client ID safely from .env
-
 // This line reads your Google Client ID from your .env file
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* This provider makes Google authentication available to your entire app */}
+    {/* ✅ FIX: The entire application is now wrapped with the GoogleOAuthProvider */}
     <GoogleOAuthProvider clientId={googleClientId}>
       <Provider store={store}>
         <HelmetProvider>
