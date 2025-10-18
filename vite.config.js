@@ -14,10 +14,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // ✅ FIX: Explicitly tell Vite to include and pre-bundle this dependency.
-  // This helps the build process find the package correctly.
+  // ✅ FIX: Explicitly tells Vite to find and include this package during the build.
   optimizeDeps: {
     include: ['@react-oauth/google'],
   },
 })
-
