@@ -41,6 +41,10 @@ export const logoutUser = createAsyncThunk("/auth/logout", async () => {
   return response.data;
 });
 
+export const loginWithGoogle = createAsyncThunk("auth/loginWithGoogle", async (token) => {
+  const result = await api.post("/auth/google", { token });
+  return result.data;
+});
 // CHECK AUTH
 export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
   const response = await api.get(
@@ -58,7 +62,7 @@ export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
 
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+   initialState: { user: null, isLoggedIn: false },
   reducers: {
     // Remove unused args
     setUser: (state, action) => {
@@ -112,6 +116,18 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       });
+  },
+  extraReducers: (builder) => {
+    const handleAuthSuccess = (state, action) => {
+      if (action.payload?.success) {
+        state.user = action.payload.user;
+        state.isLoggedIn = true;
+      }
+    };
+
+    builder
+      .addCase(loginUser.fulfilled, handleAuthSuccess)
+      .addCase(loginWithGoogle.fulfilled, handleAuthSuccess); // ✅ Handle Google success
   },
 });
 
