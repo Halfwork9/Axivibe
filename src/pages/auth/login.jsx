@@ -11,19 +11,27 @@ function AuthLogin() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailLogin = (event) => {
+  const handleEmailLogin = async (event) => {
     event.preventDefault();
-    dispatch(loginUser(formData)).then((data) => {
-      if (!data.payload?.success) {
-        toast({ title: data.payload?.message, variant: "destructive" });
-      }
-    });
+    setLoading(true);
+
+    const result = await dispatch(loginUser(formData));
+    setLoading(false);
+
+    if (result.payload?.success) {
+      toast({ title: "Welcome back!", description: "Login successful 🎉" });
+    } else {
+      toast({ title: result.payload?.message || "Login failed.", variant: "destructive" });
+    }
   };
 
   const handleGoogleSuccess = (credentialResponse) => {
-    dispatch(loginWithGoogle(credentialResponse.credential)).then((data) => {
-      if (!data.payload?.success) {
+    dispatch(loginWithGoogle(credentialResponse.credential)).then((res) => {
+      if (res.payload?.success) {
+        toast({ title: "Google Sign-In successful 🎉" });
+      } else {
         toast({ title: "Google sign-in failed.", variant: "destructive" });
       }
     });
@@ -41,31 +49,35 @@ function AuthLogin() {
         </p>
       </div>
       
+      {/* ✅ Google Sign-In Button */}
       <div className="flex justify-center">
-         <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => toast({ title: "Google sign-in error.", variant: "destructive" })}
-            width="320px"
-          />
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => toast({ title: "Google sign-in error.", variant: "destructive" })}
+          width="320px"
+        />
       </div>
 
+      {/* Divider */}
       <div className="flex items-center">
         <div className="flex-grow border-t border-gray-300" />
         <span className="mx-4 text-sm font-medium text-gray-500">OR</span>
         <div className="flex-grow border-t border-gray-300" />
       </div>
       
+      {/* ✅ Email/Password Login */}
       <CommonForm
         formControls={loginFormControls}
-        buttonText={"Sign In with Email"}
+        buttonText={loading ? "Signing In..." : "Sign In with Email"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleEmailLogin}
+        isBtnDisabled={loading}
       />
 
       <div className="text-center text-sm">
         <Link to="/auth/forgot-password" className="font-medium text-primary hover:underline">
-            Forgot your password?
+          Forgot your password?
         </Link>
       </div>
     </div>
@@ -73,4 +85,3 @@ function AuthLogin() {
 }
 
 export default AuthLogin;
-
