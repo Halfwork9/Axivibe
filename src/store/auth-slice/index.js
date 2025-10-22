@@ -55,7 +55,7 @@ export const loginWithGoogle = createAsyncThunk(
   }
 );
 
-// REGISTER USER - NEW
+// REGISTER USER
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async ({ userName, email, password }, { rejectWithValue }) => {
@@ -72,11 +72,63 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// LOGOUT USER - NEW
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/logout`,
+        {},
+        { withCredentials: true }
+      );
+      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Logout failed');
+    }
+  }
+);
+
+// FORGOT PASSWORD - NEW
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/forgot-password`,
+        { email },
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Forgot password failed');
+    }
+  }
+);
+
+// RESET PASSWORD - NEW
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, password }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/reset-password/${token}`,
+        { password },
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Reset password failed');
+    }
+  }
+);
+
 const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false, // Changed to false to avoid infinite loading
   error: null,
 };
 
@@ -146,14 +198,54 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.isLoading = false;
-        // Note: Backend doesn't auto-login on register, so don't set user/isAuthenticated
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || 'Registration failed';
+      })
+      // LOGOUT
+      .addCase(logoutUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Logout failed';
+      })
+      // FORGOT PASSWORD
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Forgot password failed';
+      })
+      // RESET PASSWORD
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Reset password failed';
       });
   },
 });
