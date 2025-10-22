@@ -22,7 +22,7 @@ import { fetchAllCategories } from "@/store/admin/category-slice";
 // ---------------- Category Dropdown ----------------
 function CategoryDropdown() {
   const dispatch = useDispatch();
-  const { categoryList } = useSelector((state) => state.adminCategories);
+  const { categoryList = [] } = useSelector((state) => state.adminCategories || {}); // Safe destructuring
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,8 +31,10 @@ function CategoryDropdown() {
 
   function handleNavigate(category) {
     sessionStorage.setItem("filters", JSON.stringify({ category: [category._id] }));
-    navigate("/shop/listing?category=" + category._id);
+    navigate(`/shop/listing?category=${encodeURIComponent(category.name)}`);
   }
+
+  console.log('CategoryDropdown: categoryList length:', categoryList.length);
 
   return (
     <DropdownMenu>
@@ -44,14 +46,14 @@ function CategoryDropdown() {
       <DropdownMenuContent>
         <DropdownMenuLabel>Categories</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {categoryList && categoryList.length > 0 ? (
+        {categoryList.length > 0 ? (
           categoryList.map((cat) => (
             <DropdownMenuItem key={cat._id} onClick={() => handleNavigate(cat)}>
               {cat.name}
             </DropdownMenuItem>
           ))
         ) : (
-          <DropdownMenuItem disabled>No categories</DropdownMenuItem>
+          <DropdownMenuItem disabled>Loading categories...</DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -60,8 +62,8 @@ function CategoryDropdown() {
 
 // ---------------- Header Right (Cart + User) ----------------
 function HeaderRightContent() {
-  const { user } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const { user } = useSelector((state) => state.auth || {});
+  const { cartItems = [] } = useSelector((state) => state.shopCart || {}); // Safe destructuring
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -76,10 +78,12 @@ function HeaderRightContent() {
     }
   }, [dispatch, user?.id]);
 
+  console.log('HeaderRightContent: cartItems length:', cartItems.length);
+
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
       {/* Cart */}
-      <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
+      <Sheet open={openCartSheet} onOpenChange={setOpenCartSheet}>
         <Button
           onClick={() => setOpenCartSheet(true)}
           variant="outline"
@@ -88,14 +92,11 @@ function HeaderRightContent() {
         >
           <ShoppingCart className="w-6 h-6" />
           <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
-            {cartItems?.length || 0}
+            {cartItems.length}
           </span>
           <span className="sr-only">User cart</span>
         </Button>
-        <UserCartWrapper
-  setOpenCartSheet={setOpenCartSheet}
-  cartItems={cartItems}
-/>
+        <UserCartWrapper setOpenCartSheet={setOpenCartSheet} cartItems={cartItems} />
       </Sheet>
 
       {/* User Dropdown */}
@@ -103,12 +104,12 @@ function HeaderRightContent() {
         <DropdownMenuTrigger asChild>
           <Avatar className="bg-black">
             <AvatarFallback className="bg-black text-white font-extrabold">
-              {user?.userName[0].toUpperCase()}
+              {user?.userName?.[0]?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>Logged in as {user?.userName}</DropdownMenuLabel>
+          <DropdownMenuLabel>Logged in as {user?.userName || 'Guest'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate("/shop/account")}>
             <UserCog className="mr-2 h-4 w-4" />
@@ -141,7 +142,7 @@ function ShoppingHeader() {
           <span className="font-bold">Axivibe</span>
         </Link>
 
-       {/* Mobile menu */}
+        {/* Mobile menu */}
         <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="lg:hidden">
@@ -153,14 +154,14 @@ function ShoppingHeader() {
             <Link
               to="/shop/home"
               className="text-sm font-medium"
-              onClick={() => setOpenSidebar(false)} // ✅ close sidebar after click
+              onClick={() => setOpenSidebar(false)}
             >
               Home
             </Link>
             <Link
               to="/shop/listing"
               className="text-sm font-medium"
-              onClick={() => setOpenSidebar(false)} // ✅
+              onClick={() => setOpenSidebar(false)}
             >
               Products
             </Link>
@@ -182,7 +183,6 @@ function ShoppingHeader() {
             <HeaderRightContent />
           </SheetContent>
         </Sheet>
-
 
         {/* Desktop menu */}
         <div className="hidden lg:flex gap-6 items-center">
