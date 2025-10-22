@@ -20,18 +20,18 @@ function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  const { productList = [], productDetails = null } = useSelector((state) => state.shopProducts || {});
-  const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
-  const { brandList = [] } = useSelector((state) => state.adminBrands || {});
-  const { categoryList = [], error: categoryError } = useSelector((state) => state.adminCategories || {});
-  const { cartItems = [], error: cartError } = useSelector((state) => state.shopCart || {});
-  const { user } = useSelector((state) => state.auth || {});
+  const { productList = [], productDetails = null, isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
+  const { featureImageList = [], isLoading: featureImagesLoading } = useSelector((state) => state.commonFeature || {});
+  const { brandList = [], isLoading: brandsLoading } = useSelector((state) => state.adminBrands || {});
+  const { categoryList = [], isLoading: categoriesLoading, error: categoryError } = useSelector((state) => state.adminCategories || {});
+  const { cartItems = [], isLoading: cartLoading, error: cartError } = useSelector((state) => state.shopCart || {});
+  const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  console.log('ShoppingHome: State:', { productList, featureImageList, brandList, categoryList, cartItems, user, categoryError, cartError });
+  console.log('ShoppingHome: State:', { productList, featureImageList, brandList, categoryList, cartItems, user, isAuthenticated, authLoading, productsLoading, featureImagesLoading, brandsLoading, categoriesLoading, cartLoading, categoryError, cartError });
 
   const handleNavigateToListingPage = (item, section) => {
     sessionStorage.removeItem('filters');
@@ -46,7 +46,7 @@ function ShoppingHome() {
   };
 
   const handleAddtoCart = (id) => {
-    if (!user?.id) {
+    if (!isAuthenticated || !user?.id) {
       toast({ title: 'Please login to add items to cart', variant: 'destructive' });
       navigate('/auth/login');
       return;
@@ -80,10 +80,20 @@ function ShoppingHome() {
     dispatch(getFeatureImages());
     dispatch(fetchAllBrands());
     dispatch(fetchAllCategories());
-    if (user?.id) {
+    if (isAuthenticated && user?.id) {
       dispatch(fetchCartItems(user.id));
     }
-  }, [dispatch, user?.id]);
+  }, [dispatch, isAuthenticated, user?.id]);
+
+  if (authLoading || productsLoading || featureImagesLoading || brandsLoading || categoriesLoading || cartLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -93,7 +103,6 @@ function ShoppingHome() {
         url="https://axivibe.vercel.app/shop/home"
       />
 
-      {/* Error Display */}
       {(categoryError || cartError) && (
         <div className="bg-red-100 text-red-700 p-4 text-center">
           {categoryError && <p>Category Error: {categoryError}</p>}
@@ -101,7 +110,6 @@ function ShoppingHome() {
         </div>
       )}
 
-      {/* Hero Slider */}
       <div className="relative w-full h-[600px] overflow-hidden">
         {featureImageList?.length > 0 ? (
           featureImageList.map((slide, i) => (
@@ -143,7 +151,6 @@ function ShoppingHome() {
         )}
       </div>
 
-      {/* Categories */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
@@ -171,7 +178,6 @@ function ShoppingHome() {
         </div>
       </section>
 
-      {/* Brands */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
@@ -207,7 +213,6 @@ function ShoppingHome() {
         </div>
       </section>
 
-      {/* Featured Products */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
