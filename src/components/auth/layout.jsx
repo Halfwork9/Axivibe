@@ -6,6 +6,7 @@ const AuthLayout = () => {
   try {
     return (
       <div className="flex min-h-screen bg-gray-50">
+        <h1>AuthLayout Test</h1>
         <Outlet />
       </div>
     );
