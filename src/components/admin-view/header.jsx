@@ -6,9 +6,10 @@ import { logoutUser } from "@/store/auth-slice";
 function AdminHeader({ setOpen }) {
   const dispatch = useDispatch();
 
-  function handleLogout() {
-    dispatch(logoutUser());
-  }
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    navigate('/auth/login');
+  };
 
   return (
     <header className="flex items-center justify-between px-4 py-3 bg-background border-b">
