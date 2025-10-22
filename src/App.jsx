@@ -32,7 +32,7 @@ import DistributorPage from "@/components/shopping-view/distributor";
 import AdminDistributorsPage from "@/components/admin-view/distributors-page";
 
 function App() {
-  const { user, isAuthenticated, isLoading } = useSelector(
+  const { user, isAuthenticated, isLoading, error } = useSelector(
     (state) => state.auth
   );
   const dispatch = useDispatch();
@@ -41,10 +41,17 @@ function App() {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
+  // Show loading skeleton
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Skeleton className="w-80 h-96" />
+      </div>
+    );
+  }
 
-  console.log(isLoading, user);
-
+  // Debug log (remove after fixing)
+  console.log('Auth State:', { isLoading, isAuthenticated, user, error });
   return (
     <div className="flex flex-col overflow-hidden bg-white">
       <Routes>
