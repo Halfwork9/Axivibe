@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { forgotPassword } from '@/store/auth-slice';
+import { resetPassword } from '@/store/auth-slice';
 
-const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
+const ResetPassword = () => {
+  const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { token } = useParams();
   const { isLoading, error } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const action = await dispatch(forgotPassword(email));
-    if (forgotPassword.fulfilled.match(action)) {
-      toast({ title: 'Success', description: 'Password reset email sent. Check your inbox.' });
+    const action = await dispatch(resetPassword({ token, password }));
+    if (resetPassword.fulfilled.match(action)) {
+      toast({ title: 'Success', description: 'Password reset successful. Please log in.' });
       navigate('/auth/login');
     } else {
-      toast({ title: 'Error', description: action.payload || 'Failed to send reset email', variant: 'destructive' });
+      toast({ title: 'Error', description: action.payload || 'Reset password failed', variant: 'destructive' });
     }
   };
 
@@ -26,21 +27,21 @@ const ForgotPassword = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Forgot Password
+          Reset Password
         </h2>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              New Password
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              id="password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter new password"
               className="w-full px-3 py-2 border rounded-md"
               required
             />
@@ -50,7 +51,7 @@ const ForgotPassword = () => {
             disabled={isLoading}
             className="w-full bg-blue-600 text-white py-2 rounded-md disabled:opacity-50"
           >
-            {isLoading ? 'Sending...' : 'Send Reset Email'}
+            {isLoading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
       </div>
@@ -58,4 +59,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword;
+export default ResetPassword;
