@@ -105,7 +105,6 @@ const AuthLogin = () => {
           </form>
           <div className="flex justify-center">
             <GoogleLogin
-              clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com"
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
             />
@@ -115,7 +114,7 @@ const AuthLogin = () => {
     );
   } catch (err) {
     console.error('AuthLogin: Render error:', err);
-    throw err; // Let ErrorBoundary catch this
+    throw err;
   }
 };
 
