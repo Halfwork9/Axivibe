@@ -1,15 +1,16 @@
-import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "@/store/auth-slice";
-import productsReducer from "@/store/shop/products-slice";
-import cartReducer from "@/store/shop/cart-slice";
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './auth-slice';
 
-// ✅ Create your central Redux store
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     auth: authReducer,
-    products: productsReducer,
-    cart: cartReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST'],
+      },
+    }),
 });
 
 export default store;
