@@ -21,6 +21,7 @@ const AuthLogin = () => {
   console.log('AuthLogin: loginFormControls:', loginFormControls);
 
   const handleChange = (e) => {
+    console.log('AuthLogin: handleChange:', e.target.name, e.target.value);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -65,51 +66,57 @@ const AuthLogin = () => {
     toast({ title: 'Error', description: 'Google Sign-In failed', variant: 'destructive' });
   };
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Sign in to your account
-        </h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {loginFormControls.map((control, index) => {
-            console.log('AuthLogin: Rendering control:', control);
-            return (
-              <div key={control.name || index}>
-                <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
-                  {control.label || 'Unknown Label'}
-                </label>
-                <input
-                  id={control.name}
-                  name={control.name}
-                  type={control.type || 'text'}
-                  value={formData[control.name] || ''}
-                  onChange={handleChange}
-                  placeholder={control.placeholder || ''}
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
-              </div>
-            );
-          })}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md disabled:opacity-50"
-          >
-            {isLoading ? 'Logging in...' : 'Sign in'}
-          </button>
-        </form>
-        <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-          />
+  try {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8">
+          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+            Sign in to your account
+          </h2>
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            {loginFormControls.map((control, index) => {
+              console.log('AuthLogin: Rendering control:', control);
+              return (
+                <div key={control.name || `control-${index}`}>
+                  <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
+                    {control.label || 'Unknown Label'}
+                  </label>
+                  <input
+                    id={control.name}
+                    name={control.name}
+                    type={control.type || 'text'}
+                    value={formData[control.name] || ''}
+                    onChange={handleChange}
+                    placeholder={control.placeholder || ''}
+                    className="w-full px-3 py-2 border rounded-md"
+                    required
+                  />
+                </div>
+              );
+            })}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md disabled:opacity-50"
+            >
+              {isLoading ? 'Logging in...' : 'Sign in'}
+            </button>
+          </form>
+          <div className="flex justify-center">
+            <GoogleLogin
+              clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com"
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  } catch (err) {
+    console.error('AuthLogin: Render error:', err);
+    throw err; // Let ErrorBoundary catch this
+  }
 };
 
 export default AuthLogin;
