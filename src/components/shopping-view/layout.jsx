@@ -1,29 +1,43 @@
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchCartItems } from '../store/shop/cart-slice';
-import { fetchAllCategories } from '../store/admin/category-slice';
+import { fetchCartItems } from '../../store/shop/cart-slice'; // Fixed path
+import { fetchAllCategories } from '../../store/admin/category-slice'; // Fixed path
 
 const ShoppingLayout = () => {
   console.log('ShoppingLayout: Rendering');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useSelector((state) => state.auth || {});
-  const { categoryList = [], error: categoryError } = useSelector((state) => state.adminCategories || {});
-  const { cartItems = [], error: cartError } = useSelector((state) => state.shopCart || {});
+  const { isAuthenticated, user, isLoading: authLoading } = useSelector((state) => state.auth || {});
+  const { categoryList = [], isLoading: categoriesLoading, error: categoryError } = useSelector((state) => state.adminCategories || {});
+  const { cartItems = [], isLoading: cartLoading, error: cartError } = useSelector((state) => state.shopCart || {});
 
-  console.log('ShoppingLayout: State:', { categoryList, cartItems, isAuthenticated, user, categoryError, cartError });
+  console.log('ShoppingLayout: State:', { categoryList, cartItems, isAuthenticated, user, authLoading, categoriesLoading, cartLoading, categoryError, cartError });
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    console.log('ShoppingLayout: Dispatching thunks');
+    dispatch(fetchAllCategories());
+    if (isAuthenticated && user?.id) {
+      dispatch(fetchCartItems(user.id));
+    }
+  }, [dispatch, isAuthenticated, user?.id]);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
       console.log('ShoppingLayout: Redirecting to /auth/login');
       navigate('/auth/login');
     }
-    dispatch(fetchAllCategories());
-    if (user?.id) {
-      dispatch(fetchCartItems(user.id));
-    }
-  }, [dispatch, isAuthenticated, navigate, user?.id]);
+  }, [authLoading, isAuthenticated, navigate]);
+
+  if (authLoading || categoriesLoading || cartLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   try {
     return (
@@ -37,7 +51,7 @@ const ShoppingLayout = () => {
                   categoryList.map((category) => (
                     <a
                       key={category._id || category.name}
-                      href={`/shop/listing?category=${category.name}`}
+                      href={`/shop/listing?category=${encodeURIComponent(category.name)}`}
                       className="text-gray-700 hover:text-blue-600"
                     >
                       {category.name || 'Unknown'}
