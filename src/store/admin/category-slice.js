@@ -12,8 +12,10 @@ export const createCategory = createAsyncThunk(
   async ({ name, icon }, { rejectWithValue }) => {
     try {
       const res = await api.post('/admin/categories', { name, icon });
-      return res.data;
+      console.log('createCategory: Response:', res.data);
+      return res.data; // expect { data: { _id, name, icon } }
     } catch (error) {
+      console.error('createCategory: Error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || 'Failed to create category');
     }
   }
@@ -24,10 +26,10 @@ export const fetchAllCategories = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get('/admin/categories');
-      console.log('fetchAllCategories: Success →', res.data);
-      return res.data; // Must be: { success: true, data: [...] }
+      console.log('fetchAllCategories: Response:', res.data);
+      return res.data; // expect { data: [...] }
     } catch (error) {
-      console.error('fetchAllCategories: Failed →', error.response?.data);
+      console.error('fetchAllCategories: Error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || 'Failed to fetch categories');
     }
   }
@@ -38,8 +40,10 @@ export const deleteCategory = createAsyncThunk(
   async (categoryId, { rejectWithValue }) => {
     try {
       await api.delete(`/admin/categories/${categoryId}`);
-      return categoryId;
+      console.log('deleteCategory: Success, ID:', categoryId);
+      return categoryId; // return only id
     } catch (error) {
+      console.error('deleteCategory: Error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || 'Failed to delete category');
     }
   }
@@ -48,10 +52,14 @@ export const deleteCategory = createAsyncThunk(
 const categorySlice = createSlice({
   name: 'adminCategories',
   initialState,
-  reducers: {},
+  reducers: {
+    resetCategories: (state) => {
+      state.categoryList = [];
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Fetch All
       .addCase(fetchAllCategories.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -62,22 +70,24 @@ const categorySlice = createSlice({
       })
       .addCase(fetchAllCategories.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload?.message || 'Failed to load categories';
+        state.error = action.payload || action.error.message;
         state.categoryList = [];
       })
-
-      // Create
       .addCase(createCategory.fulfilled, (state, action) => {
-        if (action.payload.success && action.payload.data) {
-          state.categoryList.push(action.payload.data);
-        }
+        state.categoryList = Array.isArray(state.categoryList)
+          ? [...state.categoryList, action.payload.data]
+          : [action.payload.data];
       })
-
-      // Delete
       .addCase(deleteCategory.fulfilled, (state, action) => {
-        state.categoryList = state.categoryList.filter((cat) => cat._id !== action.payload);
+        state.categoryList = state.categoryList.filter(
+          (category) => category._id !== action.payload
+        );
+      })
+      .addCase(deleteCategory.rejected, (state, action) => {
+        state.error = action.payload || action.error.message;
       });
   },
 });
 
+export const { resetCategories } = categorySlice.actions;
 export default categorySlice.reducer;
