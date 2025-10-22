@@ -36,7 +36,6 @@ import TechnicalSupportPage from './pages/shopping-view/customer-service/technic
 import DistributorPage from './components/shopping-view/distributor';
 import AdminDistributorsPage from './components/admin-view/distributors-page';
 
-// Error Boundary Component
 class ErrorBoundary extends Component {
   state = { error: null, errorInfo: null };
 
@@ -74,11 +73,11 @@ class ErrorBoundary extends Component {
 }
 
 function App() {
-  const { user, isAuthenticated, isLoading, error } = useSelector((state) => state.auth || {});
+  const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log('App: Dispatching checkAuth');
+    console.log('App: Dispatching thunks');
     dispatch(checkAuth());
     dispatch(fetchAllCategories());
     dispatch(fetchAllBrands());
@@ -88,9 +87,9 @@ function App() {
     }
   }, [dispatch, isAuthenticated, user]);
 
-  console.log('App: Rendering with Auth State:', { isLoading, isAuthenticated, user, error });
+  console.log('App: Rendering with Auth State:', { authLoading, isAuthenticated, user });
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Skeleton className="w-80 h-96" />
