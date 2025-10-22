@@ -1,66 +1,51 @@
-import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { loginFormControls } from '@/config';
-import { loginUser, loginWithGoogle } from '@/store/auth-slice';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { loginUser, loginWithGoogle } from '@/store/auth-slice';
 import { GoogleLogin } from '@react-oauth/google';
+import { loginFormControls } from '@/config';
 
-export default function AuthLogin() {
+const AuthLogin = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const { isLoading, error } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isLoading, error } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const result = await dispatch(loginUser(formData)).unwrap();
-      toast({
-        title: 'Success',
-        description: result.message || 'Logged in successfully',
-      });
+    const action = await dispatch(loginUser(formData));
+    if (loginUser.fulfilled.match(action)) {
+      toast({ title: 'Success', description: 'Logged in successfully' });
       navigate('/shop/home');
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: err?.message || 'Login failed',
-        variant: 'destructive',
-      });
+    } else {
+      toast({ title: 'Error', description: action.payload || 'Login failed', variant: 'destructive' });
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const result = await dispatch(loginWithGoogle(credentialResponse.credential)).unwrap();
-      toast({
-        title: 'Success',
-        description: result.message || 'Google Sign-In successful',
-      });
+    const action = await dispatch(loginWithGoogle(credentialResponse.credential));
+    if (loginWithGoogle.fulfilled.match(action)) {
+      toast({ title: 'Success', description: 'Google Sign-In successful' });
       navigate('/shop/home');
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: err?.message || 'Google login failed',
-        variant: 'destructive',
-      });
+    } else {
+      toast({ title: 'Error', description: action.payload || 'Google login failed', variant: 'destructive' });
     }
   };
 
   const handleGoogleError = () => {
-    toast({
-      title: 'Error',
-      description: 'Google Sign-In failed. Please try again.',
-      variant: 'destructive',
-    });
+    toast({ title: 'Error', description: 'Google Sign-In failed', variant: 'destructive' });
   };
 
   return (
@@ -69,10 +54,8 @@ export default function AuthLogin() {
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
           Sign in to your account
         </h2>
-        {error && (
-          <div className="text-red-600 text-center">{error.message || 'An error occurred'}</div>
-        )}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {loginFormControls.map((control) => (
             <div key={control.name}>
               <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
@@ -82,10 +65,10 @@ export default function AuthLogin() {
                 id={control.name}
                 name={control.name}
                 type={control.type}
-                placeholder={control.placeholder}
                 value={formData[control.name]}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+                placeholder={control.placeholder}
+                className="w-full px-3 py-2 border rounded-md"
                 required
               />
             </div>
@@ -93,22 +76,20 @@ export default function AuthLogin() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-2 rounded-md disabled:opacity-50"
           >
             {isLoading ? 'Logging in...' : 'Sign in'}
           </button>
         </form>
-        <div className="mt-4 flex justify-center">
+        <div className="flex justify-center">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
-            text="signin_with"
-            shape="rectangular"
-            theme="outline"
-            size="large"
           />
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default AuthLogin;
