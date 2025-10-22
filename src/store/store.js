@@ -16,8 +16,8 @@ import adminDistributorsReducer from './admin/distributor-slice';
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    categories: adminCategoriesReducer, // Rename to match expected state path
-    cart: shopCartSlice, // Rename to match expected state path
+    adminCategories: adminCategoriesReducer, // Matches category-slice.js
+    shopCart: shopCartSlice, // Matches cart-slice.js
     adminProducts: adminProductsSlice,
     adminOrder: adminOrderSlice,
     adminBrands: adminBrandsReducer,
