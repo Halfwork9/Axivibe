@@ -3,18 +3,16 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ✅ CHECK AUTH - Gets cookie token and validates
+// ✅ CHECK AUTH
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, { rejectWithValue }) => {
     try {
-      // Get token from cookie (handled by backend middleware)
       const response = await axios.get(`${API_URL}/auth/check-auth`, {
-        withCredentials: true, // Important for cookies
+        withCredentials: true,
       });
       return response.data;
     } catch (error) {
-      // Clear invalid state on 401
       if (error.response?.status === 401) {
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       }
@@ -23,7 +21,7 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
-// ✅ LOGIN
+// ✅ LOGIN (Email/Password)
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
@@ -36,6 +34,23 @@ export const loginUser = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Login failed');
+    }
+  }
+);
+
+// ✅ GOOGLE LOGIN
+export const loginWithGoogle = createAsyncThunk(
+  'auth/loginWithGoogle',
+  async (credential, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/google-login`,
+        { token: credential },
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Google login failed');
     }
   }
 );
@@ -61,7 +76,6 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.isLoading = false;
-      // Clear cookie
       document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     },
   },
@@ -83,7 +97,7 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload?.message || 'Auth check failed';
       })
-      // LOGIN
+      // LOGIN (Email/Password)
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -96,6 +110,20 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || 'Login failed';
+      })
+      // GOOGLE LOGIN
+      .addCase(loginWithGoogle.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(loginWithGoogle.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Google login failed';
       });
   },
 });
