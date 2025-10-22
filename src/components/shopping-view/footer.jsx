@@ -10,7 +10,6 @@ function Footer() {
     setOpenSection(openSection === section ? null : section);
   };
 
-  // Show scroll-to-top button when user scrolls down
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 200);
@@ -41,12 +40,7 @@ function Footer() {
           <li><Link to="/shop/product-support" className="hover:text-white">Product Support</Link></li>
           <li><Link to="/shop/technical-support" className="hover:text-white">Technical Support</Link></li>
           <li><Link to="/shop/contact" className="hover:text-white">Contact Us</Link></li>
-          <li>
-  <Link to="/shop/distributor" className="hover:text-white">
-    Become a Distributor
-  </Link>
-</li>
-
+          <li><Link to="/shop/distributor" className="hover:text-white">Become a Distributor</Link></li>
         </ul>
       ),
     },
@@ -58,7 +52,6 @@ function Footer() {
           <li><Link to="/shop/listing" className="hover:text-white">Products</Link></li>
           <li><Link to="/shop/account" className="hover:text-white">My Account</Link></li>
           <li><Link to="/shop/cart" className="hover:text-white">Cart</Link></li>
-          
         </ul>
       ),
     },
@@ -76,19 +69,14 @@ function Footer() {
 
   return (
     <footer className="relative bg-gray-900 text-gray-400">
-      {/* Desktop grid */}
       <div className="hidden md:grid container mx-auto px-6 py-12 grid-cols-1 md:grid-cols-4 gap-8">
         {sections.map((section, idx) => (
           <div key={idx}>
-            <h3 className="text-lg font-semibold text-white mb-3">
-              {section.title}
-            </h3>
+            <h3 className="text-lg font-semibold text-white mb-3">{section.title}</h3>
             {section.content}
           </div>
         ))}
       </div>
-
-      {/* Mobile accordion */}
       <div className="md:hidden container mx-auto px-6 py-8 space-y-4">
         {sections.map((section, idx) => (
           <div key={idx}>
@@ -103,13 +91,9 @@ function Footer() {
           </div>
         ))}
       </div>
-
-      {/* Bottom bar */}
       <div className="border-t border-gray-700 py-4 text-center text-sm">
         © {new Date().getFullYear()} Ecommerce. All rights reserved.
       </div>
-
-      {/* Scroll to top button */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
