@@ -20,6 +20,9 @@ import UnauthPage from './pages/unauth-page';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, Component } from 'react';
 import { checkAuth } from './store/auth-slice';
+import { fetchAllCategories } from './store/admin/category-slice';
+import { fetchAllBrands } from './store/admin/brand-slice';
+import { fetchCartItems } from './store/shop/cart-slice';
 import { Skeleton } from '@/components/ui/skeleton';
 import PaypalReturnPage from './pages/shopping-view/StripeReturnPage';
 import PaymentSuccessPage from './pages/shopping-view/payment-success';
@@ -71,13 +74,19 @@ class ErrorBoundary extends Component {
 }
 
 function App() {
-  const { user, isAuthenticated, isLoading, error } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, isLoading, error } = useSelector((state) => state.auth || {});
   const dispatch = useDispatch();
 
   useEffect(() => {
     console.log('App: Dispatching checkAuth');
     dispatch(checkAuth());
-  }, [dispatch]);
+    dispatch(fetchAllCategories());
+    dispatch(fetchAllBrands());
+    if (isAuthenticated && user?.id) {
+      console.log('App: Dispatching fetchCartItems for user:', user.id);
+      dispatch(fetchCartItems(user.id));
+    }
+  }, [dispatch, isAuthenticated, user]);
 
   console.log('App: Rendering with Auth State:', { isLoading, isAuthenticated, user, error });
 
