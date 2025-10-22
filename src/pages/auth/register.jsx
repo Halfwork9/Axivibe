@@ -1,86 +1,96 @@
-import CommonForm from "@/components/common/form";
-import { useToast } from "@/components/ui/use-toast";
-import { registerFormControls } from "@/config";
-import { registerUser, loginWithGoogle } from "@/store/auth-slice";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { registerUser, loginWithGoogle } from '@/store/auth-slice';
+import { GoogleLogin } from '@react-oauth/google';
+import { registerFormControls } from '@/config';
 
-function AuthRegister() {
-  const [formData, setFormData] = useState({ userName: "", email: "", password: "" });
+const AuthRegister = () => {
+  const [formData, setFormData] = useState({
+    userName: '',
+    email: '',
+    password: '',
+  });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { isLoading, error } = useSelector((state) => state.auth);
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-
-    const data = await dispatch(registerUser(formData));
-    setLoading(false);
-
-    if (data?.payload?.success) {
-      toast({ title: data?.payload?.message || "Registration successful 🎉" });
-      navigate("/auth/login");
-    } else {
-      toast({ title: data?.payload?.message || "Registration failed", variant: "destructive" });
-    }
-  };
-
-  const handleGoogleSuccess = (credentialResponse) => {
-    dispatch(loginWithGoogle(credentialResponse.credential)).then((res) => {
-      if (res.payload?.success) {
-        toast({ title: "Google Sign-Up successful 🎉" });
-        navigate("/");
-      } else {
-        toast({ title: "Google sign-up failed.", variant: "destructive" });
-      }
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const action = await dispatch(registerUser(formData));
+    if (registerUser.fulfilled.match(action)) {
+      toast({ title: 'Success', description: 'Registration successful. Please log in.' });
+      navigate('/auth/login');
+    } else {
+      toast({ title: 'Error', description: action.payload || 'Registration failed', variant: 'destructive' });
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const action = await dispatch(loginWithGoogle(credentialResponse.credential));
+    if (loginWithGoogle.fulfilled.match(action)) {
+      toast({ title: 'Success', description: 'Google Sign-In successful' });
+      navigate('/shop/home');
+    } else {
+      toast({ title: 'Error', description: action.payload || 'Google login failed', variant: 'destructive' });
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast({ title: 'Error', description: 'Google Sign-In failed', variant: 'destructive' });
+  };
+
   return (
-    <div className="mx-auto w-full max-w-sm space-y-6 p-8 rounded-xl shadow-lg bg-white">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Create an Account
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Already have an account?{" "}
-          <Link className="font-medium text-primary hover:underline" to="/auth/login">
-            Login
-          </Link>
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+          Create your account
+        </h2>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {registerFormControls.map((control) => (
+            <div key={control.name}>
+              <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
+                {control.label}
+              </label>
+              <input
+                id={control.name}
+                name={control.name}
+                type={control.type}
+                value={formData[control.name]}
+                onChange={handleChange}
+                placeholder={control.placeholder}
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+            </div>
+          ))}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-2 rounded-md disabled:opacity-50"
+          >
+            {isLoading ? 'Registering...' : 'Sign up'}
+          </button>
+        </form>
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
+        </div>
       </div>
-
-      {/* ✅ Google Sign-Up */}
-      <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => toast({ title: "Google sign-up error.", variant: "destructive" })}
-          width="320px"
-        />
-      </div>
-
-      {/* Divider */}
-      <div className="flex items-center">
-        <div className="flex-grow border-t border-gray-300" />
-        <span className="mx-4 text-sm font-medium text-gray-500">OR</span>
-        <div className="flex-grow border-t border-gray-300" />
-      </div>
-
-      {/* ✅ Email Registration */}
-      <CommonForm
-        formControls={registerFormControls}
-        buttonText={loading ? "Creating Account..." : "Sign Up with Email"}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={onSubmit}
-        isBtnDisabled={loading}
-      />
     </div>
   );
-}
+};
 
 export default AuthRegister;
