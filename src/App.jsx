@@ -79,6 +79,8 @@ function App() {
     dispatch(checkAuth());
   }, [dispatch]);
 
+  console.log('App: Rendering with Auth State:', { isLoading, isAuthenticated, user, error });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -87,53 +89,57 @@ function App() {
     );
   }
 
-  console.log('App: Rendering with Auth State:', { isLoading, isAuthenticated, user, error });
-
-  return (
-    <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
-      <ErrorBoundary>
-        <div className="flex flex-col min-h-screen bg-white">
-          <Routes>
-            <Route path="/" element={<ShoppingHome />} />
-            <Route path="/auth" element={<AuthLayout />}>
-              <Route index element={<div>Auth Home</div>} />
-              <Route path="login" element={<AuthLogin />} />
-              <Route path="register" element={<AuthRegister />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="reset-password/:token" element={<ResetPassword />} />
-            </Route>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="products" element={<AdminProducts />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="features" element={<AdminFeatures />} />
-              <Route path="brands" element={<Brands />} />
-              <Route path="categories" element={<AdminCategoriesPage />} />
-              <Route path="distributors" element={<AdminDistributorsPage />} />
-            </Route>
-            <Route path="/shop" element={<ShoppingLayout />}>
-              <Route index element={<ShoppingHome />} />
-              <Route path="home" element={<ShoppingHome />} />
-              <Route path="listing" element={<ShoppingListing />} />
-              <Route path="checkout" element={<ShoppingCheckout />} />
-              <Route path="account" element={<ShoppingAccount />} />
-              <Route path="paypal-return" element={<PaypalReturnPage />} />
-              <Route path="payment-success" element={<PaymentSuccessPage />} />
-              <Route path="search" element={<SearchProducts />} />
-              <Route path="help" element={<HelpPage />} />
-              <Route path="contact" element={<ContactPage />} />
-              <Route path="product-support" element={<ProductSupportPage />} />
-              <Route path="technical-support" element={<TechnicalSupportPage />} />
-              <Route path="distributors" element={<DistributorPage />} />
-            </Route>
-            <Route path="/unauth-page" element={<UnauthPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-      </ErrorBoundary>
-    </GoogleOAuthProvider>
-  );
+  try {
+    console.log('App: Rendering Routes');
+    return (
+      <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
+        <ErrorBoundary>
+          <div className="flex flex-col min-h-screen bg-white">
+            <Routes>
+              <Route path="/" element={<ShoppingHome />} />
+              <Route path="/auth" element={<AuthLayout />}>
+                <Route index element={<div>Auth Home</div>} />
+                <Route path="login" element={<AuthLogin />} />
+                <Route path="register" element={<AuthRegister />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password/:token" element={<ResetPassword />} />
+              </Route>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="features" element={<AdminFeatures />} />
+                <Route path="brands" element={<Brands />} />
+                <Route path="categories" element={<AdminCategoriesPage />} />
+                <Route path="distributors" element={<AdminDistributorsPage />} />
+              </Route>
+              <Route path="/shop" element={<ShoppingLayout />}>
+                <Route index element={<ShoppingHome />} />
+                <Route path="home" element={<ShoppingHome />} />
+                <Route path="listing" element={<ShoppingListing />} />
+                <Route path="checkout" element={<ShoppingCheckout />} />
+                <Route path="account" element={<ShoppingAccount />} />
+                <Route path="paypal-return" element={<PaypalReturnPage />} />
+                <Route path="payment-success" element={<PaymentSuccessPage />} />
+                <Route path="search" element={<SearchProducts />} />
+                <Route path="help" element={<HelpPage />} />
+                <Route path="contact" element={<ContactPage />} />
+                <Route path="product-support" element={<ProductSupportPage />} />
+                <Route path="technical-support" element={<TechnicalSupportPage />} />
+                <Route path="distributors" element={<DistributorPage />} />
+              </Route>
+              <Route path="/unauth-page" element={<UnauthPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </ErrorBoundary>
+      </GoogleOAuthProvider>
+    );
+  } catch (err) {
+    console.error('App: Render error:', err);
+    throw err;
+  }
 }
 
 export default App;
