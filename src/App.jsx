@@ -113,9 +113,12 @@ function App() {
           <Router>
             <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
               <Routes>
-                {/* Adjusted base path to /shop and set proper nesting */}
+                {/* ROOT ROUTE - Redirect to /shop/home for proper layout */}
+                <Route path="/" element={<Navigate to="/shop/home" replace />} />
+
+                {/* SHOPPING ROUTES - All under ShoppingLayout */}
                 <Route path="/shop" element={<ShoppingLayout />}>
-                  <Route index element={<Navigate to="/shop/home" replace />} /> {/* Default to /shop/home */}
+                  <Route index element={<Navigate to="/shop/home" replace />} />
                   <Route path="home" element={<ShoppingHome />} />
                   <Route path="listing" element={<ShoppingListing />} />
                   <Route path="checkout" element={<ShoppingCheckout />} />
@@ -130,13 +133,16 @@ function App() {
                   <Route path="distributors" element={<DistributorPage />} />
                 </Route>
 
+                {/* AUTH ROUTES */}
                 <Route path="/auth" element={<AuthLayout />}>
+                  <Route index element={<Navigate to="/auth/login" replace />} />
                   <Route path="login" element={<AuthLogin />} />
                   <Route path="register" element={<AuthRegister />} />
                   <Route path="forgot-password" element={<ForgotPassword />} />
                   <Route path="reset-password/:token" element={<ResetPassword />} />
                 </Route>
-                
+
+                {/* ADMIN ROUTES */}
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="dashboard" element={<AdminDashboard />} />
@@ -147,7 +153,7 @@ function App() {
                   <Route path="categories" element={<AdminCategoriesPage />} />
                   <Route path="distributors" element={<AdminDistributorsPage />} />
                 </Route>
-                
+
                 <Route path="/unauth-page" element={<UnauthPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
