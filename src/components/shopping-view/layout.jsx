@@ -1,28 +1,29 @@
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { getCartDetails } from '../store/shop/cart-slice'; // Adjust path if needed
-import { getCategoryList } from '../store/admin/category-slice'; // Adjust path if needed
+import { fetchCartItems } from '../store/shop/cart-slice';
+import { fetchAllCategories } from '../store/admin/category-slice';
 
 const ShoppingLayout = () => {
   console.log('ShoppingLayout: Rendering');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.auth);
-  const { categoryList = [] } = useSelector((state) => state.categories || {}); // Default to empty array
-  const { cartItems = [] } = useSelector((state) => state.cart || {}); // Default to empty array
+  const { isAuthenticated, user } = useSelector((state) => state.auth || {});
+  const { categoryList = [], error: categoryError } = useSelector((state) => state.adminCategories || {});
+  const { cartItems = [], error: cartError } = useSelector((state) => state.shopCart || {});
 
-  console.log('ShoppingLayout: State:', { categoryList, cartItems, isAuthenticated });
+  console.log('ShoppingLayout: State:', { categoryList, cartItems, isAuthenticated, user, categoryError, cartError });
 
   useEffect(() => {
     if (!isAuthenticated) {
       console.log('ShoppingLayout: Redirecting to /auth/login');
       navigate('/auth/login');
     }
-    // Fetch categories and cart details
-    dispatch(getCategoryList());
-    dispatch(getCartDetails());
-  }, [dispatch, isAuthenticated, navigate]);
+    dispatch(fetchAllCategories());
+    if (user?.id) {
+      dispatch(fetchCartItems(user.id));
+    }
+  }, [dispatch, isAuthenticated, navigate, user?.id]);
 
   try {
     return (
@@ -35,7 +36,7 @@ const ShoppingLayout = () => {
                 {categoryList.length > 0 ? (
                   categoryList.map((category) => (
                     <a
-                      key={category.id || category.name}
+                      key={category._id || category.name}
                       href={`/shop/listing?category=${category.name}`}
                       className="text-gray-700 hover:text-blue-600"
                     >
@@ -46,25 +47,27 @@ const ShoppingLayout = () => {
                   <span>No categories available</span>
                 )}
               </div>
-              <div>
-                Cart ({cartItems.length})
-              </div>
+              <div>Cart ({cartItems.length})</div>
             </nav>
+            {(categoryError || cartError) && (
+              <div className="bg-red-100 text-red-700 p-2 text-center">
+                {categoryError && <p>Category Error: {categoryError}</p>}
+                {cartError && <p>Cart Error: {cartError}</p>}
+              </div>
+            )}
           </div>
         </header>
         <main className="flex-grow">
           <Outlet />
         </main>
         <footer className="bg-gray-800 text-white py-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            Footer Content
-          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">Footer Content</div>
         </footer>
       </div>
     );
   } catch (err) {
     console.error('ShoppingLayout: Render error:', err);
-    throw err; // Let ErrorBoundary catch this
+    throw err;
   }
 };
 
