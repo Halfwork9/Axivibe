@@ -11,7 +11,7 @@ const AuthLayout = () => {
     );
   } catch (err) {
     console.error('AuthLayout: Render error:', err);
-    throw err; // Let ErrorBoundary catch this
+    throw err;
   }
 };
 
