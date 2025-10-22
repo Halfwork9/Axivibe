@@ -61,15 +61,18 @@ function CategoryDropdown() {
 }
 
 // ---------------- Header Right (Cart + User) ----------------
+// src/components/shopping-view/header.jsx
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth || {});
-  const { cartItems = [] } = useSelector((state) => state.shopCart || {}); // Safe destructuring
+  const { cartItems = [] } = useSelector((state) => state.shopCart || {});
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   function handleLogout() {
-    dispatch(logoutUser());
+    dispatch(logoutUser()).then(() => {
+      navigate('/auth/login'); // Redirect to login page after logout
+    });
   }
 
   useEffect(() => {
@@ -78,11 +81,10 @@ function HeaderRightContent() {
     }
   }, [dispatch, user?.id]);
 
-  console.log('HeaderRightContent: cartItems length:', cartItems.length);
+  console.log('HeaderRightContent: user:', user, 'cartItems length:', cartItems.length);
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-      {/* Cart */}
       <Sheet open={openCartSheet} onOpenChange={setOpenCartSheet}>
         <Button
           onClick={() => setOpenCartSheet(true)}
@@ -99,7 +101,6 @@ function HeaderRightContent() {
         <UserCartWrapper setOpenCartSheet={setOpenCartSheet} cartItems={cartItems} />
       </Sheet>
 
-      {/* User Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Avatar className="bg-black">
@@ -109,21 +110,32 @@ function HeaderRightContent() {
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>Logged in as {user?.userName || 'Guest'}</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            Logged in as {user?.userName || 'Guest'}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate("/shop/account")}>
-            <UserCog className="mr-2 h-4 w-4" />
-            Account
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/shop/distributor")}>
-            <Store className="mr-2 h-4 w-4" />
-            Distributor
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </DropdownMenuItem>
+          {user ? (
+            <>
+              <DropdownMenuItem onClick={() => navigate("/shop/account")}>
+                <UserCog className="mr-2 h-4 w-4" />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/shop/distributor")}>
+                <Store className="mr-2 h-4 w-4" />
+                Distributor
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem onClick={() => navigate("/auth/login")}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Login
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
