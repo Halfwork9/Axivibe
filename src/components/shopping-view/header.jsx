@@ -1,5 +1,6 @@
+// src/components/shopping-view/header.jsx
 import { LogOut, Menu, ShoppingCart, UserCog, Store } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Ensure useNavigate is imported
 import Logo from "@/assets/logo.png";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Button } from "../ui/button";
@@ -22,7 +23,7 @@ import { fetchAllCategories } from "@/store/admin/category-slice";
 // ---------------- Category Dropdown ----------------
 function CategoryDropdown() {
   const dispatch = useDispatch();
-  const { categoryList = [] } = useSelector((state) => state.adminCategories || {}); // Safe destructuring
+  const { categoryList = [] } = useSelector((state) => state.adminCategories || {});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,17 +62,18 @@ function CategoryDropdown() {
 }
 
 // ---------------- Header Right (Cart + User) ----------------
-// src/components/shopping-view/header.jsx
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth || {});
   const { cartItems = [] } = useSelector((state) => state.shopCart || {});
   const [openCartSheet, setOpenCartSheet] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Ensure useNavigate is defined
   const dispatch = useDispatch();
 
   function handleLogout() {
     dispatch(logoutUser()).then(() => {
-      navigate('/auth/login'); // Redirect to login page after logout
+      navigate('/auth/login'); // Redirect after logout
+    }).catch((error) => {
+      console.error('Logout failed:', error);
     });
   }
 
@@ -148,13 +150,11 @@ function ShoppingHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo */}
         <Link to="/shop/home" className="flex items-center gap-2">
           <img src={Logo} alt="Logo" className="h-8 w-auto" />
           <span className="font-bold">Axivibe</span>
         </Link>
 
-        {/* Mobile menu */}
         <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="lg:hidden">
@@ -196,7 +196,6 @@ function ShoppingHeader() {
           </SheetContent>
         </Sheet>
 
-        {/* Desktop menu */}
         <div className="hidden lg:flex gap-6 items-center">
           <Link to="/shop/home" className="text-sm font-medium">Home</Link>
           <Link to="/shop/listing" className="text-sm font-medium">Products</Link>
@@ -205,7 +204,6 @@ function ShoppingHeader() {
           <CategoryDropdown />
         </div>
 
-        {/* Right section */}
         <div className="hidden lg:block">
           <HeaderRightContent />
         </div>
