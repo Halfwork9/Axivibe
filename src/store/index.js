@@ -1,17 +1,33 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './auth-slice';
-import categoryReducer from './category-slice';
-import cartReducer from './cart-slice';
-import productReducer from './product-slice'; // Add product reducer
-import brandReducer from './brand-slice'; // Add brand reducer
+import adminProductsSlice from './admin/products-slice';
+import adminOrderSlice from './admin/order-slice';
+import adminBrandsReducer from './admin/brand-slice';
+import shopProductsSlice from './shop/products-slice';
+import shopCartSlice from './shop/cart-slice';
+import shopAddressSlice from './shop/address-slice';
+import shopOrderSlice from './shop/order-slice';
+import shopSearchSlice from './shop/search-slice';
+import shopReviewSlice from './shop/review-slice';
+import commonFeatureSlice from './common-slice';
+import adminCategoriesReducer from './admin/category-slice';
+import adminDistributorsReducer from './admin/distributor-slice';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    categories: categoryReducer,
-    cart: cartReducer,
-    products: productReducer, // Add product reducer
-    brands: brandReducer, // Add brand reducer
+    categories: adminCategoriesReducer, // Rename to match expected state path
+    cart: shopCartSlice, // Rename to match expected state path
+    adminProducts: adminProductsSlice,
+    adminOrder: adminOrderSlice,
+    adminBrands: adminBrandsReducer,
+    shopProducts: shopProductsSlice,
+    shopAddress: shopAddressSlice,
+    shopOrder: shopOrderSlice,
+    shopSearch: shopSearchSlice,
+    shopReview: shopReviewSlice,
+    commonFeature: commonFeatureSlice,
+    adminDistributors: adminDistributorsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
