@@ -1,94 +1,61 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { useParams, useNavigate } from "react-router-dom";
-import api from "@/api";
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { forgotPassword } from '@/store/auth-slice';
 
-function ResetPassword() {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { token } = useParams();
+const ForgotPassword = () => {
+  const [email, setEmail] = useState('');
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isLoading, error } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (password.length < 6) {
-      toast({ title: "Password too short.", description: "Minimum 6 characters required.", variant: "destructive" });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({ title: "Passwords do not match.", variant: "destructive" });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await api.post(`/auth/reset-password/${token}`, { password });
-      if (response.data.success) {
-        toast({
-          title: "✅ Password Reset Successful",
-          description: "You can now log in with your new password.",
-        });
-        navigate("/auth/login");
-      } else {
-        toast({
-          title: "Error",
-          description: response.data.message || "Unable to reset password.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Invalid or expired token.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    const action = await dispatch(forgotPassword(email));
+    if (forgotPassword.fulfilled.match(action)) {
+      toast({ title: 'Success', description: 'Password reset email sent. Check your inbox.' });
+      navigate('/auth/login');
+    } else {
+      toast({ title: 'Error', description: action.payload || 'Failed to send reset email', variant: 'destructive' });
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm space-y-6 p-8 rounded-xl shadow-lg bg-white">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Reset Your Password</h1>
-        <p className="mt-2 text-gray-600">Enter your new password below.</p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+          Forgot Password
+        </h2>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-2 rounded-md disabled:opacity-50"
+          >
+            {isLoading ? 'Sending...' : 'Send Reset Email'}
+          </button>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="password">New Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Resetting..." : "Reset Password"}
-        </Button>
-      </form>
     </div>
   );
-}
+};
 
-export default ResetPassword;
+export default ForgotPassword;
