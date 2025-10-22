@@ -113,10 +113,10 @@ function App() {
           <Router>
             <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
               <Routes>
-                {/* ROOT ROUTE - Redirect to /shop/home for proper layout */}
+                {/* ROOT ROUTE - Redirect to /shop/home */}
                 <Route path="/" element={<Navigate to="/shop/home" replace />} />
 
-                {/* SHOPPING ROUTES - All under ShoppingLayout */}
+                {/* SHOPPING ROUTES */}
                 <Route path="/shop" element={<ShoppingLayout />}>
                   <Route index element={<Navigate to="/shop/home" replace />} />
                   <Route path="home" element={<ShoppingHome />} />
