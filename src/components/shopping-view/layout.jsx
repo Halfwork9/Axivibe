@@ -3,20 +3,24 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 // ✅ This component is now simpler. It just displays the layout.
-// All data fetching is handled by App.jsx
+// All global data fetching is now handled by App.jsx
 const ShoppingLayout = () => {
   const { isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
   const { categoryList = [] } = useSelector((state) => state.adminCategories || {});
   const { cartItems = [] } = useSelector((state) => state.shopCart || {});
   const navigate = useNavigate();
 
-  // Redirect logic for protected routes
+  // Redirect logic for protected routes (unchanged)
   React.useEffect(() => {
     const protectedRoutes = ['/shop/checkout', '/shop/account'];
     if (!authLoading && !isAuthenticated && protectedRoutes.includes(window.location.pathname)) {
+      console.log('ShoppingLayout: Redirecting to /auth/login');
       navigate('/auth/login');
     }
   }, [authLoading, isAuthenticated, navigate]);
+
+  // ✅ Removed the redundant data fetching useEffect
+  // ✅ Removed the redundant loading state
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -43,7 +47,7 @@ const ShoppingLayout = () => {
           </nav>
         </div>
       </header>
-
+      
       <main className="flex-grow">
         <Outlet />
       </main>
@@ -56,3 +60,4 @@ const ShoppingLayout = () => {
 };
 
 export default ShoppingLayout;
+
