@@ -1,15 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './auth-slice';
-import categoryReducer from './category-slice'; // Add this import
-import cartReducer from './cart-slice'; // Add this import
-// Import other reducers as needed
+import categoryReducer from './category-slice';
+import cartReducer from './cart-slice';
+import productReducer from './product-slice'; // Add product reducer
+import brandReducer from './brand-slice'; // Add brand reducer
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    categories: categoryReducer, // Add this
-    cart: cartReducer, // Add this
-    // Add other reducers here, e.g., brands, products, orders
+    categories: categoryReducer,
+    cart: cartReducer,
+    products: productReducer, // Add product reducer
+    brands: brandReducer, // Add brand reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
