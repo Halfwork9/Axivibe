@@ -79,10 +79,10 @@ class ErrorBoundary extends React.Component {
 }
 
 function App() {
-  const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
+  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth || {});
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // Fetch global data on mount
   useEffect(() => {
     console.log('App: Dispatching global thunks (once)');
     dispatch(checkAuth());
@@ -90,15 +90,16 @@ function App() {
     dispatch(fetchAllBrands());
   }, [dispatch]);
 
-  // Fetch cart items only after authentication
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
       dispatch(fetchCartItems(user.id));
+    } else if (!isLoading && !isAuthenticated) {
+      navigate('/auth/login'); // Redirect to login if not authenticated and loading is done
     }
-  }, [dispatch, isAuthenticated, user?.id]);
+  }, [dispatch, isAuthenticated, user?.id, isLoading, navigate]);
 
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Skeleton className="w-80 h-96" />
