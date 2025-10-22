@@ -12,10 +12,8 @@ export const createCategory = createAsyncThunk(
   async ({ name, icon }, { rejectWithValue }) => {
     try {
       const res = await api.post('/admin/categories', { name, icon });
-      console.log('createCategory: Response:', res.data);
-      return res.data; // expect { data: { _id, name, icon } }
+      return res.data;
     } catch (error) {
-      console.error('createCategory: Error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || 'Failed to create category');
     }
   }
@@ -26,10 +24,10 @@ export const fetchAllCategories = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get('/admin/categories');
-      console.log('fetchAllCategories: Response:', res.data);
-      return res.data; // expect { data: [...] }
+      console.log('fetchAllCategories: Success →', res.data);
+      return res.data; // Must be: { success: true, data: [...] }
     } catch (error) {
-      console.error('fetchAllCategories: Error:', error.response?.data || error.message);
+      console.error('fetchAllCategories: Failed →', error.response?.data);
       return rejectWithValue(error.response?.data || 'Failed to fetch categories');
     }
   }
@@ -40,10 +38,8 @@ export const deleteCategory = createAsyncThunk(
   async (categoryId, { rejectWithValue }) => {
     try {
       await api.delete(`/admin/categories/${categoryId}`);
-      console.log('deleteCategory: Success, ID:', categoryId);
-      return categoryId; // return only id
+      return categoryId;
     } catch (error) {
-      console.error('deleteCategory: Error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || 'Failed to delete category');
     }
   }
@@ -52,14 +48,10 @@ export const deleteCategory = createAsyncThunk(
 const categorySlice = createSlice({
   name: 'adminCategories',
   initialState,
-  reducers: {
-    resetCategories: (state) => {
-      state.categoryList = [];
-      state.error = null;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
+      // Fetch All
       .addCase(fetchAllCategories.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -70,39 +62,22 @@ const categorySlice = createSlice({
       })
       .addCase(fetchAllCategories.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload || action.error.message;
+        state.error = action.payload?.message || 'Failed to load categories';
         state.categoryList = [];
       })
-      .addCase(createCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+
+      // Create
       .addCase(createCategory.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.categoryList = Array.isArray(state.categoryList)
-          ? [...state.categoryList, action.payload.data]
-          : [action.payload.data];
+        if (action.payload.success && action.payload.data) {
+          state.categoryList.push(action.payload.data);
+        }
       })
-      .addCase(createCategory.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload || 'Failed to create category';
-      })
-      .addCase(deleteCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+
+      // Delete
       .addCase(deleteCategory.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.categoryList = Array.isArray(state.categoryList)
-          ? state.categoryList.filter((category) => category._id !== action.payload)
-          : [];
-      })
-      .addCase(deleteCategory.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload || 'Failed to delete category';
+        state.categoryList = state.categoryList.filter((cat) => cat._id !== action.payload);
       });
   },
 });
 
-export const { resetCategories } = categorySlice.actions;
 export default categorySlice.reducer;
