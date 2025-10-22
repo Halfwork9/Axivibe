@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ✅ CHECK AUTH
+// CHECK AUTH
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, { rejectWithValue }) => {
@@ -21,7 +21,7 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
-// ✅ LOGIN (Email/Password)
+// LOGIN (Email/Password)
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
@@ -38,7 +38,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// ✅ GOOGLE LOGIN
+// GOOGLE LOGIN - NEW EXPORT
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
   async (credential, { rejectWithValue }) => {
@@ -55,7 +55,6 @@ export const loginWithGoogle = createAsyncThunk(
   }
 );
 
-// Initial State
 const initialState = {
   user: null,
   token: null,
@@ -81,7 +80,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // CHECK AUTH
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -97,7 +95,6 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload?.message || 'Auth check failed';
       })
-      // LOGIN (Email/Password)
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -111,7 +108,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload?.message || 'Login failed';
       })
-      // GOOGLE LOGIN
       .addCase(loginWithGoogle.pending, (state) => {
         state.isLoading = true;
         state.error = null;
