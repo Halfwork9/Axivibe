@@ -1,37 +1,37 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import AuthLayout from "./components/auth/layout";
-import AuthLogin from "./pages/auth/login";
-import AuthRegister from "./pages/auth/register";
-import ForgotPassword from "./pages/auth/forgot-password";
-import ResetPassword from "./pages/auth/reset-password";
-import AdminLayout from "./components/admin-view/layout";
-import AdminDashboard from "./pages/admin-view/dashboard";
-import AdminProducts from "./pages/admin-view/products";
-import AdminOrders from "./pages/admin-view/orders";
-import AdminFeatures from "./pages/admin-view/features";
-import ShoppingLayout from "./components/shopping-view/layout";
-import NotFound from "./pages/not-found";
-import ShoppingHome from "./pages/shopping-view/home";
-import ShoppingListing from "./pages/shopping-view/listing";
-import ShoppingCheckout from "./pages/shopping-view/checkout";
-import ShoppingAccount from "./pages/shopping-view/account";
-import UnauthPage from "./pages/unauth-page";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect, Component } from "react";
-import { checkAuth } from "./store/auth-slice";
-import { Skeleton } from "@/components/ui/skeleton";
-import PaypalReturnPage from "./pages/shopping-view/StripeReturnPage";
-import PaymentSuccessPage from "./pages/shopping-view/payment-success";
-import SearchProducts from "./pages/shopping-view/search";
-import Brands from "./pages/admin-view/brands";
-import AdminCategoriesPage from "./components/admin-view/categories-page";
-import HelpPage from "./pages/shopping-view/customer-service/help";
-import ContactPage from "./pages/shopping-view/customer-service/contact";
-import ProductSupportPage from "./pages/shopping-view/customer-service/product-support";
-import TechnicalSupportPage from "./pages/shopping-view/customer-service/technical-support";
-import DistributorPage from "./components/shopping-view/distributor";
-import AdminDistributorsPage from "./components/admin-view/distributors-page";
+import AuthLayout from './components/auth/layout';
+import AuthLogin from './pages/auth/login';
+import AuthRegister from './pages/auth/register';
+import ForgotPassword from './pages/auth/forgot-password';
+import ResetPassword from './pages/auth/reset-password';
+import AdminLayout from './components/admin-view/layout';
+import AdminDashboard from './pages/admin-view/dashboard';
+import AdminProducts from './pages/admin-view/products';
+import AdminOrders from './pages/admin-view/orders';
+import AdminFeatures from './pages/admin-view/features';
+import ShoppingLayout from './components/shopping-view/layout';
+import NotFound from './pages/not-found';
+import ShoppingHome from './pages/shopping-view/home';
+import ShoppingListing from './pages/shopping-view/listing';
+import ShoppingCheckout from './pages/shopping-view/checkout';
+import ShoppingAccount from './pages/shopping-view/account';
+import UnauthPage from './pages/unauth-page';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, Component } from 'react';
+import { checkAuth } from './store/auth-slice';
+import { Skeleton } from '@/components/ui/skeleton';
+import PaypalReturnPage from './pages/shopping-view/StripeReturnPage';
+import PaymentSuccessPage from './pages/shopping-view/payment-success';
+import SearchProducts from './pages/shopping-view/search';
+import Brands from './pages/admin-view/brands';
+import AdminCategoriesPage from './components/admin-view/categories-page';
+import HelpPage from './pages/shopping-view/customer-service/help';
+import ContactPage from './pages/shopping-view/customer-service/contact';
+import ProductSupportPage from './pages/shopping-view/customer-service/product-support';
+import TechnicalSupportPage from './pages/shopping-view/customer-service/technical-support';
+import DistributorPage from './components/shopping-view/distributor';
+import AdminDistributorsPage from './components/admin-view/distributors-page';
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -115,7 +115,7 @@ function App() {
                 <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="distributors" element={<AdminDistributorsPage />} />
               </Route>
-              <Route path="/shop" element={<ShoppingLayout />} >
+              <Route path="/shop" element={<ShoppingLayout />}>
                 <Route index element={<ShoppingHome />} />
                 <Route path="home" element={<ShoppingHome />} />
                 <Route path="listing" element={<ShoppingListing />} />
