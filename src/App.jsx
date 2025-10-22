@@ -34,10 +34,15 @@ import AdminDistributorsPage from './components/admin-view/distributors-page';
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
-  state = { error: null };
+  state = { error: null, errorInfo: null };
 
   static getDerivedStateFromError(error) {
     return { error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+    this.setState({ error, errorInfo });
   }
 
   render() {
@@ -47,6 +52,9 @@ class ErrorBoundary extends Component {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
             <p className="text-red-500">{this.state.error.message}</p>
+            <pre className="text-sm text-gray-700 mt-2">
+              {this.state.errorInfo?.componentStack}
+            </pre>
             <button
               onClick={() => window.location.reload()}
               className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
@@ -66,6 +74,7 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    console.log('App: Dispatching checkAuth');
     dispatch(checkAuth());
   }, [dispatch]);
 
@@ -77,7 +86,7 @@ function App() {
     );
   }
 
-  console.log('Auth State:', { isLoading, isAuthenticated, user, error });
+  console.log('App: Rendering with Auth State:', { isLoading, isAuthenticated, user, error });
 
   return (
     <ErrorBoundary>
