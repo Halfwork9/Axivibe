@@ -7,6 +7,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { loginFormControls } from '@/config';
 
 const AuthLogin = () => {
+  console.log('AuthLogin: Component rendering');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -16,7 +17,7 @@ const AuthLogin = () => {
   const { toast } = useToast();
   const { isLoading, error } = useSelector((state) => state.auth);
 
-  console.log('AuthLogin: Rendering with formData:', formData);
+  console.log('AuthLogin: State:', { formData, isLoading, error });
   console.log('AuthLogin: loginFormControls:', loginFormControls);
 
   const handleChange = (e) => {
@@ -28,13 +29,14 @@ const AuthLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('AuthLogin: Submitting formData:', formData);
     try {
       const action = await dispatch(loginUser(formData));
       if (loginUser.fulfilled.match(action)) {
         toast({ title: 'Success', description: 'Logged in successfully' });
         navigate('/shop/home');
       } else {
-        toast({ title: 'Error', description: action.payload || 'Login failed', variant: 'destructive' });
+        toast({ title: 'Error', description: action.payload?.message || 'Login failed', variant: 'destructive' });
       }
     } catch (err) {
       console.error('AuthLogin: Submit error:', err);
@@ -43,13 +45,14 @@ const AuthLogin = () => {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    console.log('AuthLogin: Google login success:', credentialResponse);
     try {
       const action = await dispatch(loginWithGoogle(credentialResponse.credential));
       if (loginWithGoogle.fulfilled.match(action)) {
         toast({ title: 'Success', description: 'Google Sign-In successful' });
         navigate('/shop/home');
       } else {
-        toast({ title: 'Error', description: action.payload || 'Google login failed', variant: 'destructive' });
+        toast({ title: 'Error', description: action.payload?.message || 'Google login failed', variant: 'destructive' });
       }
     } catch (err) {
       console.error('AuthLogin: Google login error:', err);
@@ -57,7 +60,8 @@ const AuthLogin = () => {
     }
   };
 
-  const handleGoogleError = () => {
+  const handleGoogleError = (error) => {
+    console.error('AuthLogin: Google login error:', error);
     toast({ title: 'Error', description: 'Google Sign-In failed', variant: 'destructive' });
   };
 
@@ -69,23 +73,26 @@ const AuthLogin = () => {
         </h2>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {loginFormControls.map((control, index) => (
-            <div key={control.name || index}>
-              <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
-                {control.label}
-              </label>
-              <input
-                id={control.name}
-                name={control.name}
-                type={control.type}
-                value={formData[control.name] || ''}
-                onChange={handleChange}
-                placeholder={control.placeholder}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-          ))}
+          {loginFormControls.map((control, index) => {
+            console.log('AuthLogin: Rendering control:', control);
+            return (
+              <div key={control.name || index}>
+                <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
+                  {control.label || 'Unknown Label'}
+                </label>
+                <input
+                  id={control.name}
+                  name={control.name}
+                  type={control.type || 'text'}
+                  value={formData[control.name] || ''}
+                  onChange={handleChange}
+                  placeholder={control.placeholder || ''}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+            );
+          })}
           <button
             type="submit"
             disabled={isLoading}
