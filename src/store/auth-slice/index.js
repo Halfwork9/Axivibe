@@ -79,7 +79,7 @@ export const registerUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
-  async (_, { rejectWithValue, dispatch }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await axios.post(
         `${API_URL}/auth/logout`,
@@ -87,8 +87,6 @@ export const logoutUser = createAsyncThunk(
         { withCredentials: true }
       );
       document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      // Dispatch logout action to clear state
-      dispatch(logout());
       return response.data;
     } catch (error) {
       console.error('logoutUser error:', error.message, error.response?.data);
