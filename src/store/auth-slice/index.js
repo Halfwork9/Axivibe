@@ -38,7 +38,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// GOOGLE LOGIN - NEW EXPORT
+// GOOGLE LOGIN
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
   async (credential, { rejectWithValue }) => {
@@ -51,6 +51,23 @@ export const loginWithGoogle = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Google login failed');
+    }
+  }
+);
+
+// REGISTER USER - NEW
+export const registerUser = createAsyncThunk(
+  'auth/registerUser',
+  async ({ userName, email, password }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/register`,
+        { userName, email, password },
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Registration failed');
     }
   }
 );
@@ -80,6 +97,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // CHECK AUTH
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -95,6 +113,7 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload?.message || 'Auth check failed';
       })
+      // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -108,6 +127,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload?.message || 'Login failed';
       })
+      // GOOGLE LOGIN
       .addCase(loginWithGoogle.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -120,6 +140,20 @@ const authSlice = createSlice({
       .addCase(loginWithGoogle.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || 'Google login failed';
+      })
+      // REGISTER
+      .addCase(registerUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Note: Backend doesn't auto-login on register, so don't set user/isAuthenticated
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Registration failed';
       });
   },
 });
