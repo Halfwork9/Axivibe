@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import AuthLayout from './components/auth/layout';
 import AuthLogin from './pages/auth/login';
 import AuthRegister from './pages/auth/register';
@@ -51,9 +52,9 @@ class ErrorBoundary extends Component {
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
-            <p className="text-red-500">{this.state.error.message}</p>
+            <p className="text-red-500">{this.state.error.message || 'Unknown error'}</p>
             <pre className="text-sm text-gray-700 mt-2">
-              {this.state.errorInfo?.componentStack}
+              {this.state.errorInfo?.componentStack || 'No stack trace available'}
             </pre>
             <button
               onClick={() => window.location.reload()}
@@ -89,47 +90,49 @@ function App() {
   console.log('App: Rendering with Auth State:', { isLoading, isAuthenticated, user, error });
 
   return (
-    <ErrorBoundary>
-      <div className="flex flex-col min-h-screen bg-white">
-        <Routes>
-          <Route path="/" element={<ShoppingHome />} />
-          <Route path="/auth" element={<AuthLayout />}>
-            <Route index element={<div>Auth Home</div>} />
-            <Route path="login" element={<AuthLogin />} />
-            <Route path="register" element={<AuthRegister />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password/:token" element={<ResetPassword />} />
-          </Route>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="features" element={<AdminFeatures />} />
-            <Route path="brands" element={<Brands />} />
-            <Route path="categories" element={<AdminCategoriesPage />} />
-            <Route path="distributors" element={<AdminDistributorsPage />} />
-          </Route>
-          <Route path="/shop" element={<ShoppingLayout />}>
-            <Route index element={<ShoppingHome />} />
-            <Route path="home" element={<ShoppingHome />} />
-            <Route path="listing" element={<ShoppingListing />} />
-            <Route path="checkout" element={<ShoppingCheckout />} />
-            <Route path="account" element={<ShoppingAccount />} />
-            <Route path="paypal-return" element={<PaypalReturnPage />} />
-            <Route path="payment-success" element={<PaymentSuccessPage />} />
-            <Route path="search" element={<SearchProducts />} />
-            <Route path="help" element={<HelpPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="product-support" element={<ProductSupportPage />} />
-            <Route path="technical-support" element={<TechnicalSupportPage />} />
-            <Route path="distributors" element={<DistributorPage />} />
-          </Route>
-          <Route path="/unauth-page" element={<UnauthPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-    </ErrorBoundary>
+    <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
+      <ErrorBoundary>
+        <div className="flex flex-col min-h-screen bg-white">
+          <Routes>
+            <Route path="/" element={<ShoppingHome />} />
+            <Route path="/auth" element={<AuthLayout />}>
+              <Route index element={<div>Auth Home</div>} />
+              <Route path="login" element={<AuthLogin />} />
+              <Route path="register" element={<AuthRegister />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password/:token" element={<ResetPassword />} />
+            </Route>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="features" element={<AdminFeatures />} />
+              <Route path="brands" element={<Brands />} />
+              <Route path="categories" element={<AdminCategoriesPage />} />
+              <Route path="distributors" element={<AdminDistributorsPage />} />
+            </Route>
+            <Route path="/shop" element={<ShoppingLayout />}>
+              <Route index element={<ShoppingHome />} />
+              <Route path="home" element={<ShoppingHome />} />
+              <Route path="listing" element={<ShoppingListing />} />
+              <Route path="checkout" element={<ShoppingCheckout />} />
+              <Route path="account" element={<ShoppingAccount />} />
+              <Route path="paypal-return" element={<PaypalReturnPage />} />
+              <Route path="payment-success" element={<PaymentSuccessPage />} />
+              <Route path="search" element={<SearchProducts />} />
+              <Route path="help" element={<HelpPage />} />
+              <Route path="contact" element={<ContactPage />} />
+              <Route path="product-support" element={<ProductSupportPage />} />
+              <Route path="technical-support" element={<TechnicalSupportPage />} />
+              <Route path="distributors" element={<DistributorPage />} />
+            </Route>
+            <Route path="/unauth-page" element={<UnauthPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </ErrorBoundary>
+    </GoogleOAuthProvider>
   );
 }
 
