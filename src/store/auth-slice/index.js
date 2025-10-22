@@ -1,3 +1,4 @@
+// src/store/auth-slice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
@@ -78,7 +79,7 @@ export const registerUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await axios.post(
         `${API_URL}/auth/logout`,
@@ -86,6 +87,8 @@ export const logoutUser = createAsyncThunk(
         { withCredentials: true }
       );
       document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      // Dispatch logout action to clear state
+      dispatch(logout());
       return response.data;
     } catch (error) {
       console.error('logoutUser error:', error.message, error.response?.data);
@@ -148,6 +151,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.isLoading = false;
+      state.error = null;
       document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     },
   },
