@@ -47,13 +47,16 @@ const NotFound = lazy(() => import('./pages/not-found'));
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component {
   state = { error: null, errorInfo: null };
+
   static getDerivedStateFromError(error) {
     return { error };
   }
+
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    console.error('ErrorBoundary caught at root:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
+
   render() {
     if (this.state.error) {
       return (
@@ -82,15 +85,23 @@ function App() {
 
   useEffect(() => {
     console.log('App: Dispatching global thunks (once)');
-    dispatch(checkAuth());
-    dispatch(fetchAllCategories());
-    dispatch(fetchAllBrands());
+    dispatch(checkAuth())
+      .unwrap()
+      .catch((error) => console.error('checkAuth failed:', error));
+    dispatch(fetchAllCategories())
+      .unwrap()
+      .catch((error) => console.error('fetchAllCategories failed:', error));
+    dispatch(fetchAllBrands())
+      .unwrap()
+      .catch((error) => console.error('fetchAllBrands failed:', error));
   }, [dispatch]);
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
-      dispatch(fetchCartItems(user.id));
+      dispatch(fetchCartItems(user.id))
+        .unwrap()
+        .catch((error) => console.error('fetchCartItems failed:', error));
     } else if (!authLoading && !isAuthenticated) {
       navigate('/auth/login');
     }
@@ -103,6 +114,8 @@ function App() {
       </div>
     );
   }
+
+  console.log('App render - isAuthenticated:', isAuthenticated, 'user:', user);
 
   return (
     <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
