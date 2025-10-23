@@ -12,6 +12,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    build: {
+    outDir: 'build',
+    rollupOptions: {
+      external: [], // Ensure no unintended exclusions
+    },
+  },
     resolve: {
       alias: {
         '@': path.resolve(new URL('.', import.meta.url).pathname, './src'),
