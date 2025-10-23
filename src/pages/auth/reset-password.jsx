@@ -1,62 +1,56 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
-import { resetPassword } from '@/store/auth-slice';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { resetPassword } from "@/store/auth-slice";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate, useParams } from "react-router-dom";
 
-const ResetPassword = () => {
-  const [password, setPassword] = useState('');
+export default function ResetPassword() {
+  const [password, setPassword] = useState("");
+  const { token } = useParams();
+  const { toast } = useToast();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { token } = useParams();
-  const { isLoading, error } = useSelector((state) => state.auth);
+  const { isLoading } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const action = await dispatch(resetPassword({ token, password }));
-    if (resetPassword.fulfilled.match(action)) {
-      toast({ title: 'Success', description: 'Password reset successful. Please log in.' });
-      navigate('/auth/login');
+    const result = await dispatch(resetPassword({ token, password }));
+    if (resetPassword.fulfilled.match(result)) {
+      toast({ title: "✅ Success", description: "Password has been reset!" });
+      navigate("/auth/login");
     } else {
-      toast({ title: 'Error', description: action.payload || 'Reset password failed', variant: 'destructive' });
+      toast({
+        title: "❌ Error",
+        description: result.payload?.message || "Failed to reset password",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Reset Password
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 px-6">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg">
+        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-4">
+          Reset Your Password
         </h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              New Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter new password"
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            placeholder="New password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-400 outline-none"
+          />
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md disabled:opacity-50"
+            className="w-full py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
           >
-            {isLoading ? 'Resetting...' : 'Reset Password'}
+            {isLoading ? "Updating..." : "Reset Password"}
           </button>
         </form>
       </div>
     </div>
   );
-};
-
-export default ResetPassword;
+}
