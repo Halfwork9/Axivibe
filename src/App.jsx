@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -44,19 +44,16 @@ const DistributorPage = lazy(() => import('./components/shopping-view/distributo
 const UnauthPage = lazy(() => import('./pages/unauth-page'));
 const NotFound = lazy(() => import('./pages/not-found'));
 
-// Error Boundary
+// --- Error Boundary ---
 class ErrorBoundary extends React.Component {
   state = { error: null, errorInfo: null };
-
   static getDerivedStateFromError(error) {
     return { error };
   }
-
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
-
   render() {
     if (this.state.error) {
       return (
@@ -81,6 +78,7 @@ class ErrorBoundary extends React.Component {
 function App() {
   const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('App: Dispatching global thunks (once)');
@@ -93,8 +91,10 @@ function App() {
     if (isAuthenticated && user?.id) {
       console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
       dispatch(fetchCartItems(user.id));
+    } else if (!authLoading && !isAuthenticated) {
+      navigate('/auth/login');
     }
-  }, [dispatch, isAuthenticated, user?.id]);
+  }, [dispatch, isAuthenticated, user?.id, authLoading, navigate]);
 
   if (authLoading) {
     return (
