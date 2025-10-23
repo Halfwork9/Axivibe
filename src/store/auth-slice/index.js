@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://axivibe.onrender.com/api';
 
+// --- AUTH CHECK ---
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, { rejectWithValue }) => {
@@ -11,12 +12,15 @@ export const checkAuth = createAsyncThunk(
       const response = await axios.get(`${API_URL}/auth/check-auth`, { withCredentials: true });
       return response.data;
     } catch (error) {
-      if (error.response?.status === 401) document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      if (error.response?.status === 401) {
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      }
       return rejectWithValue(error.response?.data || 'Auth check failed');
     }
   }
 );
 
+// --- LOGIN ---
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
@@ -29,6 +33,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// --- GOOGLE LOGIN ---
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
   async (credential, { rejectWithValue }) => {
@@ -41,6 +46,7 @@ export const loginWithGoogle = createAsyncThunk(
   }
 );
 
+// --- REGISTER ---
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async ({ userName, email, password }, { rejectWithValue }) => {
@@ -53,6 +59,7 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// --- FORGOT PASSWORD ---
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, { rejectWithValue }) => {
@@ -65,6 +72,7 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
+// --- RESET PASSWORD ---
 export const resetPassword = createAsyncThunk(
   'auth/resetPassword',
   async ({ token, password }, { rejectWithValue }) => {
@@ -77,6 +85,7 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+// --- LOGOUT ---
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { rejectWithValue }) => {
@@ -90,6 +99,7 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+// --- SLICE ---
 const initialState = {
   user: null,
   isAuthenticated: false,
@@ -101,31 +111,101 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: (state) => { state.error = null; },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(checkAuth.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(checkAuth.fulfilled, (state, action) => { state.isLoading = false; state.user = action.payload.user; state.isAuthenticated = true; })
-      .addCase(checkAuth.rejected, (state, action) => { state.isLoading = false; state.isAuthenticated = false; state.user = null; state.error = action.payload; })
-      .addCase(loginUser.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(loginUser.fulfilled, (state, action) => { state.isLoading = false; state.user = action.payload.user; state.isAuthenticated = true; })
-      .addCase(loginUser.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
-      .addCase(loginWithGoogle.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(loginWithGoogle.fulfilled, (state, action) => { state.isLoading = false; state.user = action.payload.user; state.isAuthenticated = true; })
-      .addCase(loginWithGoogle.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
-      .addCase(registerUser.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(registerUser.fulfilled, (state, action) => { state.isLoading = false; state.user = action.payload.user; state.isAuthenticated = true; })
-      .addCase(registerUser.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
-      .addCase(forgotPassword.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(forgotPassword.fulfilled, (state) => { state.isLoading = false; })
-      .addCase(forgotPassword.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
-      .addCase(resetPassword.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(resetPassword.fulfilled, (state) => { state.isLoading = false; })
-      .addCase(resetPassword.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
-      .addCase(logoutUser.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(logoutUser.fulfilled, (state) => { state.isLoading = false; state.user = null; state.isAuthenticated = false; })
-      .addCase(logoutUser.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; });
+      .addCase(checkAuth.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(checkAuth.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = action.payload;
+      })
+      .addCase(loginUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(loginWithGoogle.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(loginWithGoogle.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(logoutUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
   },
 });
 
