@@ -1,50 +1,41 @@
-import React, { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { GoogleOAuthProvider } from '@react-oauth/google';
+// src/App.jsx
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-
-// --- Global Actions ---
-import { checkAuth } from './store/auth-slice';
-import { fetchAllCategories } from './store/admin/category-slice';
-import { fetchAllBrands } from './store/admin/brand-slice';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { checkAuth, logoutUser } from './store/auth-slice';
+import { fetchAllCategories, fetchAllBrands } from './store/admin/category-slice';
 import { fetchCartItems } from './store/shop/cart-slice';
-
-// --- Layouts ---
-import AuthLayout from './components/auth/layout';
-import AdminLayout from './components/admin-view/layout';
 import ShoppingLayout from './components/shopping-view/layout';
+import AuthLayout from './components/auth/layout';
+import ShoppingHome from './pages/shop/home';
+import ShoppingListing from './pages/shop/listing';
+import ShoppingCheckout from './pages/shop/checkout';
+import ShoppingAccount from './pages/shop/account';
+import PaypalReturnPage from './pages/shop/paypal-return';
+import PaymentSuccessPage from './pages/shop/payment-success';
+import SearchProducts from './pages/shop/search';
+import HelpPage from './pages/shop/help';
+import ContactPage from './pages/shop/contact';
+import ProductSupportPage from './pages/shop/product-support';
+import TechnicalSupportPage from './pages/shop/technical-support';
+import DistributorPage from './pages/shop/distributor';
+import AuthLogin from './pages/auth/login';
+import AuthRegister from './pages/auth/register';
+import ForgotPassword from './pages/auth/forgot-password';
+import ResetPassword from './pages/auth/reset-password';
+import AdminLayout from './components/admin/layout';
+import AdminDashboard from './pages/admin/dashboard';
+import AdminProducts from './pages/admin/products';
+import AdminOrders from './pages/admin/orders';
+import AdminFeatures from './pages/admin/features';
+import Brands from './pages/admin/brands';
+import AdminCategoriesPage from './pages/admin/categories';
+import AdminDistributorsPage from './pages/admin/distributors';
+import UnauthPage from './pages/unauth-page';
+import NotFound from './pages/not-found';
+import ErrorBoundary from './components/error-boundary';
 
-// --- Components ---
-import { Skeleton } from '@/components/ui/skeleton';
-
-// --- Page Imports (Lazy Loaded) ---
-const ShoppingHome = lazy(() => import('./pages/shopping-view/home'));
-const AuthLogin = lazy(() => import('./pages/auth/login'));
-const AuthRegister = lazy(() => import('./pages/auth/register'));
-const ForgotPassword = lazy(() => import('./pages/auth/forgot-password'));
-const ResetPassword = lazy(() => import('./pages/auth/reset-password'));
-const AdminDashboard = lazy(() => import('./pages/admin-view/dashboard'));
-const AdminProducts = lazy(() => import('./pages/admin-view/products'));
-const AdminOrders = lazy(() => import('./pages/admin-view/orders'));
-const AdminFeatures = lazy(() => import('./pages/admin-view/features'));
-const Brands = lazy(() => import('./pages/admin-view/brands'));
-const AdminCategoriesPage = lazy(() => import('./components/admin-view/categories-page'));
-const AdminDistributorsPage = lazy(() => import('./components/admin-view/distributors-page'));
-const ShoppingListing = lazy(() => import('./pages/shopping-view/listing'));
-const ShoppingCheckout = lazy(() => import('./pages/shopping-view/checkout'));
-const ShoppingAccount = lazy(() => import('./pages/shopping-view/account'));
-const PaypalReturnPage = lazy(() => import('./pages/shopping-view/StripeReturnPage'));
-const PaymentSuccessPage = lazy(() => import('./pages/shopping-view/payment-success'));
-const SearchProducts = lazy(() => import('./pages/shopping-view/search'));
-const HelpPage = lazy(() => import('./pages/shopping-view/customer-service/help'));
-const ContactPage = lazy(() => import('./pages/shopping-view/customer-service/contact'));
-const ProductSupportPage = lazy(() => import('./pages/shopping-view/customer-service/product-support'));
-const TechnicalSupportPage = lazy(() => import('./pages/shopping-view/customer-service/technical-support'));
-const DistributorPage = lazy(() => import('./components/shopping-view/distributor'));
-const UnauthPage = lazy(() => import('./pages/unauth-page'));
-const NotFound = lazy(() => import('./pages/not-found'));
-
-// Error Boundary
 class ErrorBoundary extends React.Component {
   state = { error: null, errorInfo: null };
 
@@ -83,14 +74,14 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  useEffect(() => {
+  React.useEffect(() => {
     console.log('App: Dispatching global thunks (once)');
     dispatch(checkAuth());
     dispatch(fetchAllCategories());
     dispatch(fetchAllBrands());
   }, [dispatch]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated && user?.id) {
       console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
       dispatch(fetchCartItems(user.id));
@@ -102,11 +93,11 @@ function App() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Skeleton className="w-80 h-96" />
+        <div>Loading...</div>
       </div>
     );
   }
-  
+
   return (
     <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
       <ErrorBoundary>
@@ -114,10 +105,7 @@ function App() {
           <Router>
             <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
               <Routes>
-                {/* ROOT ROUTE - Redirect to /shop/home */}
                 <Route path="/" element={<Navigate to="/shop/home" replace />} />
-
-                {/* SHOPPING ROUTES */}
                 <Route path="/shop" element={<ShoppingLayout />}>
                   <Route index element={<Navigate to="/shop/home" replace />} />
                   <Route path="home" element={<ShoppingHome />} />
@@ -133,8 +121,6 @@ function App() {
                   <Route path="technical-support" element={<TechnicalSupportPage />} />
                   <Route path="distributors" element={<DistributorPage />} />
                 </Route>
-
-                {/* AUTH ROUTES */}
                 <Route path="/auth" element={<AuthLayout />}>
                   <Route index element={<Navigate to="/auth/login" replace />} />
                   <Route path="login" element={<AuthLogin />} />
@@ -142,8 +128,6 @@ function App() {
                   <Route path="forgot-password" element={<ForgotPassword />} />
                   <Route path="reset-password/:token" element={<ResetPassword />} />
                 </Route>
-
-                {/* ADMIN ROUTES */}
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="dashboard" element={<AdminDashboard />} />
@@ -154,7 +138,6 @@ function App() {
                   <Route path="categories" element={<AdminCategoriesPage />} />
                   <Route path="distributors" element={<AdminDistributorsPage />} />
                 </Route>
-
                 <Route path="/unauth-page" element={<UnauthPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
