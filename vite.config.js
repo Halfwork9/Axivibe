@@ -12,11 +12,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    build: {
-    outDir: 'build',
-    rollupOptions: {
-      external: [], // Ensure no unintended exclusions
-    },
+   build: {
+    outDir: 'dist', // Change output directory to dist
   },
     resolve: {
       alias: {
