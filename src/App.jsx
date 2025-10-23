@@ -118,7 +118,7 @@ function App() {
   console.log('App render - isAuthenticated:', isAuthenticated, 'user:', user);
 
   return (
-    <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <ErrorBoundary>
         <div className="flex flex-col min-h-screen bg-white">
           <Router>
