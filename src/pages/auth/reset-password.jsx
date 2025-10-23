@@ -12,21 +12,23 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.auth);
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(resetPassword({ token, password }));
-    if (resetPassword.fulfilled.match(result)) {
-      toast({ title: "✅ Success", description: "Password has been reset!" });
-      navigate("/auth/login");
-    } else {
-      toast({
-        title: "❌ Error",
-        description: result.payload?.message || "Failed to reset password",
-        variant: "destructive",
-      });
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "https://axivibe.onrender.com/api/auth/reset-password/" + token,
+        { password }
+      );
+      setMessage(response.data.message);
+      setTimeout(() => navigate("/login"), 2000); // Redirect to login
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Something went wrong.");
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 px-6">
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg">
