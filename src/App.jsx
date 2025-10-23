@@ -95,7 +95,7 @@ function App() {
       console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
       dispatch(fetchCartItems(user.id));
     } else if (!isLoading && !isAuthenticated) {
-      navigate('/auth/login'); // Redirect to login if not authenticated and loading is done
+      navigate('/auth/login');
     }
   }, [dispatch, isAuthenticated, user?.id, isLoading, navigate]);
 
@@ -106,7 +106,7 @@ function App() {
       </div>
     );
   }
-
+  
   return (
     <GoogleOAuthProvider clientId="554858497538-5lglbrrcecarc9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
       <ErrorBoundary>
