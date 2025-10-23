@@ -1,25 +1,7 @@
-// src/App.jsx
-import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { checkAuth, logoutUser } from './store/auth-slice';
-import { fetchAllCategories, fetchAllBrands } from './store/admin/category-slice';
-import { fetchCartItems } from './store/shop/cart-slice';
-import ShoppingLayout from './components/shopping-view/layout';
-import AuthLayout from './components/auth/layout';
-import ShoppingHome from "./pages/shopping-view/home";
-import ShoppingListing from "./pages/shopping-view/listing";
-import ShoppingCheckout from "./pages/shopping-view/checkout";
-import ShoppingAccount from "./pages/shopping-view/account";
-import PaypalReturnPage from "./pages/shopping-view/StripeReturnPage";
-import PaymentSuccessPage from "./pages/shopping-view/payment-success";
-import SearchProducts from "./pages/shopping-view/search";
-import Brands from "@/pages/admin-view/brands";// src/App.jsx
-import React, { Suspense, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // --- Global Actions ---
 import { checkAuth } from './store/auth-slice';
@@ -32,180 +14,92 @@ import AuthLayout from './components/auth/layout';
 import AdminLayout from './components/admin-view/layout';
 import ShoppingLayout from './components/shopping-view/layout';
 
-// --- Pages ---
-import ShoppingHome from './pages/shopping-view/home';
-import ShoppingListing from './pages/shopping-view/listing';
-import ShoppingCheckout from './pages/shopping-view/checkout';
-import ShoppingAccount from './pages/shopping-view/account';
-import PaypalReturnPage from './pages/shopping-view/StripeReturnPage';
-import PaymentSuccessPage from './pages/shopping-view/payment-success';
-import SearchProducts from './pages/shopping-view/search';
-import HelpPage from './pages/shopping-view/customer-service/help';
-import ContactPage from './pages/shopping-view/customer-service/contact';
-import ProductSupportPage from './pages/shopping-view/customer-service/product-support';
-import TechnicalSupportPage from './pages/shopping-view/customer-service/technical-support';
-import DistributorPage from './components/shopping-view/distributor';
-import UnauthPage from './pages/unauth-page';
-import NotFound from './pages/not-found';
-
-// --- Auth Pages ---
-import AuthLogin from './pages/auth/login';
-import AuthRegister from './pages/auth/register';
-import ForgotPassword from './pages/auth/forgot-password';
-import ResetPassword from './pages/auth/reset-password';
-
-// --- Admin Pages ---
-import AdminDashboard from './pages/admin-view/dashboard';
-import AdminProducts from './pages/admin-view/products';
-import AdminOrders from './pages/admin-view/orders';
-import AdminFeatures from './pages/admin-view/features';
-import Brands from './pages/admin-view/brands';
-import AdminCategoriesPage from './components/admin-view/categories-page';
-import AdminDistributorsPage from './components/admin-view/distributors-page';
-
 // --- Components ---
-import ErrorBoundary from './components/error-boundary';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function App() {
-  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth || {});
-  const dispatch = useDispatch();
-  const navigate = useNavigate(); // ← Properly imported and used
+// --- Page Imports (Lazy Loaded) ---
+const ShoppingHome = lazy(() => import('./pages/shopping-view/home'));
+const AuthLogin = lazy(() => import('./pages/auth/login'));
+const AuthRegister = lazy(() => import('./pages/auth/register'));
+const ForgotPassword = lazy(() => import('./pages/auth/forgot-password'));
+const ResetPassword = lazy(() => import('./pages/auth/reset-password'));
+const AdminDashboard = lazy(() => import('./pages/admin-view/dashboard'));
+const AdminProducts = lazy(() => import('./pages/admin-view/products'));
+const AdminOrders = lazy(() => import('./pages/admin-view/orders'));
+const AdminFeatures = lazy(() => import('./pages/admin-view/features'));
+const Brands = lazy(() => import('./pages/admin-view/brands'));
+const AdminCategoriesPage = lazy(() => import('./components/admin-view/categories-page'));
+const AdminDistributorsPage = lazy(() => import('./components/admin-view/distributors-page'));
+const ShoppingListing = lazy(() => import('./pages/shopping-view/listing'));
+const ShoppingCheckout = lazy(() => import('./pages/shopping-view/checkout'));
+const ShoppingAccount = lazy(() => import('./pages/shopping-view/account'));
+const PaypalReturnPage = lazy(() => import('./pages/shopping-view/StripeReturnPage'));
+const PaymentSuccessPage = lazy(() => import('./pages/shopping-view/payment-success'));
+const SearchProducts = lazy(() => import('./pages/shopping-view/search'));
+const HelpPage = lazy(() => import('./pages/shopping-view/customer-service/help'));
+const ContactPage = lazy(() => import('./pages/shopping-view/customer-service/contact'));
+const ProductSupportPage = lazy(() => import('./pages/shopping-view/customer-service/product-support'));
+const TechnicalSupportPage = lazy(() => import('./pages/shopping-view/customer-service/technical-support'));
+const DistributorPage = lazy(() => import('./components/shopping-view/distributor'));
+const UnauthPage = lazy(() => import('./pages/unauth-page'));
+const NotFound = lazy(() => import('./pages/not-found'));
 
-  // Run once on mount
-  useEffect(() => {
-    console.log('App: Dispatching global thunks (once)');
-    dispatch(checkAuth());
-    dispatch(fetchAllCategories());
-    dispatch(fetchAllBrands());
-  }, [dispatch]);
+// Error Boundary
+class ErrorBoundary extends React.Component {
+  state = { error: null, errorInfo: null };
 
-  // Fetch cart only when logged in
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
-      dispatch(fetchCartItems(user.id));
-    } else if (!isLoading && !isAuthenticated) {
-      navigate('/auth/login');
-    }
-  }, [dispatch, isAuthenticated, user?.id, isLoading, navigate]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Skeleton className="w-[800px] h-[600px]" />
-      </div>
-    );
+  static getDerivedStateFromError(error) {
+    return { error };
   }
 
-  return (
-    <GoogleOAuthProvider clientId="554858497538-5lglbrrcec9n5qd25tpicvi2q1lcf.apps.googleusercontent.com">
-      <ErrorBoundary>
-        <div className="flex flex-col min-h-screen bg-white">
-          <Router>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-              <Routes>
-                {/* Root Redirect */}
-                <Route path="/" element={<Navigate to="/shop/home" replace />} />
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+    this.setState({ error, errorInfo });
+  }
 
-                {/* Shopping Routes */}
-                <Route path="/shop" element={<ShoppingLayout />}>
-                  <Route index element={<Navigate to="/shop/home" replace />} />
-                  <Route path="home" element={<ShoppingHome />} />
-                  <Route path="listing" element={<ShoppingListing />} />
-                  <Route path="checkout" element={<ShoppingCheckout />} />
-                  <Route path="account" element={<ShoppingAccount />} />
-                  <Route path="paypal-return" element={<PaypalReturnPage />} />
-                  <Route path="payment-success" element={<PaymentSuccessPage />} />
-                  <Route path="search" element={<SearchProducts />} />
-                  <Route path="help" element={<HelpPage />} />
-                  <Route path="contact" element={<ContactPage />} />
-                  <Route path="product-support" element={<ProductSupportPage />} />
-                  <Route path="technical-support" element={<TechnicalSupportPage />} />
-                  <Route path="distributors" element={<DistributorPage />} />
-                </Route>
-
-                {/* Auth Routes */}
-                <Route path="/auth" element={<AuthLayout />}>
-                  <Route index element={<Navigate to="/auth/login" replace />} />
-                  <Route path="login" element={<AuthLogin />} />
-                  <Route path="register" element={<AuthRegister />} />
-                  <Route path="forgot-password" element={<ForgotPassword />} />
-                  <Route path="reset-password/:token" element={<ResetPassword />} />
-                </Route>
-
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="products" element={<AdminProducts />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="features" element={<AdminFeatures />} />
-                  <Route path="brands" element={<Brands />} />
-                  <Route path="categories" element={<AdminCategoriesPage />} />
-                  <Route path="distributors" element={<AdminDistributorsPage />} />
-                </Route>
-
-                <Route path="/unauth-page" element={<UnauthPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </Router>
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
+            <p className="text-red-500">{this.state.error.message || 'Unknown error'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
-      </ErrorBoundary>
-    </GoogleOAuthProvider>
-  );
+      );
+    }
+    return this.props.children;
+  }
 }
 
-export default App;
-import AdminCategoriesPage from "@/components/admin-view/categories-page";
-import HelpPage from "@/pages/shopping-view/customer-service/help";
-import ContactPage from "@/pages/shopping-view/customer-service/contact";
-import ProductSupportPage from "@/pages/shopping-view/customer-service/product-support";
-import TechnicalSupportPage from "@/pages/shopping-view/customer-service/technical-support";
-import DistributorPage from "@/components/shopping-view/distributor";
-import AdminDistributorsPage from "@/components/admin-view/distributors-page";
-import AuthLogin from './pages/auth/login';
-import AuthRegister from './pages/auth/register';
-import ForgotPassword from './pages/auth/forgot-password';
-import ResetPassword from './pages/auth/reset-password';
-import AuthLayout from "./components/auth/layout";
-import AuthLogin from "./pages/auth/login";
-import AuthRegister from "./pages/auth/register";
-import AdminLayout from "./components/admin-view/layout";
-import AdminDashboard from "./pages/admin-view/dashboard";
-import AdminProducts from "./pages/admin-view/products";
-import AdminOrders from "./pages/admin-view/orders";
-import AdminFeatures from "./pages/admin-view/features";
-import UnauthPage from './pages/unauth-page';
-import NotFound from './pages/not-found';
-import ErrorBoundary from './components/error-boundary'; // Import the separate component
-
 function App() {
-  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth || {});
+  const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Ensure useNavigate is imported and used
 
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('App: Dispatching global thunks (once)');
     dispatch(checkAuth());
     dispatch(fetchAllCategories());
     dispatch(fetchAllBrands());
   }, [dispatch]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated && user?.id) {
       console.log(`App: Dispatching fetchCartItems for user: ${user.id}`);
       dispatch(fetchCartItems(user.id));
-    } else if (!isLoading && !isAuthenticated) {
-      navigate('/auth/login');
     }
-  }, [dispatch, isAuthenticated, user?.id, isLoading, navigate]);
+  }, [dispatch, isAuthenticated, user?.id]);
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div>Loading...</div>
+        <Skeleton className="w-80 h-96" />
       </div>
     );
   }
