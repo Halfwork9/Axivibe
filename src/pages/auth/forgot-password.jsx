@@ -13,12 +13,16 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const action = await dispatch(forgotPassword(email));
-    if (forgotPassword.fulfilled.match(action)) {
-      toast({ title: 'Success', description: 'Password reset email sent. Check your inbox.' });
-      navigate('/auth/login');
-    } else {
-      toast({ title: 'Error', description: action.payload || 'Failed to send reset email', variant: 'destructive' });
+    try {
+      const action = await dispatch(forgotPassword(email));
+      if (forgotPassword.fulfilled.match(action)) {
+        toast({ title: 'Success', description: 'Password reset email sent. Check your inbox.' });
+        navigate('/auth/login');
+      } else {
+        toast({ title: 'Error', description: action.payload?.message || 'Failed to send reset email', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: err.message || 'Failed to send reset email', variant: 'destructive' });
     }
   };
 
@@ -28,7 +32,7 @@ const ForgotPassword = () => {
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
           Forgot Password
         </h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && typeof error === 'string' && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
