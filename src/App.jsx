@@ -17,6 +17,40 @@ import ShoppingLayout from './components/shopping-view/layout';
 // --- Components ---
 import { Skeleton } from '@/components/ui/skeleton';
 
+// --- Error Boundary ---
+class ErrorBoundary extends React.Component {
+  state = { error: null, errorInfo: null };
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught at:', this.props.routePath, error, errorInfo);
+    this.setState({ error, errorInfo });
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
+            <p className="text-red-500">{this.state.error.message || 'Unknown error'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // --- Page Imports (Lazy Loaded) ---
 const ShoppingHome = lazy(() => import('./pages/shopping-view/home'));
 const AuthLogin = lazy(() => import('./pages/auth/login'));
@@ -43,40 +77,6 @@ const TechnicalSupportPage = lazy(() => import('./pages/shopping-view/customer-s
 const DistributorPage = lazy(() => import('./components/shopping-view/distributor'));
 const UnauthPage = lazy(() => import('./pages/unauth-page'));
 const NotFound = lazy(() => import('./pages/not-found'));
-
-// --- Error Boundary ---
-class ErrorBoundary extends React.Component {
-  state = { error: null, errorInfo: null };
-
-  static getDerivedStateFromError(error) {
-    return { error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught at root:', error, errorInfo);
-    this.setState({ error, errorInfo });
-  }
-
-  render() {
-    if (this.state.error) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
-            <p className="text-red-500">{this.state.error.message || 'Unknown error'}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
-            >
-              Reload Page
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 function App() {
   const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
@@ -141,11 +141,46 @@ function App() {
                   <Route path="distributors" element={<DistributorPage />} />
                 </Route>
                 <Route path="/auth" element={<AuthLayout />}>
-                  <Route index element={<Navigate to="/auth/login" replace />} />
-                  <Route path="login" element={<AuthLogin />} />
-                  <Route path="register" element={<AuthRegister />} />
-                  <Route path="forgot-password" element={<ForgotPassword />} />
-                  <Route path="reset-password/:token" element={<ResetPassword />} />
+                  <Route
+                    index
+                    element={
+                      <ErrorBoundary routePath="/auth">
+                        <Navigate to="/auth/login" replace />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="login"
+                    element={
+                      <ErrorBoundary routePath="/auth/login">
+                        <AuthLogin />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="register"
+                    element={
+                      <ErrorBoundary routePath="/auth/register">
+                        <AuthRegister />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="forgot-password"
+                    element={
+                      <ErrorBoundary routePath="/auth/forgot-password">
+                        <ForgotPassword />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="reset-password/:token"
+                    element={
+                      <ErrorBoundary routePath="/auth/reset-password">
+                        <ResetPassword />
+                      </ErrorBoundary>
+                    }
+                  />
                 </Route>
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
