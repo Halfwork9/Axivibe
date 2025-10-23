@@ -1,131 +1,66 @@
+// src/pages/auth/login.jsx
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
-import { loginUser, loginWithGoogle } from '@/store/auth-slice';
-import { GoogleLogin } from '@react-oauth/google';
-import { loginFormControls } from '@/config';
+import { useNavigate } from 'react-router-dom'; // Ensure this import
+import { useDispatch } from 'react-redux';
+import { loginUser } from '@/store/auth-slice';
 
-const AuthLogin = () => {
-  console.log('AuthLogin: Component rendering');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+function AuthLogin() {
+  const navigate = useNavigate(); // Define useNavigate
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { isLoading, error } = useSelector((state) => state.auth);
-
-  console.log('AuthLogin: State:', { formData, isLoading, error });
-  console.log('AuthLogin: loginFormControls:', loginFormControls);
-
-  const handleChange = (e) => {
-    console.log('AuthLogin: handleChange:', e.target.name, e.target.value);
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('AuthLogin: Submitting formData:', formData);
     try {
-      const action = await dispatch(loginUser(formData));
-      if (loginUser.fulfilled.match(action)) {
-        toast({ title: 'Success', description: 'Logged in successfully' });
-        navigate('/shop/home');
-      } else {
-        toast({ title: 'Error', description: action.payload?.message || 'Login failed', variant: 'destructive' });
-      }
+      await dispatch(loginUser({ email, password })).unwrap();
+      navigate('/shop/home'); // Redirect on success
     } catch (err) {
-      console.error('AuthLogin: Submit error:', err);
-      toast({ title: 'Error', description: 'Unexpected error during login', variant: 'destructive' });
+      setError(err.message || 'Login failed');
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    console.log('AuthLogin: Google login success:', credentialResponse);
-    try {
-      const action = await dispatch(loginWithGoogle(credentialResponse.credential));
-      if (loginWithGoogle.fulfilled.match(action)) {
-        toast({ title: 'Success', description: 'Google Sign-In successful' });
-        navigate('/shop/home');
-      } else {
-        toast({ title: 'Error', description: action.payload?.message || 'Google login failed', variant: 'destructive' });
-      }
-    } catch (err) {
-      console.error('AuthLogin: Google login error:', err);
-      toast({ title: 'Error', description: 'Unexpected error during Google login', variant: 'destructive' });
-    }
-  };
-
-  const handleGoogleError = (error) => {
-    console.error('AuthLogin: Google login error:', error);
-    toast({ title: 'Error', description: 'Google Sign-In failed', variant: 'destructive' });
-  };
-
-  try {
-    // Validate loginFormControls
-    if (!Array.isArray(loginFormControls) || loginFormControls.length === 0) {
-      console.error('AuthLogin: Invalid loginFormControls:', loginFormControls);
-      return <div>Error: Invalid login form configuration</div>;
-    }
-
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8">
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to your account
-          </h2>
-          {error && <p className="text-red-500 text-center">{error}</p>}
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            {loginFormControls.map((control, index) => {
-              console.log('AuthLogin: Rendering control:', control);
-              if (!control.name || !control.label) {
-                console.warn('AuthLogin: Invalid control at index', index, control);
-                return null;
-              }
-              return (
-                <div key={control.name || `control-${index}`}>
-                  <label htmlFor={control.name} className="block text-sm font-medium text-gray-700">
-                    {control.label}
-                  </label>
-                  <input
-                    id={control.name}
-                    name={control.name}
-                    type={control.type || 'text'}
-                    value={formData[control.name] || ''}
-                    onChange={handleChange}
-                    placeholder={control.placeholder || ''}
-                    className="w-full px-3 py-2 border rounded-md"
-                    required
-                  />
-                </div>
-              );
-            })}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md disabled:opacity-50"
-            >
-              {isLoading ? 'Logging in...' : 'Sign in'}
-            </button>
-          </form>
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="p-6 bg-white rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-4">Login</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
             />
           </div>
-        </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          >
+            Login
+          </button>
+        </form>
+        <p className="mt-4 text-center">
+          <a href="/auth/register" className="text-blue-600 hover:underline">Register</a> |{' '}
+          <a href="/auth/forgot-password" className="text-blue-600 hover:underline">Forgot Password?</a>
+        </p>
       </div>
-    );
-  } catch (err) {
-    console.error('AuthLogin: Render error:', err);
-    throw err; // Let ErrorBoundary catch this
-  }
-};
+    </div>
+  );
+}
 
 export default AuthLogin;
