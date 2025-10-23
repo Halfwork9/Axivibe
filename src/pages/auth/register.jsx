@@ -26,22 +26,30 @@ const AuthRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const action = await dispatch(registerUser(formData));
-    if (registerUser.fulfilled.match(action)) {
-      toast({ title: 'Success', description: 'Registration successful. Please log in.' });
-      navigate('/auth/login');
-    } else {
-      toast({ title: 'Error', description: action.payload || 'Registration failed', variant: 'destructive' });
+    try {
+      const action = await dispatch(registerUser(formData));
+      if (registerUser.fulfilled.match(action)) {
+        toast({ title: 'Success', description: 'Registration successful. Please log in.' });
+        navigate('/auth/login');
+      } else {
+        toast({ title: 'Error', description: action.payload?.message || 'Registration failed', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: err.message || 'Registration failed', variant: 'destructive' });
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    const action = await dispatch(loginWithGoogle(credentialResponse.credential));
-    if (loginWithGoogle.fulfilled.match(action)) {
-      toast({ title: 'Success', description: 'Google Sign-In successful' });
-      navigate('/shop/home');
-    } else {
-      toast({ title: 'Error', description: action.payload || 'Google login failed', variant: 'destructive' });
+    try {
+      const action = await dispatch(loginWithGoogle(credentialResponse.credential));
+      if (loginWithGoogle.fulfilled.match(action)) {
+        toast({ title: 'Success', description: 'Google Sign-In successful' });
+        navigate('/shop/home');
+      } else {
+        toast({ title: 'Error', description: action.payload?.message || 'Google login failed', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: err.message || 'Google login failed', variant: 'destructive' });
     }
   };
 
@@ -55,7 +63,7 @@ const AuthRegister = () => {
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
           Create your account
         </h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && typeof error === 'string' && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {registerFormControls.map((control) => (
             <div key={control.name}>
