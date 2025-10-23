@@ -1,18 +1,11 @@
 // src/components/shopping-view/header.jsx
 import { LogOut, Menu, ShoppingCart, UserCog, Store } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom"; // Ensure useNavigate is imported
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "@/assets/logo.png";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { logoutUser } from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
@@ -20,7 +13,6 @@ import { useEffect, useState } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { fetchAllCategories } from "@/store/admin/category-slice";
 
-// ---------------- Category Dropdown ----------------
 function CategoryDropdown() {
   const dispatch = useDispatch();
   const { categoryList = [] } = useSelector((state) => state.adminCategories || {});
@@ -34,8 +26,6 @@ function CategoryDropdown() {
     sessionStorage.setItem("filters", JSON.stringify({ category: [category._id] }));
     navigate(`/shop/listing?category=${encodeURIComponent(category.name)}`);
   }
-
-  console.log('CategoryDropdown: categoryList length:', categoryList.length);
 
   return (
     <DropdownMenu>
@@ -61,20 +51,17 @@ function CategoryDropdown() {
   );
 }
 
-// ---------------- Header Right (Cart + User) ----------------
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth || {});
   const { cartItems = [] } = useSelector((state) => state.shopCart || {});
   const [openCartSheet, setOpenCartSheet] = useState(false);
-  const navigate = useNavigate(); // Ensure useNavigate is defined
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   function handleLogout() {
     dispatch(logoutUser()).then(() => {
-      navigate('/auth/login'); // Redirect after logout
-    }).catch((error) => {
-      console.error('Logout failed:', error);
-    });
+      navigate('/auth/login'); // Redirect to login after logout
+    }).catch((error) => console.error('Logout failed:', error));
   }
 
   useEffect(() => {
@@ -82,8 +69,6 @@ function HeaderRightContent() {
       dispatch(fetchCartItems(user.id));
     }
   }, [dispatch, user?.id]);
-
-  console.log('HeaderRightContent: user:', user, 'cartItems length:', cartItems.length);
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
@@ -112,9 +97,7 @@ function HeaderRightContent() {
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>
-            Logged in as {user?.userName || 'Guest'}
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Logged in as {user?.userName || 'Guest'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {user ? (
             <>
@@ -144,7 +127,6 @@ function HeaderRightContent() {
   );
 }
 
-// ---------------- Main Header ----------------
 function ShoppingHeader() {
   const [openSidebar, setOpenSidebar] = useState(false);
   return (
@@ -163,34 +145,10 @@ function ShoppingHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-full max-w-xs flex flex-col gap-4">
-            <Link
-              to="/shop/home"
-              className="text-sm font-medium"
-              onClick={() => setOpenSidebar(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/shop/listing"
-              className="text-sm font-medium"
-              onClick={() => setOpenSidebar(false)}
-            >
-              Products
-            </Link>
-            <Link
-              to="/shop/search"
-              className="text-sm font-medium"
-              onClick={() => setOpenSidebar(false)}
-            >
-              Search
-            </Link>
-            <Link
-              to="/shop/distributor"
-              className="text-sm font-medium"
-              onClick={() => setOpenSidebar(false)}
-            >
-              Distributor
-            </Link>
+            <Link to="/shop/home" className="text-sm font-medium" onClick={() => setOpenSidebar(false)}>Home</Link>
+            <Link to="/shop/listing" className="text-sm font-medium" onClick={() => setOpenSidebar(false)}>Products</Link>
+            <Link to="/shop/search" className="text-sm font-medium" onClick={() => setOpenSidebar(false)}>Search</Link>
+            <Link to="/shop/distributor" className="text-sm font-medium" onClick={() => setOpenSidebar(false)}>Distributor</Link>
             <CategoryDropdown />
             <HeaderRightContent />
           </SheetContent>
