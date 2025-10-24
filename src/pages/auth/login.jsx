@@ -13,29 +13,30 @@ function AuthLogin() {
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await dispatch(loginUser({ email, password })).unwrap();
-      navigate('/shop/home');
-    } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
-    }
-  };
+  e.preventDefault();
+  try {
+    const result = await dispatch(loginUser({ email, password })).unwrap();
+    const role = result.user?.role;
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const token = credentialResponse.credential;
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/google-login`,
-        { token },
-        { withCredentials: true }
-      );
-      if (response.data.success) navigate('/shop/home');
-      else setError(response.data.message || 'Google login failed.');
-    } catch {
-      setError('Google login failed. Please try again.');
-    }
-  };
+    if (role === 'admin') navigate('/admin/dashboard');
+    else navigate('/shop/home');
+  } catch (err) {
+    setError(err.message || 'Login failed. Please try again.');
+  }
+};
+
+const handleGoogleSuccess = async (credentialResponse) => {
+  try {
+    const token = credentialResponse.credential;
+    const result = await dispatch(loginWithGoogle(token)).unwrap();
+    const role = result.user?.role;
+
+    if (role === 'admin') navigate('/admin/dashboard');
+    else navigate('/shop/home');
+  } catch (err) {
+    setError('Google login failed. Please try again.');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4">
