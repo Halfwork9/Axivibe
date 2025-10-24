@@ -11,7 +11,6 @@ import { Toaster } from "@/components/ui/toaster.jsx";
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 // Debug log to confirm value (remove after fixing)
-console.log('Google Client ID:', googleClientId || 'MISSING');
 
 let rootContent;
 
