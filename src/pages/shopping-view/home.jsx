@@ -50,7 +50,7 @@ function ShoppingHome() {
       navigate('/auth/login');
       return;
     }
-    console.log('ShoppingHome: Adding to cart, product ID:', id);
+    
     dispatch(addToCart({ userId: user.id, productId: id, quantity: 1 })).then((res) => {
       if (res?.payload?.success) {
         dispatch(fetchCartItems(user.id));
