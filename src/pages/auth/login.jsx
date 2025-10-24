@@ -42,7 +42,7 @@ function AuthLogin() {
       <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
         <div className="text-center mb-6">
           <img src="/AIXIVIBE.png" alt="Axivibe Logo" className="w-20 mx-auto mb-3" />
-          <h1 className="text-3xl font-bold text-gray-800">Welcome Back 👋</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Axivibe </h1>
           <p className="text-gray-500 text-sm mt-1">Sign in to continue shopping</p>
         </div>
 
