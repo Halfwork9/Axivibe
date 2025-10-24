@@ -126,11 +126,11 @@ useEffect(() => {
           <Route path="paypal-return" element={<PaypalReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="search" element={<SearchProducts />} />
-          <Route path="help" element={<HelpPage />} />
-          <Route path="contact" element={<ContactPage />} />
-          <Route path="product-support" element={<ProductSupportPage />} />
-          <Route path="technical-support" element={<TechnicalSupportPage />} />
-          <Route path="distributors" element={<DistributorPage />} />
+          <Route path="/shop/help" element={<HelpPage />} />
+          <Route path="/shop/contact" element={<ContactPage />} />
+          <Route path="/shop/product-support" element={<ProductSupportPage />} />
+          <Route path="/shop/technical-support" element={<TechnicalSupportPage />} />
+          <Route path="/shop/distributor" element={<DistributorPage />} />
         </Route>
 
         <Route path="/auth" element={<AuthLayout />}>
@@ -147,7 +147,7 @@ useEffect(() => {
           <Route path="orders" element={<AdminOrders />} />
           <Route path="features" element={<AdminFeatures />} />
           <Route path="brands" element={<Brands />} />
-          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
           <Route path="distributors" element={<AdminDistributorsPage />} />
         </Route>
 
