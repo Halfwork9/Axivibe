@@ -84,11 +84,16 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    dispatch(checkAuth()).catch(console.error);
-    dispatch(fetchAllCategories()).catch(console.error);
-    dispatch(fetchAllBrands()).catch(console.error);
-  }, [dispatch]);
+useEffect(() => {
+  dispatch(checkAuth()).then((res) => {
+    if (res.payload?.user) {
+      // Only fetch data when user is logged in
+      dispatch(fetchAllCategories());
+      dispatch(fetchAllBrands());
+    }
+  });
+}, [dispatch]);
+
 
   useEffect(() => {
     const isAuthRoute = location.pathname.startsWith('/auth');
