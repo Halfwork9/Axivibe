@@ -16,7 +16,7 @@ import * as LucideIcons from 'lucide-react';
 import SEO from '@/components/common/SEO';
 
 function ShoppingHome() {
-  console.log('ShoppingHome: Rendering');
+  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
@@ -31,7 +31,6 @@ function ShoppingHome() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  console.log('ShoppingHome: State:', { productList, featureImageList, brandList, categoryList, cartItems, user, isAuthenticated, authLoading, productsLoading, featureImagesLoading, brandsLoading, categoriesLoading, cartLoading, categoryError, cartError });
 
   const handleNavigateToListingPage = (item, section) => {
     sessionStorage.removeItem('filters');
@@ -41,7 +40,7 @@ function ShoppingHome() {
   };
 
   const handleGetProductDetails = (id) => {
-    console.log('ShoppingHome: Fetching product details for ID:', id);
+   
     dispatch(fetchProductDetails(id));
   };
 
@@ -75,7 +74,6 @@ function ShoppingHome() {
   }, [featureImageList]);
 
   useEffect(() => {
-    console.log('ShoppingHome: Dispatching thunks');
     dispatch(fetchShopProducts({ filterParams: {}, sortParams: 'price-lowtohigh' }));
     dispatch(getFeatureImages());
     dispatch(fetchAllBrands());
