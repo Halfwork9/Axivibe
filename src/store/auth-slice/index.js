@@ -9,39 +9,37 @@ export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_URL}/auth/check-auth`, { withCredentials: true });
+      const response = await api.get('/auth/check-auth');
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       }
-      return rejectWithValue(error.response?.data || 'Auth check failed');
+      return rejectWithValue(error.response?.data || { message: 'Auth check failed' });
     }
   }
 );
 
-// --- LOGIN ---
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password }, { withCredentials: true });
+      const response = await api.post('/auth/login', { email, password });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Login failed');
+      return rejectWithValue(error.response?.data || { message: 'Login failed' });
     }
   }
 );
 
-// --- GOOGLE LOGIN ---
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
   async (credential, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/google-login`, { token: credential }, { withCredentials: true });
+      const response = await api.post('/auth/google-login', { token: credential });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Google login failed');
+      return rejectWithValue(error.response?.data || { message: 'Google login failed' });
     }
   }
 );
