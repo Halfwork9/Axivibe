@@ -12,7 +12,7 @@ import axios from "axios";
 // ✅ Configure axios globally
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
-  import.meta.env.VITE_API_BASE_URL || "https://axivibe.onrender.com";
+  import.meta.env.VITE_API_URL || "https://axivibe.onrender.com/api";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
