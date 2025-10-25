@@ -1,6 +1,7 @@
 // src/store/auth-slice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import api from "@/api";
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://axivibe.onrender.com/api';
 
@@ -33,16 +34,22 @@ export const loginUser = createAsyncThunk(
 );
 
 export const loginWithGoogle = createAsyncThunk(
-  'auth/loginWithGoogle',
+  "auth/loginWithGoogle",
   async (credential, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/google-login', { token: credential });
+      const response = await axios.post(
+        `${API_URL}/auth/google-login`,
+        { token: credential },
+        { withCredentials: true }
+      );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Google login failed' });
+      console.error("Google login failed:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || { message: "Google login failed" });
     }
   }
 );
+
 
 // --- REGISTER ---
 export const registerUser = createAsyncThunk(
