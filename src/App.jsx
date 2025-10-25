@@ -148,7 +148,7 @@ useEffect(() => {
           <Route path="features" element={<AdminFeatures />} />
           <Route path="brands" element={<Brands />} />
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
-         <Route path="/admin/distributor" element={<AdminDistributor />} />
+         <Route path="/admin/distributor" element={<AdminDistributorsPage />} />
 
         </Route>
 
