@@ -1,11 +1,16 @@
-# render.yaml
 services:
   - type: web
-    name: axivibe1
-    env: static
+    name: axivibe
+    env: node
     buildCommand: npm run build
-    staticPublishPath: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    headers:
+      - path: /*
+        name: Cross-Origin-Embedder-Policy
+        value: unsafe-none
+      - path: /*
+        name: Cross-Origin-Opener-Policy
+        value: unsafe-none
