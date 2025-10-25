@@ -1,88 +1,129 @@
-import CommonForm from "@/components/common/form";
-import { useToast } from "@/components/ui/use-toast";
-import { loginFormControls } from "@/config";
-import { loginUser, loginWithGoogle } from "@/store/auth-slice";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom"; // ✅ Import useNavigate
+import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { loginUser, loginWithGoogle } from "@/store/auth-slice";
+import { useToast } from "@/components/ui/use-toast";
 
-function AuthLogin() {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+const AuthLogin = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const navigate = useNavigate(); // ✅ Initialize navigate
 
-  // ✅ FIX: Centralized login success handler with admin redirect
-  const handleLoginSuccess = (payload) => {
-    if (payload?.success) {
-      if (payload.user?.role === 'admin') {
-        toast({ title: `Welcome Admin, ${payload.user?.userName}!` });
-        navigate('/admin/dashboard'); // Redirect admin
-      } else {
-        toast({ title: `Welcome, ${payload.user?.userName}!` });
-        navigate('/shop/home'); // Redirect regular user
-      }
-    } else {
-      toast({ title: payload?.message, variant: "destructive" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Handle Email + Password Login
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await dispatch(loginUser({ email, password })).unwrap();
+      const role = result.user?.role;
+      toast({ title: "Login Successful", description: `Welcome back, ${result.user?.userName || "User"}!` });
+      if (role === "admin") navigate("/admin/dashboard");
+      else navigate("/shop/home");
+    } catch (err) {
+      setError(err?.message || "Invalid credentials. Please try again.");
+      toast({ title: "Login Failed", description: err?.message || "Invalid email or password", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEmailLogin = (event) => {
-    event.preventDefault();
-    dispatch(loginUser(formData)).then((data) => {
-      handleLoginSuccess(data.payload);
-    });
+  // ✅ Handle Google Login Success
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = credentialResponse?.credential;
+      if (!token) throw new Error("No Google token received");
+
+      const result = await dispatch(loginWithGoogle(token)).unwrap();
+      const role = result.user?.role;
+      toast({ title: "Google Login Successful", description: `Welcome, ${result.user?.userName}!` });
+      if (role === "admin") navigate("/admin/dashboard");
+      else navigate("/shop/home");
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError("Google login failed. Please try again.");
+      toast({ title: "Google Login Failed", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleSuccess = (credentialResponse) => {
-    dispatch(loginWithGoogle(credentialResponse.credential)).then((data) => {
-      handleLoginSuccess(data.payload);
-    });
+  // ✅ Handle Google Login Failure
+  const handleGoogleError = () => {
+    setError("Google login failed. Please try again.");
+    toast({ title: "Error", description: "Google sign-in failed", variant: "destructive" });
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm space-y-6 p-8 rounded-xl shadow-lg bg-white">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Sign In</h1>
-        <p className="mt-2 text-gray-600">
-          New here?{" "}
-          <Link className="font-medium text-primary hover:underline" to="/auth/register">
-            Create an account
-          </Link>
-        </p>
-      </div>
-      
-      <div className="flex justify-center">
-         <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => toast({ title: "Google sign-in error.", variant: "destructive" })}
-            width="320px"
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
+        <div className="text-center mb-6">
+          <img src="/AIXIVIBE.png" alt="Axivibe Logo" className="w-20 mx-auto mb-3" />
+          <h1 className="text-3xl font-bold text-gray-800">Axivibe</h1>
+          <p className="text-gray-500 text-sm mt-1">Sign in to continue shopping</p>
+        </div>
+
+        {error && <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+            required
           />
-      </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+            required
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
 
-      <div className="flex items-center">
-        <div className="flex-grow border-t border-gray-300" />
-        <span className="mx-4 text-sm font-medium text-gray-500">OR</span>
-        <div className="flex-grow border-t border-gray-300" />
-      </div>
-      
-      <CommonForm
-        formControls={loginFormControls}
-        buttonText={"Sign In with Email"}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleEmailLogin}
-      />
+        <div className="flex items-center my-6">
+          <div className="flex-grow h-px bg-gray-200" />
+          <span className="px-2 text-gray-400 text-sm">OR</span>
+          <div className="flex-grow h-px bg-gray-200" />
+        </div>
 
-      <div className="text-center text-sm">
-        <Link to="/auth/forgot-password" className="font-medium text-primary hover:underline">
+        <div className="flex justify-center">
+          <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} useOneTap={false} />
+        </div>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          Don’t have an account?{" "}
+          <Link to="/auth/register" className="text-blue-600 font-medium hover:underline">
+            Register
+          </Link>
+        </div>
+        <div className="text-center text-sm mt-2">
+          <Link to="/auth/forgot-password" className="text-blue-500 hover:underline">
             Forgot your password?
-        </Link>
+          </Link>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default AuthLogin;
-
