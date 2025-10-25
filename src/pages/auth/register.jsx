@@ -36,7 +36,11 @@ const AuthRegister = () => {
           <p className="text-gray-500 text-sm mt-1">Join Axivibe and start shopping today!</p>
         </div>
 
-        {error && <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">{error}</div>}
+       {error && (
+  <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">
+    {typeof error === 'string' ? error : error.message || 'Something went wrong'}
+  </div>
+)}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {registerFormControls.map(({ name, label, type, placeholder }) => (
