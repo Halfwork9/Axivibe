@@ -1,47 +1,43 @@
 // src/store/auth-slice.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import api from "@/api";
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://axivibe.onrender.com/api';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "@/api"; // ✅ uses your pre-configured axios instance withCredentials: true
 
 // --- AUTH CHECK ---
 export const checkAuth = createAsyncThunk(
-  'auth/checkAuth',
+  "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/auth/check-auth');
+      const response = await api.get("/auth/check-auth");
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // Remove any stale cookie on unauthorized
+        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       }
-      return rejectWithValue(error.response?.data || { message: 'Auth check failed' });
+      return rejectWithValue(error.response?.data || { message: "Auth check failed" });
     }
   }
 );
 
+// --- EMAIL + PASSWORD LOGIN ---
 export const loginUser = createAsyncThunk(
-  'auth/loginUser',
+  "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post("/auth/login", { email, password });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Login failed' });
+      return rejectWithValue(error.response?.data || { message: "Login failed" });
     }
   }
 );
 
+// --- GOOGLE LOGIN ---
 export const loginWithGoogle = createAsyncThunk(
   "auth/loginWithGoogle",
   async (credential, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${API_URL}/auth/google-login`,
-        { token: credential },
-        { withCredentials: true }
-      );
+      const response = await api.post("/auth/google-login", { token: credential });
       return response.data;
     } catch (error) {
       console.error("Google login failed:", error.response?.data || error.message);
@@ -50,61 +46,60 @@ export const loginWithGoogle = createAsyncThunk(
   }
 );
 
-
-// --- REGISTER ---
+// --- REGISTER USER ---
 export const registerUser = createAsyncThunk(
-  'auth/registerUser',
+  "auth/registerUser",
   async ({ userName, email, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, { userName, email, password }, { withCredentials: true });
+      const response = await api.post("/auth/register", { userName, email, password });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Registration failed');
+      return rejectWithValue(error.response?.data || { message: "Registration failed" });
     }
   }
 );
 
 // --- FORGOT PASSWORD ---
 export const forgotPassword = createAsyncThunk(
-  'auth/forgotPassword',
+  "auth/forgotPassword",
   async (email, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email }, { withCredentials: true });
+      const response = await api.post("/auth/forgot-password", { email });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Forgot password failed');
+      return rejectWithValue(error.response?.data || { message: "Forgot password failed" });
     }
   }
 );
 
 // --- RESET PASSWORD ---
 export const resetPassword = createAsyncThunk(
-  'auth/resetPassword',
+  "auth/resetPassword",
   async ({ token, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/reset-password/${token}`, { password }, { withCredentials: true });
+      const response = await api.post(`/auth/reset-password/${token}`, { password });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Reset password failed');
+      return rejectWithValue(error.response?.data || { message: "Reset password failed" });
     }
   }
 );
 
 // --- LOGOUT ---
 export const logoutUser = createAsyncThunk(
-  'auth/logoutUser',
+  "auth/logoutUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
-      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      const response = await api.post("/auth/logout");
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Logout failed');
+      return rejectWithValue(error.response?.data || { message: "Logout failed" });
     }
   }
 );
 
-// --- SLICE ---
+// --- INITIAL STATE ---
 const initialState = {
   user: null,
   isAuthenticated: false,
@@ -112,8 +107,9 @@ const initialState = {
   error: null,
 };
 
+// --- SLICE ---
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     clearError: (state) => {
@@ -122,6 +118,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // ✅ Check Auth
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -137,6 +134,8 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload;
       })
+
+      // ✅ Login
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -150,6 +149,8 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ Google Login
       .addCase(loginWithGoogle.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -163,6 +164,8 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ Register
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -176,6 +179,8 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ Forgot Password
       .addCase(forgotPassword.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -187,6 +192,8 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ Reset Password
       .addCase(resetPassword.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -198,6 +205,8 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ Logout
       .addCase(logoutUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
