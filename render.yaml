@@ -4,7 +4,7 @@ services:
     name: axivibe1
     env: static
     buildCommand: npm run build
-    staticPublishPath: build
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
