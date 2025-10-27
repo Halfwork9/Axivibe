@@ -11,7 +11,7 @@ export const checkAuth = createAsyncThunk(
       return res.data.user;
     } catch (error) {
       if (error.response?.status === 401) {
-        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        return rejectWithValue("Not authenticated"); // Don't set error, just mark unauthenticated
       }
       return rejectWithValue(error.response?.data?.message || "Auth check failed");
     }
@@ -126,11 +126,13 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
       })
       .addCase(checkAuth.rejected, (state, action) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-        state.error = action.payload;
-      })
+  state.isLoading = false;
+  state.user = null;
+  state.isAuthenticated = false;
+  if (action.payload !== "Not authenticated") {
+    state.error = action.payload;
+  }
+});
 
       // ✅ Login
       .addCase(loginUser.pending, (state) => {
