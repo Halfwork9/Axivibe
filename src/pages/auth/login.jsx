@@ -44,8 +44,8 @@ const AuthLogin = () => {
       if (!token) throw new Error("No Google token received");
 
       const result = await dispatch(loginWithGoogle(token)).unwrap();
-      const role = result.user?.role;
-      toast({ title: "Google Login Successful", description: `Welcome, ${result.user?.userName}!` });
+     const role = result?.role;
+      toast({ title: "Google Login Successful", description: `Welcome back, ${result?.userName || "User"}!` });
       if (role === "admin") navigate("/admin/dashboard");
       else navigate("/shop/home");
     } catch (err) {
