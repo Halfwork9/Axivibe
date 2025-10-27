@@ -1,20 +1,19 @@
 // src/store/auth-slice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "@/api"; // ✅ uses your pre-configured axios instance withCredentials: true
+import api from "@/api"; // ✅ axios instance with baseURL + withCredentials
 
 // --- AUTH CHECK ---
 export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/auth/check-auth");
-      return response.data;
+      const res = await api.get("/auth/check-auth");
+      return res.data.user;
     } catch (error) {
       if (error.response?.status === 401) {
-        // Remove any stale cookie on unauthorized
         document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       }
-      return rejectWithValue(error.response?.data || { message: "Auth check failed" });
+      return rejectWithValue(error.response?.data?.message || "Auth check failed");
     }
   }
 );
@@ -24,28 +23,25 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (payload, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${API_URL}/api/auth/login`, payload, {
-        withCredentials: true,
-      });
+      const res = await api.post("/auth/login", payload, { withCredentials: true });
       if (!res.data.success) return rejectWithValue(res.data.message);
-      return res.data.user;          // ✅ only return user
+      return res.data.user; // ✅ only return clean user object
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Login failed");
     }
   }
 );
 
-
 // --- GOOGLE LOGIN ---
 export const loginWithGoogle = createAsyncThunk(
   "auth/loginWithGoogle",
-  async (credential, { rejectWithValue }) => {
+  async (token, { rejectWithValue }) => {
     try {
-      const response = await api.post("/auth/google-login", { token: credential });
-      return response.data;
-    } catch (error) {
-      console.error("Google login failed:", error.response?.data || error.message);
-      return rejectWithValue(error.response?.data || { message: "Google login failed" });
+      const res = await api.post("/auth/google-login", { token });
+      if (!res.data.success) return rejectWithValue(res.data.message);
+      return res.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Google login failed");
     }
   }
 );
@@ -55,10 +51,11 @@ export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async ({ userName, email, password }, { rejectWithValue }) => {
     try {
-      const response = await api.post("/auth/register", { userName, email, password });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Registration failed" });
+      const res = await api.post("/auth/register", { userName, email, password });
+      if (!res.data.success) return rejectWithValue(res.data.message);
+      return res.data.user || null; // backend returns only message for register
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Registration failed");
     }
   }
 );
@@ -68,10 +65,10 @@ export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async (email, { rejectWithValue }) => {
     try {
-      const response = await api.post("/auth/forgot-password", { email });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Forgot password failed" });
+      const res = await api.post("/auth/forgot-password", { email });
+      return res.data.message;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Forgot password failed");
     }
   }
 );
@@ -81,27 +78,24 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ token, password }, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/auth/reset-password/${token}`, { password });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Reset password failed" });
+      const res = await api.post(`/auth/reset-password/${token}`, { password });
+      return res.data.message;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Reset password failed");
     }
   }
 );
 
 // --- LOGOUT ---
-export const logoutUser = createAsyncThunk(
-  "auth/logoutUser",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.post("/auth/logout");
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Logout failed" });
-    }
+export const logoutUser = createAsyncThunk("auth/logoutUser", async (_, { rejectWithValue }) => {
+  try {
+    const res = await api.post("/auth/logout");
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || "Logout failed");
   }
-);
+});
 
 // --- INITIAL STATE ---
 const initialState = {
@@ -125,28 +119,26 @@ const authSlice = createSlice({
       // ✅ Check Auth
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
-        state.error = null;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
+        state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(checkAuth.rejected, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = false;
         state.user = null;
+        state.isAuthenticated = false;
         state.error = action.payload;
       })
 
       // ✅ Login
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
-        state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
+        state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -157,11 +149,10 @@ const authSlice = createSlice({
       // ✅ Google Login
       .addCase(loginWithGoogle.pending, (state) => {
         state.isLoading = true;
-        state.error = null;
       })
       .addCase(loginWithGoogle.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
+        state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(loginWithGoogle.rejected, (state, action) => {
@@ -170,59 +161,19 @@ const authSlice = createSlice({
       })
 
       // ✅ Register
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
 
-      // ✅ Forgot Password
-      .addCase(forgotPassword.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(forgotPassword.fulfilled, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(forgotPassword.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-      // ✅ Reset Password
-      .addCase(resetPassword.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(resetPassword.fulfilled, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(resetPassword.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
       // ✅ Logout
-      .addCase(logoutUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
       .addCase(logoutUser.fulfilled, (state) => {
-        state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-      })
-      .addCase(logoutUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       });
   },
 });
