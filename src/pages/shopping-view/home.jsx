@@ -115,6 +115,7 @@ function ShoppingHome() {
               key={i}
               src={slide?.image}
               alt={`Slide ${i}`}
+              crossOrigin="anonymous"
               className={`${
                 i === currentSlide ? 'opacity-100' : 'opacity-0'
               } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
