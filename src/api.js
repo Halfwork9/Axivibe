@@ -1,8 +1,4 @@
-import axios from "axios";
-
 const api = axios.create({
-  baseURL: "https://api.nikhilmamdekar.site/api",
-  withCredentials: true, // 👈 critical for cookies
+  baseURL: import.meta.env.VITE_API_URL || "https://axivibe.onrender.com/api",
+  withCredentials: true, // critical
 });
-
-export default api;
