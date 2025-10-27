@@ -23,8 +23,8 @@ const AuthLogin = () => {
 
     try {
       const result = await dispatch(loginUser({ email, password })).unwrap();
-      const role = result.user?.role;
-      toast({ title: "Login Successful", description: `Welcome back, ${result.user?.userName || "User"}!` });
+      const role = result?.role;
+     toast({ title: "Login Successful", description: `Welcome back, ${result?.userName || "User"}!` });
       if (role === "admin") navigate("/admin/dashboard");
       else navigate("/shop/home");
     } catch (err) {
