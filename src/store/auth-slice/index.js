@@ -22,15 +22,19 @@ export const checkAuth = createAsyncThunk(
 // --- EMAIL + PASSWORD LOGIN ---
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ email, password }, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
-      const response = await api.post("/auth/login", { email, password });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Login failed" });
+      const res = await axios.post(`${API_URL}/api/auth/login`, payload, {
+        withCredentials: true,
+      });
+      if (!res.data.success) return rejectWithValue(res.data.message);
+      return res.data.user;          // ✅ only return user
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Login failed");
     }
   }
 );
+
 
 // --- GOOGLE LOGIN ---
 export const loginWithGoogle = createAsyncThunk(
