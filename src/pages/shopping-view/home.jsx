@@ -20,7 +20,7 @@ function ShoppingHome() {
   
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-const [imageErrors, setImageErrors] = useState({});
+
   const { productList = [], productDetails = null, isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
   const { featureImageList = [], isLoading: featureImagesLoading } = useSelector((state) => state.commonFeature || {});
   const { brandList = [], isLoading: brandsLoading } = useSelector((state) => state.adminBrands || {});
@@ -32,7 +32,8 @@ const [imageErrors, setImageErrors] = useState({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
-
+  const [imageErrors, setImageErrors] = useState({});
+  
   const handleNavigateToListingPage = (item, section) => {
     sessionStorage.removeItem('filters');
     const filter = { [section]: [item.id || item._id] };
