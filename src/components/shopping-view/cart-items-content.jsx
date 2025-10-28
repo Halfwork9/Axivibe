@@ -74,8 +74,9 @@ function UserCartItemsContent({ cartItem }) {
 
   // Get the image URL, handling both single image and array of images
   const getImageSrc = () => {
+    // Only use placeholder if there's an actual image error
     if (imageError) {
-      return "https://picsum.photos/seed/cartitem/80/80.jpg"; // Use a working placeholder service
+      return "https://picsum.photos/seed/cartitem/80/80.jpg";
     }
     
     // Check if cartItem has images array
@@ -88,8 +89,14 @@ function UserCartItemsContent({ cartItem }) {
       return getImageUrl(cartItem.image);
     }
     
-    return "https://picsum.photos/seed/cartitem/80/80.jpg"; // Use a working placeholder service
+    // Only use placeholder if no image is available at all
+    return "https://picsum.photos/seed/cartitem/80/80.jpg";
   };
+
+  // Reset image error when cartItem changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [cartItem]);
 
   return (
     <div className="flex items-center space-x-4">
@@ -98,7 +105,10 @@ function UserCartItemsContent({ cartItem }) {
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
         crossOrigin="anonymous"
-        onError={() => setImageError(true)}
+        onError={(e) => {
+          console.error("Image failed to load:", e.target.src);
+          setImageError(true);
+        }}
       />
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.title}</h3>
