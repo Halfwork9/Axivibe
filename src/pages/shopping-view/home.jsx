@@ -20,7 +20,7 @@ function ShoppingHome() {
   
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-
+const [imageErrors, setImageErrors] = useState({});
   const { productList = [], productDetails = null, isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
   const { featureImageList = [], isLoading: featureImagesLoading } = useSelector((state) => state.commonFeature || {});
   const { brandList = [], isLoading: brandsLoading } = useSelector((state) => state.adminBrands || {});
@@ -182,7 +182,7 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandList?.length > 0 ? (
+           {brandList?.length > 0 ? (
   brandList.map((b) => {
     const Icon = b.icon && typeof LucideIcons[b.icon] === 'function' ? LucideIcons[b.icon] : null;
     return (
@@ -194,10 +194,11 @@ function ShoppingHome() {
         <CardContent className="flex flex-col items-center justify-center p-6">
           {b.logo ? (
             <img 
-              src={getImageUrl(b.logo)} 
+              src={imageErrors[b._id] ? "/placeholder-image.jpg" : getImageUrl(b.logo)} 
               alt={b.name} 
               className="w-16 h-16 mb-4 object-contain" 
               crossOrigin="anonymous"
+              onError={() => setImageErrors(prev => ({ ...prev, [b._id]: true }))}
             />
           ) : Icon ? (
             <Icon className="w-12 h-12 mb-4 text-primary" />
