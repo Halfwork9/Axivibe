@@ -20,6 +20,7 @@ function ShoppingHome() {
   
   const [currentSlide, setCurrentSlide] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [imageErrors, setImageErrors] = useState({});
 
   const { productList = [], productDetails = null, isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
   const { featureImageList = [], isLoading: featureImagesLoading } = useSelector((state) => state.commonFeature || {});
@@ -182,39 +183,39 @@ function ShoppingHome() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-         {brandList?.length > 0 ? (
-  brandList.map((b) => {
-    const Icon = b.icon && typeof LucideIcons[b.icon] === 'function' ? LucideIcons[b.icon] : null;
-    return (
-      <Card
-        key={b._id}
-        onClick={() => handleNavigateToListingPage(b, 'brand')}
-        className="cursor-pointer hover:shadow-lg transition-shadow"
-      >
-        <CardContent className="flex flex-col items-center justify-center p-6">
-          {b.logo ? (
-            <img 
-              src={imageErrors[b._id] ? "/placeholder-image.jpg" : getImageUrl(b.logo)} 
-              alt={b.name} 
-              className="w-16 h-16 mb-4 object-contain" 
-              crossOrigin="anonymous"
-              onError={() => setImageErrors(prev => ({ ...prev, [b._id]: true }))}
-            />
-          ) : Icon ? (
-            <Icon className="w-12 h-12 mb-4 text-primary" />
-          ) : (
-            <span className="w-12 h-12 mb-4 flex items-center justify-center border rounded-full text-primary">
-              {b.name?.[0] || '?'}
-            </span>
-          )}
-          <span className="font-bold text-center">{b.name || 'Unknown'}</span>
-        </CardContent>
-      </Card>
-    );
-  })
-) : (
-  <p className="col-span-full text-center">No brands available</p>
-)}
+            {brandList?.length > 0 ? (
+              brandList.map((b) => {
+                const Icon = b.icon && typeof LucideIcons[b.icon] === 'function' ? LucideIcons[b.icon] : null;
+                return (
+                  <Card
+                    key={b._id}
+                    onClick={() => handleNavigateToListingPage(b, 'brand')}
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                  >
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      {b.logo ? (
+                        <img 
+                          src={imageErrors[b._id] ? "https://via.placeholder.com/64" : getImageUrl(b.logo)} 
+                          alt={b.name} 
+                          className="w-16 h-16 mb-4 object-contain" 
+                          crossOrigin="anonymous"
+                          onError={() => setImageErrors(prev => ({ ...prev, [b._id]: true }))}
+                        />
+                      ) : Icon ? (
+                        <Icon className="w-12 h-12 mb-4 text-primary" />
+                      ) : (
+                        <span className="w-12 h-12 mb-4 flex items-center justify-center border rounded-full text-primary">
+                          {b.name?.[0] || '?'}
+                        </span>
+                      )}
+                      <span className="font-bold text-center">{b.name || 'Unknown'}</span>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <p className="col-span-full text-center">No brands available</p>
+            )}
           </div>
         </div>
       </section>
