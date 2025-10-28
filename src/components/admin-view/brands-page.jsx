@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,DialogDe
 import { getImageUrl } from '@/utils/imageUtils';
 
 function AdminBrandsPage() {
+  const [imageErrors, setImageErrors] = useState({});
   const dispatch = useDispatch();
   const { brandList } = useSelector((state) => state.adminBrands);
   const { toast } = useToast();
@@ -131,11 +132,12 @@ function AdminBrandsPage() {
       <CardContent className="flex flex-col items-center p-4">
         {brand.logo ? (
           <img 
-            src={getImageUrl(brand.logo)} 
-            alt={brand.name} 
-            className="w-16 h-16 object-contain mb-2 border rounded bg-white" 
-            crossOrigin="anonymous"
-          />
+                    src={imageErrors[brand._id] ? "https://via.placeholder.com/64" : getImageUrl(brand.logo)} 
+                    alt={brand.name} 
+                    className="w-16 h-16 object-contain mb-2 border rounded bg-white" 
+                    crossOrigin="anonymous"
+                    onError={() => setImageErrors(prev => ({ ...prev, [brand._id]: true }))}
+                  />
         ) : IconComp ? (
           <IconComp className="w-10 h-10 text-primary mb-2" />
         ) : (
@@ -193,6 +195,7 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
 
 
