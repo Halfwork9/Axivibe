@@ -2,16 +2,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api"; // ✅ axios instance with baseURL + withCredentials
 
-// --- AUTH CHECK ---
+// Update the checkAuth function
 export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get("/auth/check-auth");
+      const res = await api.get("/auth/check-auth", {
+        withCredentials: true,
+        // Add timeout to prevent hanging
+        timeout: 5000,
+      });
       return res.data.user;
     } catch (error) {
       if (error.response?.status === 401) {
-        return rejectWithValue("Not authenticated"); // Don't set error, just mark unauthenticated
+        return rejectWithValue("Not authenticated");
       }
       return rejectWithValue(error.response?.data?.message || "Auth check failed");
     }
