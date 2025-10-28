@@ -24,7 +24,7 @@ const StarRating = ({ rating = 0 }) => {
     </div>
   );
 };
-
+const [imageError, setImageError] = useState(false);
 StarRating.propTypes = {
   rating: PropTypes.number,
 };
@@ -62,17 +62,13 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
             {discount}% OFF
           </div>
         )}
-       <img
+      <img
   onClick={() => handleGetProductDetails(product?._id)}
   crossOrigin="anonymous"
-  src={
-    Array.isArray(product.images) && product.images.length > 0
-      ? getImageUrl(product.images[0])
-      : getImageUrl(product.image) || "/placeholder-image.jpg"
-  }
+  src={imageError ? "/placeholder-image.jpg" : getImageUrl(product.images[0] || product.image)}
   alt={product?.title}
   className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
- 
+  onError={() => setImageError(true)}
 />
 
       </div>
