@@ -1,10 +1,10 @@
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { getImageUrl } from '@/utils/imageUtils';
-import { useState } from 'react';
 
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
@@ -90,7 +90,7 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
           <img
             onClick={() => handleGetProductDetails(product?._id)}
             crossOrigin="anonymous"
-            src={imageError ? "https://via.placeholder.com/300x400" : getImageUrl(productImages[currentImageIndex])}
+            src={imageError ? "https://picsum.photos/seed/product/300x400.jpg" : getImageUrl(productImages[currentImageIndex])}
             alt={product?.title}
             className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
             onError={() => setImageError(true)}
