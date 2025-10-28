@@ -2,9 +2,9 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { getImageUrl } from '@/utils/imageUtils';
-import { useState } from 'react'; // Make sure useState is imported
+import { useState } from 'react';
 
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
@@ -32,18 +32,35 @@ StarRating.propTypes = {
 };
 
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart }) {
-  // Move useState inside the component
   const [imageError, setImageError] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
-  
   const discount = isOnSale
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
 
+  // Get the array of images
+  const productImages = Array.isArray(product.images) && product.images.length > 0 
+    ? product.images 
+    : (product.image ? [product.image] : []);
+
+  // Handle image navigation
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setImageError(false); // Reset error state when changing images
+    setCurrentImageIndex(prev => (prev === 0 ? productImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setImageError(false); // Reset error state when changing images
+    setCurrentImageIndex(prev => (prev === productImages.length - 1 ? 0 : prev + 1));
+  };
+
   return (
     <Card className="relative w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
-      {/* ✅ FIX: Added the corner "On Sale" Ribbon */}
+      {/* On Sale Ribbon */}
       {isOnSale && (
         <div className="absolute top-0 left-0 w-28 h-28 overflow-hidden z-10">
           <div
@@ -67,15 +84,56 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
             {discount}% OFF
           </div>
         )}
-  <img
-  onClick={() => handleGetProductDetails(product?._id)}
-  crossOrigin="anonymous"
-  src={imageError ? "/placeholder-image.jpg" : getImageUrl(product.images[0] || product.image)}
-  alt={product?.title}
-  className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
-  onError={() => setImageError(true)}
-/>
-
+        
+        {/* Image Display */}
+        {productImages.length > 0 ? (
+          <img
+            onClick={() => handleGetProductDetails(product?._id)}
+            crossOrigin="anonymous"
+            src={imageError ? "https://via.placeholder.com/300x400" : getImageUrl(productImages[currentImageIndex])}
+            alt={product?.title}
+            className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">No Image</div>
+        )}
+        
+        {/* Image Navigation for Multiple Images */}
+        {productImages.length > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrevImage}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 h-8 w-8 rounded-full"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextImage}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 h-8 w-8 rounded-full"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            {/* Image Indicators */}
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+              {productImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setImageError(false); // Reset error state when changing images
+                    setCurrentImageIndex(index);
+                  }}
+                  className={`h-2 w-2 rounded-full ${currentImageIndex === index ? 'bg-white' : 'bg-white/50'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Product Info */}
@@ -136,6 +194,7 @@ ShoppingProductTile.propTypes = {
   product: PropTypes.shape({
     _id: PropTypes.string,
     image: PropTypes.string,
+    images: PropTypes.arrayOf(PropTypes.string),
     title: PropTypes.string,
     totalStock: PropTypes.number,
     salePrice: PropTypes.number,
