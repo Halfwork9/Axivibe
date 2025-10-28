@@ -7,6 +7,7 @@ import {
 } from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getImageUrl } from '@/utils/imageUtils';
 
 function AdminDashboard() {
   const [imageFile, setImageFile] = useState(null);
@@ -75,30 +76,31 @@ function AdminDashboard() {
 
       {/* DB Saved Images */}
       <div className="flex flex-col gap-4 mt-5">
-  {Array.isArray(featureImageList) && featureImageList.length > 0 ? (
-    featureImageList.map((featureImgItem, index) => (
-      <div
-        key={featureImgItem._id || index}
-        className="relative border rounded-lg overflow-hidden"
+ {Array.isArray(featureImageList) && featureImageList.length > 0 ? (
+  featureImageList.map((featureImgItem, index) => (
+    <div
+      key={featureImgItem._id || index}
+      className="relative border rounded-lg overflow-hidden"
+    >
+      <img
+        src={getImageUrl(featureImgItem.image)}
+        alt="Feature"
+        className="w-full h-auto max-h-[300px] object-cover rounded-lg"
+        crossOrigin="anonymous"
+      />
+      <Button
+        variant="destructive"
+        size="sm"
+        className="absolute top-2 right-2"
+        onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
       >
-        <img
-          src={featureImgItem.image}
-          alt="Feature"
-          className="w-full h-auto max-h-[300px] object-cover rounded-lg"
-        />
-        <Button
-          variant="destructive"
-          size="sm"
-          className="absolute top-2 right-2"
-          onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
-        >
-          Delete
-        </Button>
-      </div>
-    ))
-  ) : (
-    <p className="text-gray-500">No feature images found.</p>
-  )}
+        Delete
+      </Button>
+    </div>
+  ))
+) : (
+  <p className="text-gray-500">No feature images found.</p>
+)}
 </div>
 
     </div>
