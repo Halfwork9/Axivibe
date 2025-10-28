@@ -1,10 +1,10 @@
+import React, { useState, useEffect } from "react";
 import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import PropTypes from "prop-types";
-import { useState } from "react";
 import { getImageUrl } from '@/utils/imageUtils';
 
 function UserCartItemsContent({ cartItem }) {
@@ -94,7 +94,7 @@ function UserCartItemsContent({ cartItem }) {
   };
 
   // Reset image error when cartItem changes
-  React.useEffect(() => {
+  useEffect(() => {
     setImageError(false);
   }, [cartItem]);
 
