@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
 import { Badge } from "../ui/badge";
 import PropTypes from "prop-types";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import StarRatingInput from "./star-rating-input";
