@@ -20,7 +20,7 @@ function ShoppingCheckout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // ✅ Fetch cart on mount
+  // Fetch cart on mount
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchCartItems(user.id));
@@ -35,10 +35,9 @@ function ShoppingCheckout() {
       ? cartItemsArray.reduce(
           (sum, currentItem) =>
             sum +
-            (((currentItem?.salePrice > 0
+            ((currentItem?.salePrice > 0
               ? currentItem?.salePrice
-              : currentItem?.price) ||
-              (currentItem?.product?.salePrice > 0 ? currentItem?.product?.salePrice : currentItem?.product?.price)) *
+              : currentItem?.price) *
               (currentItem?.quantity || 1)),
           0
         )
@@ -66,24 +65,14 @@ function ShoppingCheckout() {
 
   // Helper function to get the correct image URL
   const getImageSrc = (item) => {
-    // Check if item has a product object with image data
-    if (item?.product?.image) {
-      return getImageUrl(item.product.image);
-    }
-    
-    // Check if item has images array in product
-    if (Array.isArray(item?.product?.images) && item.product.images.length > 0) {
-      return getImageUrl(item.product.images[0]);
+    // Check if item has images array
+    if (Array.isArray(item?.images) && item.images.length > 0) {
+      return getImageUrl(item.images[0]);
     }
     
     // Check if item has direct image property
     if (item?.image) {
       return getImageUrl(item.image);
-    }
-    
-    // Check if item has direct images array
-    if (Array.isArray(item?.images) && item.images.length > 0) {
-      return getImageUrl(item.images[0]);
     }
     
     return "https://via.placeholder.com/80x80";
@@ -100,13 +89,12 @@ function ShoppingCheckout() {
         cartId: cartItemsArray[0]?._id,
         cartItems: cartItemsArray.map((singleCartItem) => ({
           productId: singleCartItem?.productId,
-          title: singleCartItem?.title || singleCartItem?.product?.title,
+          title: singleCartItem?.title,
           image: getImageSrc(singleCartItem),
           price:
-            (singleCartItem?.salePrice > 0
+            singleCartItem?.salePrice > 0
               ? singleCartItem?.salePrice
-              : singleCartItem?.price) ||
-            (singleCartItem?.product?.salePrice > 0 ? singleCartItem?.product?.salePrice : singleCartItem?.product?.price),
+              : singleCartItem?.price,
           quantity: singleCartItem?.quantity,
         })),
         addressInfo: {
@@ -125,7 +113,7 @@ function ShoppingCheckout() {
 
       if (data?.success && data.url) {
         // Clear cart before redirecting
-        dispatch(clearCart());
+        dispatch(clearCart(user.id));
         window.location.href = data.url;
       } else {
         toast({
@@ -154,13 +142,12 @@ function ShoppingCheckout() {
         cartId: cartItemsArray[0]?._id,
         cartItems: cartItemsArray.map((singleCartItem) => ({
           productId: singleCartItem?.productId,
-          title: singleCartItem?.title || singleCartItem?.product?.title,
+          title: singleCartItem?.title,
           image: getImageSrc(singleCartItem),
           price:
-            (singleCartItem?.salePrice > 0
+            singleCartItem?.salePrice > 0
               ? singleCartItem?.salePrice
-              : singleCartItem?.price) ||
-            (singleCartItem?.product?.salePrice > 0 ? singleCartItem?.product?.salePrice : singleCartItem?.product?.price),
+              : singleCartItem?.price,
           quantity: singleCartItem?.quantity,
         })),
         addressInfo: {
@@ -179,7 +166,7 @@ function ShoppingCheckout() {
 
       if (data?.success && data?.data) {
         // Clear cart after successful order
-        dispatch(clearCart());
+        dispatch(clearCart(user.id));
         toast({ title: "Order placed successfully!" });
         navigate(`/shop/payment-success?orderId=${data.data._id}`);
       } else {
