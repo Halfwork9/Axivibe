@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"; // ✅ Import new icon
 import { getImageUrl } from '@/utils/imageUtils';
 
 function AdminProductTile({ product, handleEdit, handleDelete }) {
+  const [imageError, setImageError] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0); // ✅ State to track the current image
 
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
@@ -53,12 +54,13 @@ function AdminProductTile({ product, handleEdit, handleDelete }) {
 
         {/* Main Image Display */}
        {productImages.length > 0 ? (
-  <img
-    src={getImageUrl(productImages[currentIndex])}
-    alt={product?.title}
-    className="w-full h-full object-cover transition-opacity duration-300"
-    crossOrigin="anonymous"
-  />
+   <img
+            src={imageError ? "https://via.placeholder.com/280x280" : getImageUrl(productImages[currentIndex])}
+            alt={product?.title}
+            className="w-full h-full object-cover transition-opacity duration-300"
+            crossOrigin="anonymous"
+            onError={() => setImageError(true)}
+          />
 ) : (
   <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">No Image</div>
 )}
