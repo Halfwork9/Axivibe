@@ -67,7 +67,7 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
             {discount}% OFF
           </div>
         )}
-      <img
+  <img
   onClick={() => handleGetProductDetails(product?._id)}
   crossOrigin="anonymous"
   src={imageError ? "/placeholder-image.jpg" : getImageUrl(product.images[0] || product.image)}
