@@ -78,27 +78,53 @@ function UserCartItemsContent({ cartItem }) {
       return "https://via.placeholder.com/80x80";
     }
     
-    // Handle both single image and array of images
+    // Check if cartItem has a product object with image data
+    if (cartItem?.product?.image) {
+      return getImageUrl(cartItem.product.image);
+    }
+    
+    // Check if cartItem has images array in product
+    if (Array.isArray(cartItem?.product?.images) && cartItem.product.images.length > 0) {
+      return getImageUrl(cartItem.product.images[0]);
+    }
+    
+    // Check if cartItem has direct image property
+    if (cartItem?.image) {
+      return getImageUrl(cartItem.image);
+    }
+    
+    // Check if cartItem has direct images array
     if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
       return getImageUrl(cartItem.images[0]);
-    } else if (cartItem?.image) {
-      return getImageUrl(cartItem.image);
-    } else {
-      return "https://via.placeholder.com/80x80";
     }
+    
+    // Check if cartItem has productId and find it in productList
+    if (cartItem?.productId && productList?.length > 0) {
+      const product = productList.find(p => p._id === cartItem.productId);
+      if (product?.image) {
+        return getImageUrl(product.image);
+      }
+      if (Array.isArray(product?.images) && product.images.length > 0) {
+        return getImageUrl(product.images[0]);
+      }
+    }
+    
+    return "https://via.placeholder.com/80x80";
   };
 
   return (
     <div className="flex items-center space-x-4">
       <img
         src={getImageSrc()}
-        alt={cartItem?.title}
+        alt={cartItem?.title || cartItem?.product?.title}
         className="w-20 h-20 rounded object-cover"
         crossOrigin="anonymous"
         onError={() => setImageError(true)}
       />
       <div className="flex-1">
-        <h3 className="font-extrabold">{cartItem?.title}</h3>
+        <h3 className="font-extrabold">
+          {cartItem?.title || cartItem?.product?.title}
+        </h3>
         <div className="flex items-center gap-2 mt-1">
           <Button
             variant="outline"
@@ -126,7 +152,8 @@ function UserCartItemsContent({ cartItem }) {
         <p className="font-semibold">
           ₹
           {(
-            (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) *
+            ((cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) ||
+             (cartItem?.product?.salePrice > 0 ? cartItem?.product?.salePrice : cartItem?.product?.price)) *
             cartItem?.quantity
           ).toFixed(2)}
         </p>
@@ -150,6 +177,13 @@ UserCartItemsContent.propTypes = {
     quantity: PropTypes.number.isRequired,
     price: PropTypes.number.isRequired,
     salePrice: PropTypes.number,
+    product: PropTypes.shape({
+      image: PropTypes.string,
+      images: PropTypes.arrayOf(PropTypes.string),
+      title: PropTypes.string,
+      price: PropTypes.number.isRequired,
+      salePrice: PropTypes.number,
+    }),
   }).isRequired,
 };
 
