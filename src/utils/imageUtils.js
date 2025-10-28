@@ -5,21 +5,13 @@ export const getImageUrl = (imageUrl) => {
     return '/placeholder-image.jpg';
   }
   
-  // If it's already a proxied URL, return as is
-  if (imageUrl.includes('/api/proxy/image')) {
-    return imageUrl;
-  }
-  
-  // If it's a Cloudinary URL, proxy it through your backend
+  // For Cloudinary URLs, add CORS parameters
   if (imageUrl.includes('res.cloudinary.com')) {
-    return `https://api.nikhilmamdekar.site/api/proxy/image?url=${encodeURIComponent(imageUrl)}`;
+    // Add CORS parameters to Cloudinary URL
+    const separator = imageUrl.includes('?') ? '&' : '?';
+    return `${imageUrl}${separator}_c=coar`;
   }
   
-  // For other external images, also proxy them
-  if (imageUrl.startsWith('http')) {
-    return `https://api.nikhilmamdekar.site/api/proxy/image?url=${encodeURIComponent(imageUrl)}`;
-  }
-  
-  // For relative paths, return as is
+  // Return as is for other images
   return imageUrl;
 };
