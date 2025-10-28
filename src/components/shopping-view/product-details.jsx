@@ -22,6 +22,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { toast } = useToast();
+  const [imageError, setImageError] = useState(false);
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -93,12 +94,13 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           {/* Product Images Carousel */}
           <div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
             {productImages.length > 0 ? (
-              <img
-  src={getImageUrl(productDetails?.image)}
-  alt={productDetails?.title}
-  className="w-full h-full object-cover"
-  crossOrigin="anonymous"
-/>
+             <img
+              src={imageError ? "https://via.placeholder.com/400x400" : getImageUrl(productDetails?.image)}
+              alt={productDetails?.title}
+              className="w-full h-full object-cover rounded-lg"
+              crossOrigin="anonymous"
+              onError={() => setImageError(true)}
+            />
             ) : (
               <span className="text-gray-500">No image available</span>
             )}
