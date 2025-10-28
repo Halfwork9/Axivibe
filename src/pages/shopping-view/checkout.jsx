@@ -75,7 +75,8 @@ function ShoppingCheckout() {
       return getImageUrl(item.image);
     }
     
-    return "https://picsum.photos/seed/checkout/80/80.jpg"; // Use a working placeholder service
+    // Only use placeholder if no image is available at all
+    return "https://picsum.photos/seed/checkout/80/80.jpg";
   };
 
   async function handleStripeCheckout() {
