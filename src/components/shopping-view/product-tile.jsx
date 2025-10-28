@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
 import { getImageUrl } from '@/utils/imageUtils';
+import { useState } from 'react'; // Make sure useState is imported
+
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
@@ -24,12 +26,15 @@ const StarRating = ({ rating = 0 }) => {
     </div>
   );
 };
-const [imageError, setImageError] = useState(false);
+
 StarRating.propTypes = {
   rating: PropTypes.number,
 };
 
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart }) {
+  // Move useState inside the component
+  const [imageError, setImageError] = useState(false);
+  
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
   
   const discount = isOnSale
@@ -143,4 +148,3 @@ ShoppingProductTile.propTypes = {
 };
 
 export default ShoppingProductTile;
-
