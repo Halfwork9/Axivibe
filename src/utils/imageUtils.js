@@ -2,10 +2,15 @@
 export const getImageUrl = (imageUrl) => {
   // Handle null, undefined, or non-string values
   if (!imageUrl || typeof imageUrl !== 'string') {
-    return '/placeholder-image.jpg';
+    return "https://picsum.photos/seed/default/300/400.jpg";
   }
   
-  // For Cloudinary URLs, add CORS parameters
+  // If it's already a proxied URL, return as is
+  if (imageUrl.includes('/api/proxy/image')) {
+    return imageUrl;
+  }
+  
+  // If it's a Cloudinary URL, add CORS parameters
   if (imageUrl.includes('res.cloudinary.com')) {
     // Add CORS parameters to Cloudinary URL
     const separator = imageUrl.includes('?') ? '&' : '?';
