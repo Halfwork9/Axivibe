@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import PropTypes from "prop-types";
 import { useState } from "react"; // ✅ Import useState for local state management
 import { ChevronLeft, ChevronRight } from "lucide-react"; // ✅ Import new icons
+import { getImageUrl } from '@/utils/imageUtils';
 
 function AdminProductTile({ product, handleEdit, handleDelete }) {
   const [currentIndex, setCurrentIndex] = useState(0); // ✅ State to track the current image
@@ -51,15 +52,16 @@ function AdminProductTile({ product, handleEdit, handleDelete }) {
         )}
 
         {/* Main Image Display */}
-        {productImages.length > 0 ? (
-           <img
-            src={productImages[currentIndex]}
-            alt={product?.title}
-            className="w-full h-full object-cover transition-opacity duration-300"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">No Image</div>
-        )}
+       {productImages.length > 0 ? (
+  <img
+    src={getImageUrl(productImages[currentIndex])}
+    alt={product?.title}
+    className="w-full h-full object-cover transition-opacity duration-300"
+    crossOrigin="anonymous"
+  />
+) : (
+  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">No Image</div>
+)}
         
         {/* Carousel Controls (visible on hover) */}
         {productImages.length > 1 && (
