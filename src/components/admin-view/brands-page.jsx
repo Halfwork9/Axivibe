@@ -130,19 +130,19 @@ function AdminBrandsPage() {
   return (
     <Card key={brand._id}>
       <CardContent className="flex flex-col items-center p-4">
-        {brand.logo ? (
-          <img 
-                    src={imageErrors[brand._id] ? "https://via.placeholder.com/64" : getImageUrl(brand.logo)} 
-                    alt={brand.name} 
-                    className="w-16 h-16 object-contain mb-2 border rounded bg-white" 
-                    crossOrigin="anonymous"
-                    onError={() => setImageErrors(prev => ({ ...prev, [brand._id]: true }))}
-                  />
-        ) : IconComp ? (
-          <IconComp className="w-10 h-10 text-primary mb-2" />
-        ) : (
-          <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">{brand.name[0]}</span>
-        )}
+       {brand.logo ? (
+  <img 
+    src={imageErrors[brand._id] ? "https://via.placeholder.com/64" : getImageUrl(brand.logo)} 
+    alt={brand.name} 
+    className="w-16 h-16 object-contain mb-2 border rounded bg-white" 
+    crossOrigin="anonymous"
+    onError={() => setImageErrors(prev => ({ ...prev, [brand._id]: true }))}
+  />
+) : IconComp ? (
+  <IconComp className="w-10 h-10 text-primary mb-2" />
+) : (
+  <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">{brand.name[0]}</span>
+)}
         <span className="font-bold text-center">{brand.name}</span>
       </CardContent>
       <CardFooter className="p-2 flex gap-2">
@@ -195,6 +195,7 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
 
 
