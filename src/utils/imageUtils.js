@@ -1,6 +1,9 @@
 // src/utils/imageUtils.js
 export const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return '/placeholder-image.jpg';
+  // Handle null, undefined, or non-string values
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return '/placeholder-image.jpg';
+  }
   
   // If it's already a proxied URL, return as is
   if (imageUrl.includes('/api/proxy/image')) {
