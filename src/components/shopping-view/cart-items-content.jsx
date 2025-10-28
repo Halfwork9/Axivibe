@@ -75,7 +75,7 @@ function UserCartItemsContent({ cartItem }) {
   // Get the image URL, handling both single image and array of images
   const getImageSrc = () => {
     if (imageError) {
-      return "https://via.placeholder.com/80x80";
+      return "https://picsum.photos/seed/cartitem/80/80.jpg"; // Use a working placeholder service
     }
     
     // Check if cartItem has images array
@@ -88,7 +88,7 @@ function UserCartItemsContent({ cartItem }) {
       return getImageUrl(cartItem.image);
     }
     
-    return "https://via.placeholder.com/80x80";
+    return "https://picsum.photos/seed/cartitem/80/80.jpg"; // Use a working placeholder service
   };
 
   return (
