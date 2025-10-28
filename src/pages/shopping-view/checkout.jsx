@@ -11,10 +11,10 @@ import api from "@/api";
 import { getImageUrl } from '@/utils/imageUtils';
 
 function ShoppingCheckout() {
-  const cartItems = useSelector((state) => state.shopCart.cartItems); // cartItems is now an array
+  const cartItems = useSelector((state) => state.shopCart.cartItems);
   const { user } = useSelector((state) => state.auth);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
-  const [isPaymentStart, setIsPaymemntStart] = useState(false);
+  const [isPaymentStart, setIsPaymentStart] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -35,9 +35,10 @@ function ShoppingCheckout() {
       ? cartItemsArray.reduce(
           (sum, currentItem) =>
             sum +
-            ((currentItem?.salePrice > 0
+            (((currentItem?.salePrice > 0
               ? currentItem?.salePrice
-              : currentItem?.price) *
+              : currentItem?.price) ||
+              (currentItem?.product?.salePrice > 0 ? currentItem?.product?.salePrice : currentItem?.product?.price)) *
               (currentItem?.quantity || 1)),
           0
         )
@@ -65,33 +66,47 @@ function ShoppingCheckout() {
 
   // Helper function to get the correct image URL
   const getImageSrc = (item) => {
-    // Handle both single image and array of images
+    // Check if item has a product object with image data
+    if (item?.product?.image) {
+      return getImageUrl(item.product.image);
+    }
+    
+    // Check if item has images array in product
+    if (Array.isArray(item?.product?.images) && item.product.images.length > 0) {
+      return getImageUrl(item.product.images[0]);
+    }
+    
+    // Check if item has direct image property
+    if (item?.image) {
+      return getImageUrl(item.image);
+    }
+    
+    // Check if item has direct images array
     if (Array.isArray(item?.images) && item.images.length > 0) {
       return getImageUrl(item.images[0]);
-    } else if (item?.image) {
-      return getImageUrl(item.image);
-    } else {
-      return "https://via.placeholder.com/80x80";
     }
+    
+    return "https://via.placeholder.com/80x80";
   };
 
   async function handleStripeCheckout() {
     if (!performValidations()) return;
 
-    setIsPaymemntStart(true);
+    setIsPaymentStart(true);
 
     try {
       const orderData = {
         userId: user?.id,
-        cartId: cartItemsArray[0]?._id, // If you need cart ID, adjust as needed
+        cartId: cartItemsArray[0]?._id,
         cartItems: cartItemsArray.map((singleCartItem) => ({
           productId: singleCartItem?.productId,
-          title: singleCartItem?.title,
-          image: getImageSrc(singleCartItem), // Use the helper function to get the image URL
+          title: singleCartItem?.title || singleCartItem?.product?.title,
+          image: getImageSrc(singleCartItem),
           price:
-            singleCartItem?.salePrice > 0
+            (singleCartItem?.salePrice > 0
               ? singleCartItem?.salePrice
-              : singleCartItem?.price,
+              : singleCartItem?.price) ||
+            (singleCartItem?.product?.salePrice > 0 ? singleCartItem?.product?.salePrice : singleCartItem?.product?.price),
           quantity: singleCartItem?.quantity,
         })),
         addressInfo: {
@@ -109,13 +124,15 @@ function ShoppingCheckout() {
       const { data } = await api.post("/shop/order/create", orderData);
 
       if (data?.success && data.url) {
-        window.location.href = data.url; // Redirect to Stripe Checkout
+        // Clear cart before redirecting
+        dispatch(clearCart());
+        window.location.href = data.url;
       } else {
         toast({
           title: "Error creating order. Please try again.",
           variant: "destructive",
         });
-        setIsPaymemntStart(false);
+        setIsPaymentStart(false);
       }
     } catch (error) {
       console.error("Stripe checkout error:", error);
@@ -123,7 +140,7 @@ function ShoppingCheckout() {
         title: "Something went wrong with Stripe.",
         variant: "destructive",
       });
-      setIsPaymemntStart(false);
+      setIsPaymentStart(false);
     }
   }
 
@@ -134,15 +151,16 @@ function ShoppingCheckout() {
     try {
       const orderData = {
         userId: user?.id,
-        cartId: cartItemsArray[0]?._id, // If you need cart ID, adjust as needed
+        cartId: cartItemsArray[0]?._id,
         cartItems: cartItemsArray.map((singleCartItem) => ({
           productId: singleCartItem?.productId,
-          title: singleCartItem?.title,
-          image: getImageSrc(singleCartItem), // Use the helper function to get the image URL
+          title: singleCartItem?.title || singleCartItem?.product?.title,
+          image: getImageSrc(singleCartItem),
           price:
-            singleCartItem?.salePrice > 0
+            (singleCartItem?.salePrice > 0
               ? singleCartItem?.salePrice
-              : singleCartItem?.price,
+              : singleCartItem?.price) ||
+            (singleCartItem?.product?.salePrice > 0 ? singleCartItem?.product?.salePrice : singleCartItem?.product?.price),
           quantity: singleCartItem?.quantity,
         })),
         addressInfo: {
@@ -160,6 +178,7 @@ function ShoppingCheckout() {
       const { data } = await api.post("/shop/order/create", orderData);
 
       if (data?.success && data?.data) {
+        // Clear cart after successful order
         dispatch(clearCart());
         toast({ title: "Order placed successfully!" });
         navigate(`/shop/payment-success?orderId=${data.data._id}`);
