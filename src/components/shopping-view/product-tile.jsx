@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart } from "lucide-react";
-
+import { getImageUrl } from '@/utils/imageUtils';
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
   const totalStars = 5;
@@ -66,11 +66,12 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
   onClick={() => handleGetProductDetails(product?._id)}
   src={
     Array.isArray(product.images) && product.images.length > 0
-      ? product.images[0]
-      : product.image || "/placeholder-image.jpg"
+      ? getImageUrl(product.images[0])
+      : getImageUrl(product.image) || "/placeholder-image.jpg"
   }
   alt={product?.title}
   className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
+  crossOrigin="anonymous"
 />
 
       </div>
