@@ -15,6 +15,7 @@ import StarRatingInput from "./star-rating-input";
 import { useDispatch, useSelector } from "react-redux";
 import { addReviewToProduct } from "../../store/shop/products-slice";
 import { useToast } from "../ui/use-toast";
+import { getImageUrl } from '@/utils/imageUtils';
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -93,10 +94,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
             {productImages.length > 0 ? (
               <img
-                src={productImages[currentIndex]}
-                alt={`${productDetails?.title} - ${currentIndex + 1}`}
-                className="w-full h-full object-contain transition-transform duration-500"
-              />
+  src={getImageUrl(productDetails?.image)}
+  alt={productDetails?.title}
+  className="w-full h-full object-cover"
+  crossOrigin="anonymous"
+/>
             ) : (
               <span className="text-gray-500">No image available</span>
             )}
