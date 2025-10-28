@@ -3,7 +3,9 @@ import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
-import PropTypes from "prop-types"; // ✅ add PropTypes
+import PropTypes from "prop-types";
+import { useState } from "react";
+import { getImageUrl } from '@/utils/imageUtils';
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
@@ -11,6 +13,7 @@ function UserCartItemsContent({ cartItem }) {
   const { productList } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const [imageError, setImageError] = useState(false);
 
   function handleUpdateQuantity(getCartItem, typeOfAction) {
     if (typeOfAction === "plus") {
@@ -69,12 +72,30 @@ function UserCartItemsContent({ cartItem }) {
     });
   }
 
+  // Get the image URL, handling both single image and array of images
+  const getImageSrc = () => {
+    if (imageError) {
+      return "https://via.placeholder.com/80x80";
+    }
+    
+    // Handle both single image and array of images
+    if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
+      return getImageUrl(cartItem.images[0]);
+    } else if (cartItem?.image) {
+      return getImageUrl(cartItem.image);
+    } else {
+      return "https://via.placeholder.com/80x80";
+    }
+  };
+
   return (
     <div className="flex items-center space-x-4">
       <img
-        src={cartItem?.image}
+        src={getImageSrc()}
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
+        crossOrigin="anonymous"
+        onError={() => setImageError(true)}
       />
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.title}</h3>
@@ -119,11 +140,12 @@ function UserCartItemsContent({ cartItem }) {
   );
 }
 
-// ✅ PropTypes validation
+// PropTypes validation
 UserCartItemsContent.propTypes = {
   cartItem: PropTypes.shape({
     productId: PropTypes.string.isRequired,
     image: PropTypes.string,
+    images: PropTypes.arrayOf(PropTypes.string),
     title: PropTypes.string,
     quantity: PropTypes.number.isRequired,
     price: PropTypes.number.isRequired,
