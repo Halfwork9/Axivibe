@@ -136,7 +136,7 @@ const authSlice = createSlice({
   if (action.payload !== "Not authenticated") {
     state.error = action.payload;
   }
-});
+})
 
       // ✅ Login
       .addCase(loginUser.pending, (state) => {
