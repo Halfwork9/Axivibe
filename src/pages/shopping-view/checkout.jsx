@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { clearCart, fetchCartItems } from "@/store/shop/cart-slice";
 import api from "@/api";
+import { getImageUrl } from '@/utils/imageUtils';
 
 function ShoppingCheckout() {
   const cartItems = useSelector((state) => state.shopCart.cartItems); // cartItems is now an array
@@ -62,6 +63,18 @@ function ShoppingCheckout() {
     return true;
   }
 
+  // Helper function to get the correct image URL
+  const getImageSrc = (item) => {
+    // Handle both single image and array of images
+    if (Array.isArray(item?.images) && item.images.length > 0) {
+      return getImageUrl(item.images[0]);
+    } else if (item?.image) {
+      return getImageUrl(item.image);
+    } else {
+      return "https://via.placeholder.com/80x80";
+    }
+  };
+
   async function handleStripeCheckout() {
     if (!performValidations()) return;
 
@@ -74,7 +87,7 @@ function ShoppingCheckout() {
         cartItems: cartItemsArray.map((singleCartItem) => ({
           productId: singleCartItem?.productId,
           title: singleCartItem?.title,
-          image: singleCartItem?.image,
+          image: getImageSrc(singleCartItem), // Use the helper function to get the image URL
           price:
             singleCartItem?.salePrice > 0
               ? singleCartItem?.salePrice
@@ -125,7 +138,7 @@ function ShoppingCheckout() {
         cartItems: cartItemsArray.map((singleCartItem) => ({
           productId: singleCartItem?.productId,
           title: singleCartItem?.title,
-          image: singleCartItem?.image,
+          image: getImageSrc(singleCartItem), // Use the helper function to get the image URL
           price:
             singleCartItem?.salePrice > 0
               ? singleCartItem?.salePrice
