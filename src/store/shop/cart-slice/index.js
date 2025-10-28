@@ -71,11 +71,25 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
+export const clearCart = createAsyncThunk(
+  'shopCart/clearCart',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/shop/cart/clear/${userId}`);
+      console.log('clearCart: Response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('clearCart: Error:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || 'Failed to clear cart');
+    }
+  }
+);
+
 const shoppingCartSlice = createSlice({
   name: 'shopCart',
   initialState,
   reducers: {
-    clearCart: (state) => {
+    clearCartLocal: (state) => {
       state.cartItems = [];
       state.error = null;
     },
@@ -131,9 +145,21 @@ const shoppingCartSlice = createSlice({
       .addCase(deleteCartItem.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload || 'Failed to delete cart item';
+      })
+      .addCase(clearCart.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(clearCart.fulfilled, (state) => {
+        state.isLoading = false;
+        state.cartItems = [];
+      })
+      .addCase(clearCart.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Failed to clear cart';
       });
   },
 });
 
-export const { clearCart } = shoppingCartSlice.actions;
+export const { clearCartLocal } = shoppingCartSlice.actions;
 export default shoppingCartSlice.reducer;
