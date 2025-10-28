@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import * as LucideIcons from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,DialogDescription } from "../ui/dialog";
-
+import { getImageUrl } from '@/utils/imageUtils';
 
 function AdminBrandsPage() {
   const dispatch = useDispatch();
@@ -125,30 +125,35 @@ function AdminBrandsPage() {
       {/* Brand List */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {brandList && brandList.map((brand) => {
-          const IconComp = LucideIcons[brand.icon];
-          return (
-            <Card key={brand._id}>
-              <CardContent className="flex flex-col items-center p-4">
-                {brand.logo ? (
-                  <img src={brand.logo} alt={brand.name} className="w-16 h-16 object-contain mb-2 border rounded bg-white" />
-                ) : IconComp ? (
-                  <IconComp className="w-10 h-10 text-primary mb-2" />
-                ) : (
-                  <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">{brand.name[0]}</span>
-                )}
-                <span className="font-bold text-center">{brand.name}</span>
-              </CardContent>
-              <CardFooter className="p-2 flex gap-2">
-                <Button variant="outline" className="w-1/2" onClick={() => openEditDialog(brand)}>
-                  <LucideIcons.Edit className="w-4 h-4 mr-1" /> Edit
-                </Button>
-                <Button variant="destructive" className="w-1/2" onClick={() => handleDelete(brand._id)}>
-                  <LucideIcons.Trash2 className="w-4 h-4 mr-1" /> Delete
-                </Button>
-              </CardFooter>
-            </Card>
-          );
-        })}
+  const IconComp = LucideIcons[brand.icon];
+  return (
+    <Card key={brand._id}>
+      <CardContent className="flex flex-col items-center p-4">
+        {brand.logo ? (
+          <img 
+            src={getImageUrl(brand.logo)} 
+            alt={brand.name} 
+            className="w-16 h-16 object-contain mb-2 border rounded bg-white" 
+            crossOrigin="anonymous"
+          />
+        ) : IconComp ? (
+          <IconComp className="w-10 h-10 text-primary mb-2" />
+        ) : (
+          <span className="w-10 h-10 flex items-center justify-center border rounded-full mb-2">{brand.name[0]}</span>
+        )}
+        <span className="font-bold text-center">{brand.name}</span>
+      </CardContent>
+      <CardFooter className="p-2 flex gap-2">
+        <Button variant="outline" className="w-1/2" onClick={() => openEditDialog(brand)}>
+          <LucideIcons.Edit className="w-4 h-4 mr-1" /> Edit
+        </Button>
+        <Button variant="destructive" className="w-1/2" onClick={() => handleDelete(brand._id)}>
+          <LucideIcons.Trash2 className="w-4 h-4 mr-1" /> Delete
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+})}
       </div>
       
       {/* Edit Brand Dialog */}
@@ -188,6 +193,7 @@ function AdminBrandsPage() {
 }
 
 export default AdminBrandsPage;
+
 
 
 
