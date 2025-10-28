@@ -64,6 +64,7 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
         )}
        <img
   onClick={() => handleGetProductDetails(product?._id)}
+  crossOrigin="anonymous"
   src={
     Array.isArray(product.images) && product.images.length > 0
       ? getImageUrl(product.images[0])
@@ -71,7 +72,7 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
   }
   alt={product?.title}
   className="h-full w-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
-  crossOrigin="anonymous"
+ 
 />
 
       </div>
