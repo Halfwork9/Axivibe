@@ -19,10 +19,10 @@ import { getImageUrl } from '@/utils/imageUtils';
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { toast } = useToast();
-  const [imageError, setImageError] = useState(false);
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -31,6 +31,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   useEffect(() => {
     if (productDetails) {
       setCurrentIndex(0);
+      setImageError(false); // Reset error state when product changes
     }
   }, [productDetails]);
 
@@ -40,6 +41,15 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     ? productDetails.images
     : (productDetails.image ? [productDetails.image] : []);
 
+  const handlePrevImage = () => {
+    setImageError(false); // Reset error state when changing images
+    setCurrentIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    setImageError(false); // Reset error state when changing images
+    setCurrentIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
+  };
 
   const handleSubmitReview = async () => {
     if (!rating || !comment.trim()) {
@@ -64,7 +74,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       setRating(0);
       setComment("");
       toast({
-        title: " Review added successfully!",
+        title: "Review added successfully!",
         className: "bg-green-400 text-white",
       });
     } catch (err) {
@@ -94,13 +104,13 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           {/* Product Images Carousel */}
           <div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
             {productImages.length > 0 ? (
-             <img
-              src={imageError ? "https://via.placeholder.com/400x400" : getImageUrl(productDetails?.image)}
-              alt={productDetails?.title}
-              className="w-full h-full object-cover rounded-lg"
-              crossOrigin="anonymous"
-              onError={() => setImageError(true)}
-            />
+              <img
+                src={imageError ? "https://via.placeholder.com/400x400" : getImageUrl(productImages[currentIndex])}
+                alt={productDetails?.title}
+                className="w-full h-full object-cover rounded-lg"
+                crossOrigin="anonymous"
+                onError={() => setImageError(true)}
+              />
             ) : (
               <span className="text-gray-500">No image available</span>
             )}
@@ -111,23 +121,32 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute left-2 top-1/2 -translate-y-1/2"
-                  onClick={() => setCurrentIndex((prev) =>
-                    prev === 0 ? productImages.length - 1 : prev - 1
-                  )}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80"
+                  onClick={handlePrevImage}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2"
-                  onClick={() => setCurrentIndex((prev) =>
-                    prev === productImages.length - 1 ? 0 : prev + 1
-                  )}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80"
+                  onClick={handleNextImage}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
+                {/* Image Indicators */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                  {productImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setImageError(false); // Reset error state when changing images
+                        setCurrentIndex(index);
+                      }}
+                      className={`h-2 w-2 rounded-full ${currentIndex === index ? 'bg-white' : 'bg-white/50'}`}
+                    />
+                  ))}
+                </div>
               </>
             )}
           </div>
@@ -231,4 +250,3 @@ ProductDetailsDialog.propTypes = {
 };
 
 export default ProductDetailsDialog;
-
