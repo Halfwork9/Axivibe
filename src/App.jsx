@@ -84,26 +84,33 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
 
-useEffect(() => {
-  dispatch(checkAuth()).then((res) => {
-    if (res.payload?.user) {
-      // Only fetch data when user is logged in
-      dispatch(fetchAllCategories());
-      dispatch(fetchAllBrands());
-    }
-  });
-}, [dispatch]);
-
+  useEffect(() => {
+    // Check authentication on initial load
+    dispatch(checkAuth()).then((res) => {
+      if (res.payload?.user) {
+        // Only fetch data when user is logged in
+        dispatch(fetchAllCategories());
+        dispatch(fetchAllBrands());
+      }
+    });
+  }, [dispatch]);
 
   useEffect(() => {
     const isAuthRoute = location.pathname.startsWith('/auth');
+    const isUnauthRoute = location.pathname.startsWith('/unauth');
 
-    if (isAuthenticated && user?.id) {
-      dispatch(fetchCartItems(user.id)).catch(console.error);
-    } else if (!authLoading && !isAuthenticated && !isAuthRoute) {
+    // Only redirect if not loading, not authenticated, and not on auth/unauth page
+    if (!authLoading && !isAuthenticated && !isAuthRoute && !isUnauthRoute) {
       navigate('/auth/login');
     }
-  }, [dispatch, isAuthenticated, user?.id, authLoading, navigate, location]);
+  }, [dispatch, isAuthenticated, authLoading, navigate, location]);
+
+  // Add a separate effect for fetching cart items
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      dispatch(fetchCartItems(user.id)).catch(console.error);
+    }
+  }, [dispatch, isAuthenticated, user?.id]);
 
   if (authLoading) {
     return (
