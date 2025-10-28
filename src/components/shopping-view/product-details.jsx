@@ -95,8 +95,8 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       <DialogContent className="sm:max-w-[600px] w-full max-h-[90vh] overflow-y-auto p-4">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">{productDetails?.title}</DialogTitle>
-          <DialogDescription className="sr-only" id="product-description">
-            Details for {productDetails?.title}
+          <DialogDescription>
+            View details and reviews for {productDetails?.title}
           </DialogDescription>
         </DialogHeader>
 
@@ -105,7 +105,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="relative w-full h-[400px] bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
             {productImages.length > 0 ? (
               <img
-                src={imageError ? "https://via.placeholder.com/400x400" : getImageUrl(productImages[currentIndex])}
+                src={imageError ? "https://picsum.photos/seed/product/400/400.jpg" : getImageUrl(productImages[currentIndex])}
                 alt={productDetails?.title}
                 className="w-full h-full object-cover rounded-lg"
                 crossOrigin="anonymous"
