@@ -27,12 +27,9 @@ function ShoppingCheckout() {
     }
   }, [dispatch, user?.id]);
 
-  // ✅ Safely get array of items
-  const cartItemsArray = Array.isArray(cartItems?.items)
-    ? cartItems.items
-    : [];
+  // ✅ cartItems is already an array
+  const cartItemsArray = Array.isArray(cartItems) ? cartItems : [];
 
-  // ✅ Log once for debug
   useEffect(() => {
     console.log("🛒 Checkout cartItemsArray:", cartItemsArray);
   }, [cartItemsArray]);
@@ -79,7 +76,6 @@ function ShoppingCheckout() {
     try {
       const orderData = {
         userId: user?.id,
-        cartId: cartItems?._id,
         cartItems: cartItemsArray.map((item) => ({
           productId: item?.productId,
           title: item?.title,
@@ -128,7 +124,6 @@ function ShoppingCheckout() {
     try {
       const orderData = {
         userId: user?.id,
-        cartId: cartItems?._id,
         cartItems: cartItemsArray.map((item) => ({
           productId: item?.productId,
           title: item?.title,
