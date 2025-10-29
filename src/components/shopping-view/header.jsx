@@ -72,21 +72,28 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-      <Sheet open={openCartSheet} onOpenChange={setOpenCartSheet}>
-        <Button
-          onClick={() => setOpenCartSheet(true)}
-          variant="outline"
-          size="icon"
-          className="relative"
-        >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
-            {cartItems.length}
-          </span>
-          <span className="sr-only">User cart</span>
-        </Button>
-        <UserCartWrapper setOpenCartSheet={setOpenCartSheet} cartItems={cartItems} />
-      </Sheet>
+     <Button
+  onClick={() => setOpenCartSheet(true)}
+  variant="outline"
+  size="icon"
+  className="relative z-50"
+>
+  <ShoppingCart className="w-6 h-6" />
+  {cartItems?.length > 0 && (
+    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+      {cartItems.length}
+    </span>
+  )}
+  <span className="sr-only">User cart</span>
+</Button>
+
+<UserCartWrapper
+  isOpen={openCartSheet}
+  setOpenCartSheet={setOpenCartSheet}
+  cartItems={cartItems}
+/>
+
+
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
