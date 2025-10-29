@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import PropTypes from "prop-types";
-import { getImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from "@/utils/imageUtils";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
@@ -16,26 +16,25 @@ function UserCartItemsContent({ cartItem }) {
   const [imageError, setImageError] = useState(false);
 
   function handleUpdateQuantity(getCartItem, typeOfAction) {
-    if (typeOfAction === "plus") {
-      let getCartItems = cartItems.items || [];
-      if (getCartItems.length) {
-        const indexOfCurrentCartItem = getCartItems.findIndex(
-          (item) => item.productId === getCartItem?.productId
-        );
-        const getCurrentProductIndex = productList.findIndex(
-          (product) => product._id === getCartItem?.productId
-        );
-        const getTotalStock = productList[getCurrentProductIndex]?.totalStock;
+    let getCartItems = Array.isArray(cartItems) ? cartItems : [];
 
-        if (indexOfCurrentCartItem > -1) {
-          const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
-          if (getQuantity + 1 > getTotalStock) {
-            toast({
-              title: `Only ${getQuantity} quantity can be added for this item`,
-              variant: "destructive",
-            });
-            return;
-          }
+    if (typeOfAction === "plus") {
+      const indexOfCurrentCartItem = getCartItems.findIndex(
+        (item) => item.productId === getCartItem?.productId
+      );
+      const getCurrentProductIndex = productList.findIndex(
+        (product) => product._id === getCartItem?.productId
+      );
+      const getTotalStock = productList[getCurrentProductIndex]?.totalStock;
+
+      if (indexOfCurrentCartItem > -1) {
+        const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
+        if (getQuantity + 1 > getTotalStock) {
+          toast({
+            title: `Only ${getQuantity} quantity can be added for this item`,
+            variant: "destructive",
+          });
+          return;
         }
       }
     }
@@ -66,66 +65,21 @@ function UserCartItemsContent({ cartItem }) {
     });
   }
 
-  // Get the image URL, handling both single image and array of images
   const getImageSrc = () => {
-    console.log("=== getImageSrc Debug ===");
-    console.log("cartItem:", cartItem);
-    console.log("cartItem.image:", cartItem?.image);
-    console.log("cartItem.images:", cartItem?.images);
-    console.log("imageError:", imageError);
-    
-    // If there's an image error, show placeholder
     if (imageError) {
-      console.log("Using placeholder due to error");
       return "https://picsum.photos/seed/cartitem/80/80.jpg";
     }
-    
-    // Check if cartItem has images array
     if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
-      const imageUrl = getImageUrl(cartItem.images[0]);
-      console.log("Using image from images array:", imageUrl);
-      return imageUrl;
+      return getImageUrl(cartItem.images[0]);
     }
-    
-    // Check if cartItem has direct image property
     if (cartItem?.image) {
-      const imageUrl = getImageUrl(cartItem.image);
-      console.log("Using image from image property:", imageUrl);
-      return imageUrl;
+      return getImageUrl(cartItem.image);
     }
-    
-    // Try to find the product in productList
-    if (cartItem?.productId && productList?.length > 0) {
-      const product = productList.find(p => p._id === cartItem.productId);
-      if (product) {
-        if (Array.isArray(product.images) && product.images.length > 0) {
-          const imageUrl = getImageUrl(product.images[0]);
-          console.log("Using image from productList images:", imageUrl);
-          return imageUrl;
-        }
-        if (product.image) {
-          const imageUrl = getImageUrl(product.image);
-          console.log("Using image from productList image:", imageUrl);
-          return imageUrl;
-        }
-      }
-    }
-    
-    // Only use placeholder if no image is available at all
-    console.log("No image found anywhere, using placeholder");
     return "https://picsum.photos/seed/cartitem/80/80.jpg";
   };
 
-  // Reset image error when cartItem changes
   useEffect(() => {
     setImageError(false);
-  }, [cartItem]);
-
-  // Debug log to check cartItem data
-  useEffect(() => {
-    console.log("CartItem data:", cartItem);
-    console.log("CartItem image:", cartItem?.image);
-    console.log("CartItem images:", cartItem?.images);
   }, [cartItem]);
 
   const src = getImageSrc();
@@ -137,13 +91,7 @@ function UserCartItemsContent({ cartItem }) {
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
         crossOrigin="anonymous"
-        onError={(e) => {
-          console.error("Image failed to load:", e.target.src);
-          setImageError(true);
-        }}
-        onLoad={() => {
-          console.log("Image loaded successfully:", src);
-        }}
+        onError={() => setImageError(true)}
       />
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.title}</h3>
