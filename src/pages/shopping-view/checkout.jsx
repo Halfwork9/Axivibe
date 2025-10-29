@@ -8,10 +8,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { clearCart, fetchCartItems } from "@/store/shop/cart-slice";
 import api from "@/api";
-import { getImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from "@/utils/imageUtils";
 
 function ShoppingCheckout() {
-  const cartItems = useSelector((state) => state.shopCart.cartItems);
+  const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymentStart] = useState(false);
@@ -20,27 +20,26 @@ function ShoppingCheckout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Fetch cart
+  // ✅ Always fetch latest cart
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchCartItems(user.id));
     }
   }, [dispatch, user?.id]);
 
-  // Debug log to check cartItems data
+  // ✅ Safely get array of items
+  const cartItemsArray = Array.isArray(cartItems?.items)
+    ? cartItems.items
+    : [];
+
+  // ✅ Log once for debug
   useEffect(() => {
-    console.log("CartItems data in ShoppingCheckout:", cartItems);
-  }, [cartItems]);
+    console.log("🛒 Checkout cartItemsArray:", cartItemsArray);
+  }, [cartItemsArray]);
 
-  // Get the items array from the cart object
-  const cartItemsArray = cartItems?.items || [];
-
-  const totalCartAmount = cartItemsArray.reduce((sum, currentItem) => {
-    const price =
-      currentItem?.salePrice > 0
-        ? currentItem?.salePrice
-        : currentItem?.price;
-    return sum + (price || 0) * (currentItem?.quantity || 1);
+  const totalCartAmount = cartItemsArray.reduce((sum, item) => {
+    const price = item?.salePrice > 0 ? item.salePrice : item.price;
+    return sum + (price || 0) * (item?.quantity || 1);
   }, 0);
 
   function performValidations() {
@@ -63,28 +62,13 @@ function ShoppingCheckout() {
     return true;
   }
 
-  // Helper function to get the correct image URL
   const getImageSrc = (item) => {
-    console.log("=== getImageSrc in Checkout ===");
-    console.log("item:", item);
-    console.log("item.image:", item?.image);
-    console.log("item.images:", item?.images);
-    
-    // Check if item has images array
     if (Array.isArray(item?.images) && item.images.length > 0) {
-      const imageUrl = getImageUrl(item.images[0]);
-      console.log("Using image from images array:", imageUrl);
-      return imageUrl;
+      return getImageUrl(item.images[0]);
     }
-    
-    // Check if item has direct image property
     if (item?.image) {
-      const imageUrl = getImageUrl(item.image);
-      console.log("Using image from image property:", imageUrl);
-      return imageUrl;
+      return getImageUrl(item.image);
     }
-    
-    console.log("No image found, using placeholder");
     return "https://picsum.photos/seed/checkout/80/80.jpg";
   };
 
@@ -100,7 +84,7 @@ function ShoppingCheckout() {
           productId: item?.productId,
           title: item?.title,
           image: getImageSrc(item),
-          price: item?.salePrice > 0 ? item?.salePrice : item?.price,
+          price: item?.salePrice > 0 ? item.salePrice : item.price,
           quantity: item?.quantity,
         })),
         addressInfo: {
@@ -125,7 +109,6 @@ function ShoppingCheckout() {
           title: "Error creating order. Please try again.",
           variant: "destructive",
         });
-        setIsPaymentStart(false);
       }
     } catch (error) {
       console.error("Stripe checkout error:", error);
@@ -133,14 +116,15 @@ function ShoppingCheckout() {
         title: "Something went wrong with Stripe.",
         variant: "destructive",
       });
+    } finally {
       setIsPaymentStart(false);
     }
   }
 
   async function handleCashOnDeliveryCheckout() {
     if (!performValidations()) return;
-
     setIsProcessing(true);
+
     try {
       const orderData = {
         userId: user?.id,
@@ -149,7 +133,7 @@ function ShoppingCheckout() {
           productId: item?.productId,
           title: item?.title,
           image: getImageSrc(item),
-          price: item?.salePrice > 0 ? item?.salePrice : item?.price,
+          price: item?.salePrice > 0 ? item.salePrice : item.price,
           quantity: item?.quantity,
         })),
         addressInfo: {
@@ -201,9 +185,15 @@ function ShoppingCheckout() {
         />
 
         <div className="flex flex-col gap-4">
-          {cartItemsArray.map((item, idx) => (
-            <UserCartItemsContent key={idx} cartItem={item} />
-          ))}
+          {cartItemsArray.length > 0 ? (
+            cartItemsArray.map((item, idx) => (
+              <UserCartItemsContent key={item._id || idx} cartItem={item} />
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">
+              Your cart is empty. Add products to continue.
+            </p>
+          )}
 
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
