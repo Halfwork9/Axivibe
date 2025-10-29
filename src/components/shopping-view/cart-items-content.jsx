@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import PropTypes from "prop-types";
-import { getImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from "@/utils/imageUtils";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
@@ -53,9 +53,7 @@ function UserCartItemsContent({ cartItem }) {
       })
     ).then((data) => {
       if (data?.payload?.success) {
-        toast({
-          title: "Cart item is updated successfully",
-        });
+        toast({ title: "Cart item updated successfully" });
       }
     });
   }
@@ -65,51 +63,38 @@ function UserCartItemsContent({ cartItem }) {
       deleteCartItem({ userId: user?.id, productId: getCartItem?.productId })
     ).then((data) => {
       if (data?.payload?.success) {
-        toast({
-          title: "Cart item is deleted successfully",
-        });
+        toast({ title: "Cart item deleted successfully" });
       }
     });
   }
 
-  // Get the image URL, handling both single image and array of images
+  // --- IMAGE HANDLER ---
   const getImageSrc = () => {
-    // Only use placeholder if there's an actual image error
-    if (imageError) {
-      return "https://picsum.photos/seed/cartitem/80/80.jpg";
-    }
-    
-    // Check if cartItem has images array
+    if (imageError) return "https://picsum.photos/seed/cartitem/80/80.jpg";
+
     if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
       return getImageUrl(cartItem.images[0]);
     }
-    
-    // Check if cartItem has direct image property
+
     if (cartItem?.image) {
       return getImageUrl(cartItem.image);
     }
-    
-    // Only use placeholder if no image is available at all
+
     return "https://picsum.photos/seed/cartitem/80/80.jpg";
   };
 
-  // Reset image error when cartItem changes
-  useEffect(() => {
-    setImageError(false);
-  }, [cartItem]);
+  useEffect(() => setImageError(false), [cartItem]);
 
-  // Debug log to check cartItem data
-  useEffect(() => {
-    console.log("CartItem data:", cartItem);
-  }, [cartItem]);
+  const src = getImageSrc();
+  const isCloudinary = src.includes("res.cloudinary.com");
 
   return (
     <div className="flex items-center space-x-4">
       <img
-        src={getImageSrc()}
+        src={src}
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
-        crossOrigin="anonymous"
+        crossOrigin={isCloudinary ? undefined : "anonymous"}
         onError={(e) => {
           console.error("Image failed to load:", e.target.src);
           setImageError(true);
@@ -126,7 +111,6 @@ function UserCartItemsContent({ cartItem }) {
             onClick={() => handleUpdateQuantity(cartItem, "minus")}
           >
             <Minus className="w-4 h-4" />
-            <span className="sr-only">Decrease</span>
           </Button>
           <span className="font-semibold">{cartItem?.quantity}</span>
           <Button
@@ -136,7 +120,6 @@ function UserCartItemsContent({ cartItem }) {
             onClick={() => handleUpdateQuantity(cartItem, "plus")}
           >
             <Plus className="w-4 h-4" />
-            <span className="sr-only">Increase</span>
           </Button>
         </div>
       </div>
@@ -158,7 +141,6 @@ function UserCartItemsContent({ cartItem }) {
   );
 }
 
-// PropTypes validation
 UserCartItemsContent.propTypes = {
   cartItem: PropTypes.shape({
     productId: PropTypes.string.isRequired,
