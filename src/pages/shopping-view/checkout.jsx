@@ -1,15 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Address from "@/components/shopping-view/address";
 import img from "../../assets/account.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { clearCart, fetchCartItems } from "@/store/shop/cart-slice";
 import api from "@/api";
-import { getImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from "@/utils/imageUtils";
 
 function ShoppingCheckout() {
   const cartItems = useSelector((state) => state.shopCart.cartItems);
@@ -21,39 +20,27 @@ function ShoppingCheckout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Fetch cart on mount
+  // Fetch cart
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchCartItems(user.id));
     }
   }, [dispatch, user?.id]);
 
-  // Debug log to check cartItems data
-  useEffect(() => {
-    console.log("CartItems data:", cartItems);
-  }, [cartItems]);
-
-  // Defensive array fallback
   const cartItemsArray = Array.isArray(cartItems) ? cartItems : [];
 
-  const totalCartAmount =
-    cartItemsArray.length > 0
-      ? cartItemsArray.reduce(
-          (sum, currentItem) =>
-            sum +
-            ((currentItem?.salePrice > 0
-              ? currentItem?.salePrice
-              : currentItem?.price) *
-              (currentItem?.quantity || 1)),
-          0
-        )
-      : 0;
+  const totalCartAmount = cartItemsArray.reduce((sum, currentItem) => {
+    const price =
+      currentItem?.salePrice > 0
+        ? currentItem?.salePrice
+        : currentItem?.price;
+    return sum + (price || 0) * (currentItem?.quantity || 1);
+  }, 0);
 
-  // --- HELPER FUNCTION FOR VALIDATION ---
   function performValidations() {
-    if (!cartItemsArray || cartItemsArray.length === 0) {
+    if (cartItemsArray.length === 0) {
       toast({
-        title: "Your cart is empty. Please add items to proceed",
+        title: "Your cart is empty. Please add items to proceed.",
         variant: "destructive",
       });
       return false;
@@ -66,43 +53,36 @@ function ShoppingCheckout() {
       });
       return false;
     }
+
     return true;
   }
 
-  // Helper function to get the correct image URL
   const getImageSrc = (item) => {
-    // Check if item has images array
     if (Array.isArray(item?.images) && item.images.length > 0) {
       return getImageUrl(item.images[0]);
     }
-    
-    // Check if item has direct image property
+
     if (item?.image) {
       return getImageUrl(item.image);
     }
-    
-    // Only use placeholder if no image is available at all
+
     return "https://picsum.photos/seed/checkout/80/80.jpg";
   };
 
   async function handleStripeCheckout() {
     if (!performValidations()) return;
-
     setIsPaymentStart(true);
 
     try {
       const orderData = {
         userId: user?.id,
         cartId: cartItemsArray[0]?._id,
-        cartItems: cartItemsArray.map((singleCartItem) => ({
-          productId: singleCartItem?.productId,
-          title: singleCartItem?.title,
-          image: getImageSrc(singleCartItem),
-          price:
-            singleCartItem?.salePrice > 0
-              ? singleCartItem?.salePrice
-              : singleCartItem?.price,
-          quantity: singleCartItem?.quantity,
+        cartItems: cartItemsArray.map((item) => ({
+          productId: item?.productId,
+          title: item?.title,
+          image: getImageSrc(item),
+          price: item?.salePrice > 0 ? item?.salePrice : item?.price,
+          quantity: item?.quantity,
         })),
         addressInfo: {
           addressId: currentSelectedAddress?._id,
@@ -119,7 +99,6 @@ function ShoppingCheckout() {
       const { data } = await api.post("/shop/order/create", orderData);
 
       if (data?.success && data.url) {
-        // Clear cart before redirecting
         dispatch(clearCart(user.id));
         window.location.href = data.url;
       } else {
@@ -147,15 +126,12 @@ function ShoppingCheckout() {
       const orderData = {
         userId: user?.id,
         cartId: cartItemsArray[0]?._id,
-        cartItems: cartItemsArray.map((singleCartItem) => ({
-          productId: singleCartItem?.productId,
-          title: singleCartItem?.title,
-          image: getImageSrc(singleCartItem),
-          price:
-            singleCartItem?.salePrice > 0
-              ? singleCartItem?.salePrice
-              : singleCartItem?.price,
-          quantity: singleCartItem?.quantity,
+        cartItems: cartItemsArray.map((item) => ({
+          productId: item?.productId,
+          title: item?.title,
+          image: getImageSrc(item),
+          price: item?.salePrice > 0 ? item?.salePrice : item?.price,
+          quantity: item?.quantity,
         })),
         addressInfo: {
           addressId: currentSelectedAddress?._id,
@@ -172,7 +148,6 @@ function ShoppingCheckout() {
       const { data } = await api.post("/shop/order/create", orderData);
 
       if (data?.success && data?.data) {
-        // Clear cart after successful order
         dispatch(clearCart(user.id));
         toast({ title: "Order placed successfully!" });
         navigate(`/shop/payment-success?orderId=${data.data._id}`);
@@ -193,34 +168,46 @@ function ShoppingCheckout() {
   return (
     <div className="flex flex-col">
       <div className="relative h-[300px] w-full overflow-hidden">
-        <img src={img} className="h-full w-full object-cover object-center" />
+        <img
+          src={img}
+          className="h-full w-full object-cover object-center"
+          alt="Checkout Banner"
+        />
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5 p-5">
         <Address
           selectedId={currentSelectedAddress}
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
+
         <div className="flex flex-col gap-4">
-          {cartItemsArray.length > 0
-            ? cartItemsArray.map((item, idx) => (
-                <UserCartItemsContent key={idx} cartItem={item} />
-              ))
-            : null}
+          {cartItemsArray.map((item, idx) => (
+            <UserCartItemsContent key={idx} cartItem={item} />
+          ))}
+
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
               <span className="font-bold">₹{totalCartAmount}</span>
             </div>
           </div>
+
           <div className="mt-4 w-full flex flex-col sm:flex-row gap-4">
             <Button
               onClick={handleStripeCheckout}
               className="w-full"
               disabled={isProcessing || isPaymentStart}
             >
-              {isProcessing || isPaymentStart ? "Processing..." : "Checkout with Card"}
+              {isProcessing || isPaymentStart
+                ? "Processing..."
+                : "Checkout with Card"}
             </Button>
-            <Button onClick={handleCashOnDeliveryCheckout} className="w-full" disabled={isProcessing}>
+            <Button
+              onClick={handleCashOnDeliveryCheckout}
+              className="w-full"
+              disabled={isProcessing}
+            >
               {isProcessing ? "Processing..." : "Pay with Cash on Delivery"}
             </Button>
           </div>
