@@ -4,20 +4,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import UserCartItemsContent from "./cart-items-content";
 import PropTypes from "prop-types";
 
-function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet }) {
+export default function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet }) {
   const navigate = useNavigate();
 
-  const totalCartAmount =
-    cartItems && cartItems.length > 0
-      ? cartItems.reduce(
-          (sum, currentItem) =>
-            sum +
-            (currentItem?.salePrice > 0
-              ? currentItem?.salePrice
-              : currentItem?.price) *
-              currentItem?.quantity,
-          0
-        )
+  const totalAmount =
+    Array.isArray(cartItems) && cartItems.length > 0
+      ? cartItems.reduce((sum, item) => {
+          const price = item.salePrice > 0 ? item.salePrice : item.price;
+          return sum + price * item.quantity;
+        }, 0)
       : 0;
 
   return (
@@ -26,19 +21,24 @@ function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet }) {
         <SheetHeader>
           <SheetTitle>Your Cart</SheetTitle>
         </SheetHeader>
+
         <div className="mt-8 space-y-4">
-          {cartItems && cartItems.length > 0
-            ? cartItems.map((item, idx) => (
+          {cartItems && cartItems.length > 0 ? (
+            cartItems.map((item, idx) => (
               <UserCartItemsContent key={item._id || idx} cartItem={item} />
             ))
-            : <p className="text-gray-500">Your cart is empty</p>}
+          ) : (
+            <p className="text-gray-500 text-sm">Your cart is empty</p>
+          )}
         </div>
+
         <div className="mt-8 space-y-4">
           <div className="flex justify-between">
             <span className="font-bold">Total</span>
-            <span className="font-bold">₹{totalCartAmount}</span>
+            <span className="font-bold">₹{totalAmount.toFixed(2)}</span>
           </div>
         </div>
+
         <Button
           onClick={() => {
             navigate("/shop/checkout");
@@ -66,5 +66,3 @@ UserCartWrapper.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setOpenCartSheet: PropTypes.func.isRequired,
 };
-
-export default UserCartWrapper;
