@@ -53,15 +53,17 @@ function CategoryDropdown() {
 
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth || {});
-  const { cartItems = [] } = useSelector((state) => state.shopCart || {});
+  const { cartItems = { items: [] } } = useSelector((state) => state.shopCart || {});
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const cartCount = Array.isArray(cartItems?.items) ? cartItems.items.length : 0;
+
   function handleLogout() {
-    dispatch(logoutUser()).then(() => {
-      navigate('/auth/login'); // Redirect to login after logout
-    }).catch((error) => console.error('Logout failed:', error));
+    dispatch(logoutUser())
+      .then(() => navigate("/auth/login"))
+      .catch((error) => console.error("Logout failed:", error));
   }
 
   useEffect(() => {
@@ -72,39 +74,40 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-   <Button
-  onClick={() => setOpenCartSheet(true)}
-  variant="outline"
-  size="icon"
-  className="relative z-50"
->
-  <ShoppingCart className="w-6 h-6" />
-  {cartItems?.length > 0 && (
-    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-      {cartItems.length}
-    </span>
-  )}
-</Button>
+      {/* 🛒 CART BUTTON */}
+      <Button
+        onClick={() => setOpenCartSheet(true)}
+        variant="outline"
+        size="icon"
+        className="relative z-50"
+      >
+        <ShoppingCart className="w-6 h-6" />
+        {cartCount > 0 && (
+          <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+            {cartCount}
+          </span>
+        )}
+        <span className="sr-only">User cart</span>
+      </Button>
 
-<UserCartWrapper
-  isOpen={openCartSheet}
-  setOpenCartSheet={setOpenCartSheet}
-  cartItems={cartItems}
-/>
+      {/* 🧺 CART DRAWER */}
+      <UserCartWrapper
+        isOpen={openCartSheet}
+        setOpenCartSheet={setOpenCartSheet}
+        cartItems={cartItems.items || []}
+      />
 
-
-
-
+      {/* 👤 USER DROPDOWN */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="bg-black">
+          <Avatar className="bg-black cursor-pointer">
             <AvatarFallback className="bg-black text-white font-extrabold">
-              {user?.userName?.[0]?.toUpperCase() || 'U'}
+              {user?.userName?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>Logged in as {user?.userName || 'Guest'}</DropdownMenuLabel>
+          <DropdownMenuLabel>Logged in as {user?.userName || "Guest"}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {user ? (
             <>
@@ -133,6 +136,7 @@ function HeaderRightContent() {
     </div>
   );
 }
+
 
 function ShoppingHeader() {
   const [openSidebar, setOpenSidebar] = useState(false);
