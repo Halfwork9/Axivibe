@@ -1,20 +1,19 @@
-// src/utils/imageUtils.js
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api.nikhilmamdekar.site";
+
 export const getImageUrl = (imageUrl) => {
-  // Handle null or invalid URLs
   if (!imageUrl || typeof imageUrl !== "string") {
     return "https://picsum.photos/seed/default/300/400.jpg";
   }
 
-  // ✅ Directly return Cloudinary URLs (no modification)
   if (imageUrl.includes("res.cloudinary.com")) {
-    return imageUrl;
+    // ✅ Proxy Cloudinary requests through backend
+    const encodedUrl = encodeURIComponent(imageUrl);
+    return `${API_BASE_URL}/api/image-proxy?url=${encodedUrl}`;
   }
 
-  // ✅ For other full URLs
   if (imageUrl.startsWith("http")) {
     return imageUrl;
   }
 
-  // ✅ Fallback to placeholder for relative paths
   return "https://picsum.photos/seed/default/300/400.jpg";
 };
