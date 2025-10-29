@@ -27,7 +27,7 @@ function ShoppingCheckout() {
     }
   }, [dispatch, user?.id]);
 
-  const cartItemsArray = Array.isArray(cartItems) ? cartItems : [];
+ const cartItemsArray = Array.isArray(cartItems?.items) ? cartItems.items : [];
 
   const totalCartAmount = cartItemsArray.reduce((sum, currentItem) => {
     const price =
