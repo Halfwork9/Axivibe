@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { clearCart, fetchCartItems } from "@/store/shop/cart-slice";
 import api from "@/api";
-import { getImageUrl } from "@/utils/imageUtils";
+import { getImageUrl } from '@/utils/imageUtils';
 
 function ShoppingCheckout() {
   const cartItems = useSelector((state) => state.shopCart.cartItems);
@@ -27,7 +27,13 @@ function ShoppingCheckout() {
     }
   }, [dispatch, user?.id]);
 
- const cartItemsArray = Array.isArray(cartItems) ? cartItems : [];
+  // Debug log to check cartItems data
+  useEffect(() => {
+    console.log("CartItems data in ShoppingCheckout:", cartItems);
+  }, [cartItems]);
+
+  // Get the items array from the cart object
+  const cartItemsArray = cartItems?.items || [];
 
   const totalCartAmount = cartItemsArray.reduce((sum, currentItem) => {
     const price =
@@ -57,17 +63,30 @@ function ShoppingCheckout() {
     return true;
   }
 
- const getImageSrc = () => {
-  if (imageError) return "https://picsum.photos/seed/cartitem/80/80.jpg";
-  if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
-    return getImageUrl(cartItem.images[0]);
-  }
-  if (cartItem?.image) {
-    return getImageUrl(cartItem.image);
-  }
-  return "https://picsum.photos/seed/cartitem/80/80.jpg";
-};
-
+  // Helper function to get the correct image URL
+  const getImageSrc = (item) => {
+    console.log("=== getImageSrc in Checkout ===");
+    console.log("item:", item);
+    console.log("item.image:", item?.image);
+    console.log("item.images:", item?.images);
+    
+    // Check if item has images array
+    if (Array.isArray(item?.images) && item.images.length > 0) {
+      const imageUrl = getImageUrl(item.images[0]);
+      console.log("Using image from images array:", imageUrl);
+      return imageUrl;
+    }
+    
+    // Check if item has direct image property
+    if (item?.image) {
+      const imageUrl = getImageUrl(item.image);
+      console.log("Using image from image property:", imageUrl);
+      return imageUrl;
+    }
+    
+    console.log("No image found, using placeholder");
+    return "https://picsum.photos/seed/checkout/80/80.jpg";
+  };
 
   async function handleStripeCheckout() {
     if (!performValidations()) return;
@@ -76,7 +95,7 @@ function ShoppingCheckout() {
     try {
       const orderData = {
         userId: user?.id,
-        cartId: cartItemsArray[0]?._id,
+        cartId: cartItems?._id,
         cartItems: cartItemsArray.map((item) => ({
           productId: item?.productId,
           title: item?.title,
@@ -125,7 +144,7 @@ function ShoppingCheckout() {
     try {
       const orderData = {
         userId: user?.id,
-        cartId: cartItemsArray[0]?._id,
+        cartId: cartItems?._id,
         cartItems: cartItemsArray.map((item) => ({
           productId: item?.productId,
           title: item?.title,
