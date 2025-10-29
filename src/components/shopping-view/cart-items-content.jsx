@@ -98,6 +98,11 @@ function UserCartItemsContent({ cartItem }) {
     setImageError(false);
   }, [cartItem]);
 
+  // Debug log to check cartItem data
+  useEffect(() => {
+    console.log("CartItem data:", cartItem);
+  }, [cartItem]);
+
   return (
     <div className="flex items-center space-x-4">
       <img
