@@ -10,7 +10,7 @@ export const getImageUrl = (imageUrl) => {
     return imageUrl;
   }
 
-  // ✅ For any other full URLs
+  // ✅ For other full URLs
   if (imageUrl.startsWith("http")) {
     return imageUrl;
   }
