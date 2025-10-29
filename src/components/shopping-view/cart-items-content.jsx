@@ -18,12 +18,10 @@ function UserCartItemsContent({ cartItem }) {
   function handleUpdateQuantity(getCartItem, typeOfAction) {
     if (typeOfAction === "plus") {
       let getCartItems = cartItems.items || [];
-
       if (getCartItems.length) {
         const indexOfCurrentCartItem = getCartItems.findIndex(
           (item) => item.productId === getCartItem?.productId
         );
-
         const getCurrentProductIndex = productList.findIndex(
           (product) => product._id === getCartItem?.productId
         );
@@ -68,25 +66,30 @@ function UserCartItemsContent({ cartItem }) {
     });
   }
 
-  // --- IMAGE HANDLER ---
+  // --- FIXED IMAGE HANDLER ---
   const getImageSrc = () => {
     if (imageError) return "https://picsum.photos/seed/cartitem/80/80.jpg";
 
+    // ✅ Prefer images array if exists
     if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
       return getImageUrl(cartItem.images[0]);
     }
 
-    if (cartItem?.image) {
+    // ✅ Fallback to single image string
+    if (typeof cartItem?.image === "string" && cartItem.image.trim() !== "") {
       return getImageUrl(cartItem.image);
     }
 
+    // ✅ If productId is an object (populated version)
+    if (cartItem?.productId?.image) {
+      return getImageUrl(cartItem.productId.image);
+    }
+
+    // ✅ Last fallback
     return "https://picsum.photos/seed/cartitem/80/80.jpg";
   };
 
-  useEffect(() => setImageError(false), [cartItem]);
-
   const src = getImageSrc();
-  const isCloudinary = src.includes("res.cloudinary.com");
 
   return (
     <div className="flex items-center space-x-4">
@@ -94,11 +97,8 @@ function UserCartItemsContent({ cartItem }) {
         src={src}
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
-        crossOrigin={isCloudinary ? undefined : "anonymous"}
-        onError={(e) => {
-          console.error("Image failed to load:", e.target.src);
-          setImageError(true);
-        }}
+        crossOrigin="anonymous"
+        onError={() => setImageError(true)}
       />
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.title}</h3>
@@ -143,7 +143,7 @@ function UserCartItemsContent({ cartItem }) {
 
 UserCartItemsContent.propTypes = {
   cartItem: PropTypes.shape({
-    productId: PropTypes.string.isRequired,
+    productId: PropTypes.any.isRequired,
     image: PropTypes.string,
     images: PropTypes.arrayOf(PropTypes.string),
     title: PropTypes.string,
