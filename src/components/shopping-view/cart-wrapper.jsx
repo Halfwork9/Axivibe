@@ -7,13 +7,14 @@ import PropTypes from "prop-types";
 export default function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet }) {
   const navigate = useNavigate();
 
-  const totalAmount =
-    Array.isArray(cartItems) && cartItems.length > 0
-      ? cartItems.reduce((sum, item) => {
-          const price = item.salePrice > 0 ? item.salePrice : item.price;
-          return sum + price * item.quantity;
-        }, 0)
-      : 0;
+  const validItems = Array.isArray(cartItems) ? cartItems : [];
+
+  const totalAmount = validItems.length
+    ? validItems.reduce((sum, item) => {
+        const price = item.salePrice > 0 ? item.salePrice : item.price;
+        return sum + price * item.quantity;
+      }, 0)
+    : 0;
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpenCartSheet}>
@@ -23,8 +24,8 @@ export default function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet })
         </SheetHeader>
 
         <div className="mt-8 space-y-4">
-          {cartItems && cartItems.length > 0 ? (
-            cartItems.map((item, idx) => (
+          {validItems.length > 0 ? (
+            validItems.map((item, idx) => (
               <UserCartItemsContent key={item._id || idx} cartItem={item} />
             ))
           ) : (
