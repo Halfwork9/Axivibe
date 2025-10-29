@@ -57,17 +57,21 @@ function ShoppingCheckout() {
     return true;
   }
 
-  const getImageSrc = (item) => {
-    if (Array.isArray(item?.images) && item.images.length > 0) {
-      return getImageUrl(item.images[0]);
-    }
+ const getImageSrc = (item) => {
+  if (Array.isArray(item?.images) && item.images.length > 0) {
+    return getImageUrl(item.images[0]);
+  }
 
-    if (item?.image) {
-      return getImageUrl(item.image);
-    }
+  if (typeof item?.image === "string" && item.image.trim() !== "") {
+    return getImageUrl(item.image);
+  }
 
-    return "https://picsum.photos/seed/checkout/80/80.jpg";
-  };
+  if (item?.productId?.image) {
+    return getImageUrl(item.productId.image);
+  }
+
+  return "https://picsum.photos/seed/checkout/80/80.jpg";
+};
 
   async function handleStripeCheckout() {
     if (!performValidations()) return;
