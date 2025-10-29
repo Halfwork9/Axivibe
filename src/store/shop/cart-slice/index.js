@@ -1,117 +1,127 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "@/api";
+import api from "../../api";
 
-const initialState = {
-  cartItems: [],
-  isLoading: false,
-  error: null,
-};
+// ✅ Helper to normalize responses
+const normalizeCartResponse = (data) => data?.cartItems || data?.data || [];
 
-// ✅ Fetch Cart
+// 🛒 Fetch Cart Items
 export const fetchCartItems = createAsyncThunk(
   "shopCart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
     try {
       const { data } = await api.get(`/shop/cart/get/${userId}`);
-      return data.cartItems || [];
+      return normalizeCartResponse(data);
     } catch (err) {
+      console.error("❌ fetchCartItems error:", err);
       return rejectWithValue(err.response?.data || "Error fetching cart");
     }
   }
 );
 
-// ✅ Add Item
+// ➕ Add Item to Cart
 export const addToCart = createAsyncThunk(
   "shopCart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      const { data } = await api.post("/shop/cart/add", {
-        userId,
-        productId,
-        quantity,
-      });
-      return data.cartItems || [];
+      const { data } = await api.post(`/shop/cart/add`, { userId, productId, quantity });
+      return normalizeCartResponse(data);
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error adding to cart");
+      console.error("❌ addToCart error:", err);
+      return rejectWithValue(err.response?.data || "Error adding item");
     }
   }
 );
 
-// ✅ Update Qty
+// 🔄 Update Quantity
 export const updateCartQuantity = createAsyncThunk(
   "shopCart/updateCartQuantity",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      const { data } = await api.put("/shop/cart/update-cart", {
-        userId,
-        productId,
-        quantity,
-      });
-      return data.cartItems || [];
+      const { data } = await api.put(`/shop/cart/update`, { userId, productId, quantity });
+      return normalizeCartResponse(data);
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error updating qty");
+      console.error("❌ updateCartQuantity error:", err);
+      return rejectWithValue(err.response?.data || "Error updating quantity");
     }
   }
 );
 
-// ✅ Delete
-export const deleteCartItem = createAsyncThunk(
-  "shopCart/deleteCartItem",
+// ❌ Remove from Cart
+export const removeFromCart = createAsyncThunk(
+  "shopCart/removeFromCart",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const { data } = await api.delete(`/shop/cart/${userId}/${productId}`);
-      return data.cartItems || [];
+      const { data } = await api.delete(`/shop/cart/remove/${userId}/${productId}`);
+      return normalizeCartResponse(data);
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Error deleting item");
+      console.error("❌ removeFromCart error:", err);
+      return rejectWithValue(err.response?.data || "Error removing item");
     }
   }
 );
 
-// ✅ Clear
+// 🧹 Clear Cart
 export const clearCart = createAsyncThunk(
   "shopCart/clearCart",
   async (userId, { rejectWithValue }) => {
     try {
       const { data } = await api.delete(`/shop/cart/clear/${userId}`);
-      return data.cartItems || [];
+      return normalizeCartResponse(data);
     } catch (err) {
+      console.error("❌ clearCart error:", err);
       return rejectWithValue(err.response?.data || "Error clearing cart");
     }
   }
 );
 
-const shoppingCartSlice = createSlice({
+const shopCartSlice = createSlice({
   name: "shopCart",
-  initialState,
+  initialState: {
+    cartItems: [],
+    loading: false,
+    error: null,
+  },
   reducers: {
-    clearCartLocal: (state) => {
+    resetCart: (state) => {
       state.cartItems = [];
     },
   },
   extraReducers: (builder) => {
     builder
-      .addMatcher(
-        (action) => action.type.startsWith("shopCart/") && action.type.endsWith("/pending"),
-        (state) => {
-          state.isLoading = true;
-        }
-      )
-      .addMatcher(
-        (action) => action.type.startsWith("shopCart/") && action.type.endsWith("/fulfilled"),
-        (state, action) => {
-          state.isLoading = false;
-          state.cartItems = action.payload || [];
-        }
-      )
-      .addMatcher(
-        (action) => action.type.startsWith("shopCart/") && action.type.endsWith("/rejected"),
-        (state, action) => {
-          state.isLoading = false;
-          state.error = action.payload;
-        }
-      );
+      // ✅ Fetch
+      .addCase(fetchCartItems.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCartItems.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cartItems = action.payload || [];
+      })
+      .addCase(fetchCartItems.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // ✅ Add
+      .addCase(addToCart.fulfilled, (state, action) => {
+        state.cartItems = action.payload || [];
+      })
+
+      // ✅ Update Quantity
+      .addCase(updateCartQuantity.fulfilled, (state, action) => {
+        state.cartItems = action.payload || [];
+      })
+
+      // ✅ Remove Item
+      .addCase(removeFromCart.fulfilled, (state, action) => {
+        state.cartItems = action.payload || [];
+      })
+
+      // ✅ Clear Cart
+      .addCase(clearCart.fulfilled, (state, action) => {
+        state.cartItems = action.payload || [];
+      });
   },
 });
 
-export const { clearCartLocal } = shoppingCartSlice.actions;
-export default shoppingCartSlice.reducer;
+export const { resetCart } = shopCartSlice.actions;
+export default shopCartSlice.reducer;
