@@ -28,6 +28,11 @@ function ShoppingCheckout() {
     }
   }, [dispatch, user?.id]);
 
+  // Debug log to check cartItems data
+  useEffect(() => {
+    console.log("CartItems data:", cartItems);
+  }, [cartItems]);
+
   // Defensive array fallback
   const cartItemsArray = Array.isArray(cartItems) ? cartItems : [];
 
