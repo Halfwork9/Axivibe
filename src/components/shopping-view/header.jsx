@@ -72,7 +72,7 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-     <Button
+   <Button
   onClick={() => setOpenCartSheet(true)}
   variant="outline"
   size="icon"
@@ -84,7 +84,6 @@ function HeaderRightContent() {
       {cartItems.length}
     </span>
   )}
-  <span className="sr-only">User cart</span>
 </Button>
 
 <UserCartWrapper
@@ -92,6 +91,7 @@ function HeaderRightContent() {
   setOpenCartSheet={setOpenCartSheet}
   cartItems={cartItems}
 />
+
 
 
 
