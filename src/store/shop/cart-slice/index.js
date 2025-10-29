@@ -2,12 +2,12 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api";
 
 const initialState = {
-  cartItems: { items: [] }, // ✅ store full cart object
+  cartItems: { items: [] }, // Store full cart object
   isLoading: false,
   error: null,
 };
 
-// ✅ Add item to cart
+// Add item to cart
 export const addToCart = createAsyncThunk(
   "shopCart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
@@ -26,7 +26,7 @@ export const addToCart = createAsyncThunk(
   }
 );
 
-// ✅ Fetch user cart
+// Fetch user cart
 export const fetchCartItems = createAsyncThunk(
   "shopCart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
@@ -41,7 +41,7 @@ export const fetchCartItems = createAsyncThunk(
   }
 );
 
-// ✅ Delete cart item
+// Delete cart item
 export const deleteCartItem = createAsyncThunk(
   "shopCart/deleteCartItem",
   async ({ userId, productId }, { rejectWithValue }) => {
@@ -56,7 +56,7 @@ export const deleteCartItem = createAsyncThunk(
   }
 );
 
-// ✅ Update item quantity
+// Update item quantity
 export const updateCartQuantity = createAsyncThunk(
   "shopCart/updateCartQuantity",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
@@ -75,7 +75,7 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
-// ✅ Clear entire cart
+// Clear entire cart
 export const clearCart = createAsyncThunk(
   "shopCart/clearCart",
   async (userId, { rejectWithValue }) => {
@@ -101,9 +101,7 @@ const shoppingCartSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // -------------------------------
       // ADD TO CART
-      // -------------------------------
       .addCase(addToCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -117,9 +115,7 @@ const shoppingCartSlice = createSlice({
         state.error = action.payload || "Failed to add to cart";
       })
 
-      // -------------------------------
       // FETCH CART
-      // -------------------------------
       .addCase(fetchCartItems.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -133,9 +129,7 @@ const shoppingCartSlice = createSlice({
         state.error = action.payload || "Failed to fetch cart";
       })
 
-      // -------------------------------
       // UPDATE QUANTITY
-      // -------------------------------
       .addCase(updateCartQuantity.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -149,9 +143,7 @@ const shoppingCartSlice = createSlice({
         state.error = action.payload || "Failed to update cart";
       })
 
-      // -------------------------------
       // DELETE ITEM
-      // -------------------------------
       .addCase(deleteCartItem.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -165,9 +157,7 @@ const shoppingCartSlice = createSlice({
         state.error = action.payload || "Failed to delete cart item";
       })
 
-      // -------------------------------
       // CLEAR CART
-      // -------------------------------
       .addCase(clearCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;
