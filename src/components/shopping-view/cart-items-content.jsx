@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import PropTypes from "prop-types";
-import { getImageUrl } from "@/utils/imageUtils";
+import { getImageUrl } from '@/utils/imageUtils';
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
@@ -66,28 +66,67 @@ function UserCartItemsContent({ cartItem }) {
     });
   }
 
-  // --- FIXED IMAGE HANDLER ---
+  // Get the image URL, handling both single image and array of images
   const getImageSrc = () => {
-    if (imageError) return "https://picsum.photos/seed/cartitem/80/80.jpg";
-
-    // ✅ Prefer images array if exists
+    console.log("=== getImageSrc Debug ===");
+    console.log("cartItem:", cartItem);
+    console.log("cartItem.image:", cartItem?.image);
+    console.log("cartItem.images:", cartItem?.images);
+    console.log("imageError:", imageError);
+    
+    // If there's an image error, show placeholder
+    if (imageError) {
+      console.log("Using placeholder due to error");
+      return "https://picsum.photos/seed/cartitem/80/80.jpg";
+    }
+    
+    // Check if cartItem has images array
     if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
-      return getImageUrl(cartItem.images[0]);
+      const imageUrl = getImageUrl(cartItem.images[0]);
+      console.log("Using image from images array:", imageUrl);
+      return imageUrl;
     }
-
-    // ✅ Fallback to single image string
-    if (typeof cartItem?.image === "string" && cartItem.image.trim() !== "") {
-      return getImageUrl(cartItem.image);
+    
+    // Check if cartItem has direct image property
+    if (cartItem?.image) {
+      const imageUrl = getImageUrl(cartItem.image);
+      console.log("Using image from image property:", imageUrl);
+      return imageUrl;
     }
-
-    // ✅ If productId is an object (populated version)
-    if (cartItem?.productId?.image) {
-      return getImageUrl(cartItem.productId.image);
+    
+    // Try to find the product in productList
+    if (cartItem?.productId && productList?.length > 0) {
+      const product = productList.find(p => p._id === cartItem.productId);
+      if (product) {
+        if (Array.isArray(product.images) && product.images.length > 0) {
+          const imageUrl = getImageUrl(product.images[0]);
+          console.log("Using image from productList images:", imageUrl);
+          return imageUrl;
+        }
+        if (product.image) {
+          const imageUrl = getImageUrl(product.image);
+          console.log("Using image from productList image:", imageUrl);
+          return imageUrl;
+        }
+      }
     }
-
-    // ✅ Last fallback
+    
+    // Only use placeholder if no image is available at all
+    console.log("No image found anywhere, using placeholder");
     return "https://picsum.photos/seed/cartitem/80/80.jpg";
   };
+
+  // Reset image error when cartItem changes
+  useEffect(() => {
+    setImageError(false);
+  }, [cartItem]);
+
+  // Debug log to check cartItem data
+  useEffect(() => {
+    console.log("CartItem data:", cartItem);
+    console.log("CartItem image:", cartItem?.image);
+    console.log("CartItem images:", cartItem?.images);
+  }, [cartItem]);
 
   const src = getImageSrc();
 
@@ -98,7 +137,13 @@ function UserCartItemsContent({ cartItem }) {
         alt={cartItem?.title}
         className="w-20 h-20 rounded object-cover"
         crossOrigin="anonymous"
-        onError={() => setImageError(true)}
+        onError={(e) => {
+          console.error("Image failed to load:", e.target.src);
+          setImageError(true);
+        }}
+        onLoad={() => {
+          console.log("Image loaded successfully:", src);
+        }}
       />
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.title}</h3>
@@ -143,7 +188,7 @@ function UserCartItemsContent({ cartItem }) {
 
 UserCartItemsContent.propTypes = {
   cartItem: PropTypes.shape({
-    productId: PropTypes.any.isRequired,
+    productId: PropTypes.string.isRequired,
     image: PropTypes.string,
     images: PropTypes.arrayOf(PropTypes.string),
     title: PropTypes.string,
