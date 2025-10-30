@@ -30,6 +30,10 @@ api.interceptors.response.use(
     if (error.code === 'ECONNABORTED') {
       console.error("Request timed out");
     }
+    // Handle 404 errors
+    if (error.response?.status === 404) {
+      console.error("Resource not found:", error.config?.url);
+    }
     return Promise.reject(error);
   }
 );
