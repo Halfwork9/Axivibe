@@ -4,7 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Skeleton } from '@/components/ui/skeleton';
-
+import ProductDetailsPage from "./components/shopping-view/product-details-page";
 // Global actions
 import { checkAuth } from './store/auth-slice';
 import { fetchAllCategories } from './store/admin/category-slice';
@@ -138,6 +138,7 @@ function AppRoutes() {
           <Route path="/shop/product-support" element={<ProductSupportPage />} />
           <Route path="/shop/technical-support" element={<TechnicalSupportPage />} />
           <Route path="/shop/distributor" element={<DistributorPage />} />
+           <Route path="product/:id" element={<ProductDetailsPage />} />
         </Route>
 
         <Route path="/auth" element={<AuthLayout />}>
