@@ -9,7 +9,6 @@ import ShoppingProductTile from '@/components/shopping-view/product-tile';
 import { useNavigate } from 'react-router-dom';
 import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
 import { useToast } from '@/components/ui/use-toast';
-import ProductDetailsDialog from '@/components/shopping-view/product-details';
 import { getFeatureImages } from '@/store/common-slice';
 import { fetchAllBrands } from '@/store/admin/brand-slice';
 import { fetchAllCategories } from '@/store/admin/category-slice';
@@ -20,10 +19,9 @@ import { getImageUrl } from '@/utils/imageUtils';
 function ShoppingHome() {
   
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
 
-  const { productList = [], productDetails = null, isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
+  const { productList = [], isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
   const { featureImageList = [], isLoading: featureImagesLoading } = useSelector((state) => state.commonFeature || {});
   const { brandList = [], isLoading: brandsLoading } = useSelector((state) => state.adminBrands || {});
   const { categoryList = [], isLoading: categoriesLoading, error: categoryError } = useSelector((state) => state.adminCategories || {});
@@ -43,8 +41,8 @@ function ShoppingHome() {
   };
 
   const handleGetProductDetails = (id) => {
-   
-    dispatch(fetchProductDetails(id));
+    // Navigate to product details page instead of opening dialog
+    navigate(`/shop/product/${id}`);
   };
 
   const handleAddtoCart = (id) => {
@@ -64,10 +62,6 @@ function ShoppingHome() {
       }
     });
   };
-
-  useEffect(() => {
-    if (productDetails) setOpenDetailsDialog(true);
-  }, [productDetails]);
 
   useEffect(() => {
     if (featureImageList.length === 0) return;
@@ -247,12 +241,6 @@ function ShoppingHome() {
           </div>
         </div>
       </section>
-
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setOpenDetailsDialog}
-        productDetails={productDetails}
-      />
     </div>
   );
 }
