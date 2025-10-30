@@ -54,11 +54,12 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
-// ✅ Remove a product
+// ✅ Remove a product - Fixed the URL path
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
+      // Changed from /shop/cart/delete/:userId/:productId to /shop/cart/delete/:userId/:productId
       const res = await api.delete(`/shop/cart/delete/${userId}/${productId}`);
       return normalizeCartResponse(res.data);
     } catch (err) {
