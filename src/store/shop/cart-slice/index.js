@@ -1,16 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api";
 
-// ✅ Helper to normalize responses
-const normalizeCartResponse = (data) => data?.cartItems || data?.data || [];
+const normalizeCartResponse = (data) =>
+  data?.cartItems && Array.isArray(data.cartItems)
+    ? data.cartItems
+    : data?.data || [];
 
-// 🛒 Fetch Cart Items
 export const fetchCartItems = createAsyncThunk(
-  "shopCart/fetchCartItems",
+  "cart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(`/shop/cart/get/${userId}`);
-      return normalizeCartResponse(data);
+      const res = await api.get(`/shop/cart/get/${userId}`);
+      return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ fetchCartItems error:", err);
       return rejectWithValue(err.response?.data || "Error fetching cart");
@@ -18,13 +19,12 @@ export const fetchCartItems = createAsyncThunk(
   }
 );
 
-// ➕ Add Item to Cart
 export const addToCart = createAsyncThunk(
-  "shopCart/addToCart",
+  "cart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      const { data } = await api.post(`/shop/cart/add`, { userId, productId, quantity });
-      return normalizeCartResponse(data);
+      const res = await api.post(`/shop/cart/add`, { userId, productId, quantity });
+      return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ addToCart error:", err);
       return rejectWithValue(err.response?.data || "Error adding item");
@@ -32,13 +32,12 @@ export const addToCart = createAsyncThunk(
   }
 );
 
-// 🔄 Update Quantity
 export const updateCartQuantity = createAsyncThunk(
-  "shopCart/updateCartQuantity",
+  "cart/updateCartQuantity",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      const { data } = await api.put(`/shop/cart/update`, { userId, productId, quantity });
-      return normalizeCartResponse(data);
+      const res = await api.put(`/shop/cart/update`, { userId, productId, quantity });
+      return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ updateCartQuantity error:", err);
       return rejectWithValue(err.response?.data || "Error updating quantity");
@@ -46,13 +45,12 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
-// ❌ Remove from Cart
 export const removeFromCart = createAsyncThunk(
-  "shopCart/removeFromCart",
+  "cart/removeFromCart",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const { data } = await api.delete(`/shop/cart/remove/${userId}/${productId}`);
-      return normalizeCartResponse(data);
+      const res = await api.delete(`/shop/cart/remove/${userId}/${productId}`);
+      return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ removeFromCart error:", err);
       return rejectWithValue(err.response?.data || "Error removing item");
@@ -60,13 +58,12 @@ export const removeFromCart = createAsyncThunk(
   }
 );
 
-// 🧹 Clear Cart
 export const clearCart = createAsyncThunk(
-  "shopCart/clearCart",
+  "cart/clearCart",
   async (userId, { rejectWithValue }) => {
     try {
-      const { data } = await api.delete(`/shop/cart/clear/${userId}`);
-      return normalizeCartResponse(data);
+      const res = await api.delete(`/shop/cart/clear/${userId}`);
+      return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ clearCart error:", err);
       return rejectWithValue(err.response?.data || "Error clearing cart");
@@ -74,7 +71,7 @@ export const clearCart = createAsyncThunk(
   }
 );
 
-const shopCartSlice = createSlice({
+const cartSlice = createSlice({
   name: "shopCart",
   initialState: {
     cartItems: [],
@@ -88,7 +85,6 @@ const shopCartSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // ✅ Fetch
       .addCase(fetchCartItems.pending, (state) => {
         state.loading = true;
       })
@@ -100,28 +96,20 @@ const shopCartSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      // ✅ Add
       .addCase(addToCart.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
       })
-
-      // ✅ Update Quantity
       .addCase(updateCartQuantity.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
       })
-
-      // ✅ Remove Item
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
       })
-
-      // ✅ Clear Cart
       .addCase(clearCart.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
       });
   },
 });
 
-export const { resetCart } = shopCartSlice.actions;
-export default shopCartSlice.reducer;
+export const { resetCart } = cartSlice.actions;
+export default cartSlice.reducer;
