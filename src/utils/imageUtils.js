@@ -1,27 +1,18 @@
-// src/utils/imageUtils.js
-export const getImageUrl = (imageInput) => {
-  if (!imageInput) {
+export const getImageUrl = (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== "string" || imageUrl.trim() === "") {
     return "https://picsum.photos/seed/default/400/400.jpg";
   }
 
-  // If it's an array, pick the first non-empty string
-  if (Array.isArray(imageInput)) {
-    const validImage = imageInput.find((img) => typeof img === "string" && img.trim() !== "");
-    if (validImage) return getImageUrl(validImage);
-    return "https://picsum.photos/seed/default/400/400.jpg";
+  // Fix missing Cloudinary prefix
+  if (imageUrl.startsWith("//res.cloudinary.com")) {
+    return `https:${imageUrl}`;
   }
 
-  // If single string URL
-  const imageUrl = imageInput.trim();
-
-  if (imageUrl.startsWith("http")) {
-    // Handle Cloudinary URLs with a parameter to prevent cache issues
-    if (imageUrl.includes("res.cloudinary.com")) {
-      const separator = imageUrl.includes("?") ? "&" : "?";
-      return `${imageUrl}${separator}auto=format`;
-    }
+  // Valid Cloudinary or absolute URL
+  if (imageUrl.includes("res.cloudinary.com") || imageUrl.startsWith("http")) {
     return imageUrl;
   }
 
-  return "https://picsum.photos/seed/default/400/400.jpg";
+  // Fallback (if only filename given)
+  return `https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/${imageUrl}`;
 };
