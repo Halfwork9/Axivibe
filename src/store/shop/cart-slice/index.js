@@ -66,6 +66,9 @@ export const deleteCartItem = createAsyncThunk(
       return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ deleteCartItem error:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      console.error("Error config:", err.config);
       return rejectWithValue(err.response?.data || "Error removing item");
     }
   }
