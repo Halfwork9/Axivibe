@@ -1,3 +1,4 @@
+// src/components/shopping-view/cart-items-content.js
 import React, { useState, useEffect } from "react";
 import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
@@ -9,13 +10,16 @@ import { getImageUrl } from "@/utils/imageUtils";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const { cartItems, loading } = useSelector((state) => state.shopCart);
   const { productList } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   function handleUpdateQuantity(getCartItem, typeOfAction) {
+    if (isUpdating || loading) return; // Prevent multiple simultaneous updates
+    
     let getCartItems = Array.isArray(cartItems) ? cartItems : [];
 
     if (typeOfAction === "plus") {
@@ -31,7 +35,7 @@ function UserCartItemsContent({ cartItem }) {
         const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
         if (getQuantity + 1 > getTotalStock) {
           toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
+            title: `Only ${getTotalStock} quantity can be added for this item`,
             variant: "destructive",
           });
           return;
@@ -39,6 +43,7 @@ function UserCartItemsContent({ cartItem }) {
       }
     }
 
+    setIsUpdating(true);
     dispatch(
       updateCartQuantity({
         userId: user?.id,
@@ -48,33 +53,47 @@ function UserCartItemsContent({ cartItem }) {
             ? getCartItem?.quantity + 1
             : getCartItem?.quantity - 1,
       })
-    ).then((data) => {
-      if (data?.payload?.success) {
+    ).then((action) => {
+      setIsUpdating(false);
+      if (action.meta.requestStatus === 'fulfilled') {
         toast({ title: "Cart item updated successfully" });
+      } else {
+        toast({ 
+          title: "Failed to update cart item", 
+          variant: "destructive" 
+        });
       }
     });
   }
 
   function handleCartItemDelete(getCartItem) {
+    if (isUpdating || loading) return; // Prevent multiple simultaneous updates
+    
+    setIsUpdating(true);
     dispatch(
       deleteCartItem({ userId: user?.id, productId: getCartItem?.productId })
-    ).then((data) => {
-      if (data?.payload?.success) {
+    ).then((action) => {
+      setIsUpdating(false);
+      if (action.meta.requestStatus === 'fulfilled') {
         toast({ title: "Cart item deleted successfully" });
+      } else {
+        toast({ 
+          title: "Failed to delete cart item", 
+          variant: "destructive" 
+        });
       }
     });
   }
 
- const getImageSrc = () => {
-  const imageUrl =
-    cartItem?.image && cartItem.image.trim() !== ""
-      ? getImageUrl(cartItem.image)
-      : Array.isArray(cartItem?.images) && cartItem.images.length > 0
-      ? getImageUrl(cartItem.images[0])
-      : "https://picsum.photos/seed/cartitem/80/80.jpg";
-  return imageUrl;
-};
-
+  const getImageSrc = () => {
+    const imageUrl =
+      cartItem?.image && cartItem.image.trim() !== ""
+        ? getImageUrl(cartItem.image)
+        : Array.isArray(cartItem?.images) && cartItem.images.length > 0
+        ? getImageUrl(cartItem.images[0])
+        : "https://picsum.photos/seed/cartitem/80/80.jpg";
+    return imageUrl;
+  };
 
   useEffect(() => {
     setImageError(false);
@@ -98,7 +117,7 @@ function UserCartItemsContent({ cartItem }) {
             variant="outline"
             className="h-8 w-8 rounded-full"
             size="icon"
-            disabled={cartItem?.quantity === 1}
+            disabled={cartItem?.quantity === 1 || isUpdating || loading}
             onClick={() => handleUpdateQuantity(cartItem, "minus")}
           >
             <Minus className="w-4 h-4" />
@@ -108,6 +127,7 @@ function UserCartItemsContent({ cartItem }) {
             variant="outline"
             className="h-8 w-8 rounded-full"
             size="icon"
+            disabled={isUpdating || loading}
             onClick={() => handleUpdateQuantity(cartItem, "plus")}
           >
             <Plus className="w-4 h-4" />
@@ -124,7 +144,7 @@ function UserCartItemsContent({ cartItem }) {
         </p>
         <Trash
           onClick={() => handleCartItemDelete(cartItem)}
-          className="cursor-pointer mt-1"
+          className="cursor-pointer mt-1 hover:text-red-500"
           size={20}
         />
       </div>
