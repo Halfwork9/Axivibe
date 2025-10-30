@@ -56,8 +56,8 @@ function ShoppingHome() {
     
     dispatch(addToCart({ userId: user.id, productId: id, quantity: 1 })).then((action) => {
       if (action.meta.requestStatus === 'fulfilled') {
-        // Refresh cart items after adding
-        dispatch(fetchCartItems(user.id));
+        // The cart state is already updated by the addToCart action
+        // No need to fetch cart items again
         toast({ title: 'Product added to cart' });
       } else {
         toast({ title: 'Failed to add product to cart', variant: 'destructive' });
@@ -86,6 +86,11 @@ function ShoppingHome() {
       dispatch(fetchCartItems(user.id));
     }
   }, [dispatch, isAuthenticated, user?.id]);
+
+  // Debug log to check cart items
+  useEffect(() => {
+    console.log("Cart items updated:", cartItems);
+  }, [cartItems]);
 
   if (authLoading || productsLoading || featureImagesLoading || brandsLoading || categoriesLoading || cartLoading) {
     return (
