@@ -1,3 +1,4 @@
+// src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "@/App.jsx";
@@ -11,9 +12,6 @@ import axios from "axios";
 
 // ✅ Configure axios globally
 axios.defaults.withCredentials = true;
-
-// Use the correct API URL based on your deployment
-// If your frontend is on nikhilmamdekar.site, your API should be on the same domain
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || "https://nikhilmamdekar.site/api";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
