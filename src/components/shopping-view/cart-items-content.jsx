@@ -16,6 +16,7 @@ function UserCartItemsContent({ cartItem }) {
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function handleUpdateQuantity(getCartItem, typeOfAction) {
     if (isUpdating || loading) return; // Prevent multiple simultaneous updates
@@ -67,13 +68,13 @@ function UserCartItemsContent({ cartItem }) {
   }
 
   function handleCartItemDelete(getCartItem) {
-    if (isUpdating || loading) return; // Prevent multiple simultaneous updates
+    if (isDeleting || loading) return; // Prevent multiple simultaneous updates
     
-    setIsUpdating(true);
+    setIsDeleting(true);
     dispatch(
       deleteCartItem({ userId: user?.id, productId: getCartItem?.productId })
     ).then((action) => {
-      setIsUpdating(false);
+      setIsDeleting(false);
       if (action.meta.requestStatus === 'fulfilled') {
         toast({ title: "Cart item deleted successfully" });
       } else {
@@ -147,11 +148,19 @@ function UserCartItemsContent({ cartItem }) {
             cartItem?.quantity
           ).toFixed(2)}
         </p>
-        <Trash
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => handleCartItemDelete(cartItem)}
-          className="cursor-pointer mt-1 hover:text-red-500"
-          size={20}
-        />
+          disabled={isDeleting || loading}
+          className="mt-1 hover:text-red-500"
+        >
+          {isDeleting ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+          ) : (
+            <Trash size={20} />
+          )}
+        </Button>
       </div>
     </div>
   );
