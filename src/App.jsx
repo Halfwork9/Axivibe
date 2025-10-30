@@ -1,10 +1,11 @@
-import React, { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate ,useLocation} from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import ProductDetailsPage from "./components/shopping-view/product-details-page";
+
 // Global actions
 import { checkAuth } from './store/auth-slice';
 import { fetchAllCategories } from './store/admin/category-slice';
@@ -15,6 +16,33 @@ import { fetchCartItems } from './store/shop/cart-slice';
 import AuthLayout from './components/auth/layout';
 import AdminLayout from './components/admin-view/layout';
 import ShoppingLayout from './components/shopping-view/layout';
+
+// Pages (non-lazy imports)
+import ShoppingHome from './pages/shopping-view/home';
+import AuthLogin from './pages/auth/login';
+import AuthRegister from './pages/auth/register';
+import ForgotPassword from './pages/auth/forgot-password';
+import ResetPassword from './pages/auth/reset-password';
+import AdminDashboard from './pages/admin-view/dashboard';
+import AdminProducts from './pages/admin-view/products';
+import AdminOrders from './pages/admin-view/orders';
+import AdminFeatures from './pages/admin-view/features';
+import Brands from './pages/admin-view/brands';
+import AdminCategoriesPage from './components/admin-view/categories-page';
+import AdminDistributorsPage from './components/admin-view/distributors-page';
+import ShoppingListing from './pages/shopping-view/listing';
+import ShoppingCheckout from './pages/shopping-view/checkout';
+import ShoppingAccount from './pages/shopping-view/account';
+import PaypalReturnPage from './pages/shopping-view/StripeReturnPage';
+import PaymentSuccessPage from './pages/shopping-view/payment-success';
+import SearchProducts from './pages/shopping-view/search';
+import HelpPage from './pages/shopping-view/customer-service/help';
+import ContactPage from './pages/shopping-view/customer-service/contact';
+import ProductSupportPage from './pages/shopping-view/customer-service/product-support';
+import TechnicalSupportPage from './pages/shopping-view/customer-service/technical-support';
+import DistributorPage from './components/shopping-view/distributor';
+import UnauthPage from './pages/unauth-page';
+import NotFound from './pages/not-found';
 
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component {
@@ -50,36 +78,9 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// --- Lazy pages ---
-const ShoppingHome = lazy(() => import('./pages/shopping-view/home'));
-const AuthLogin = lazy(() => import('./pages/auth/login'));
-const AuthRegister = lazy(() => import('./pages/auth/register'));
-const ForgotPassword = lazy(() => import('./pages/auth/forgot-password'));
-const ResetPassword = lazy(() => import('./pages/auth/reset-password'));
-const AdminDashboard = lazy(() => import('./pages/admin-view/dashboard'));
-const AdminProducts = lazy(() => import('./pages/admin-view/products'));
-const AdminOrders = lazy(() => import('./pages/admin-view/orders'));
-const AdminFeatures = lazy(() => import('./pages/admin-view/features'));
-const Brands = lazy(() => import('./pages/admin-view/brands'));
-const AdminCategoriesPage = lazy(() => import('./components/admin-view/categories-page'));
-const AdminDistributorsPage = lazy(() => import('./components/admin-view/distributors-page'));
-const ShoppingListing = lazy(() => import('./pages/shopping-view/listing'));
-const ShoppingCheckout = lazy(() => import('./pages/shopping-view/checkout'));
-const ShoppingAccount = lazy(() => import('./pages/shopping-view/account'));
-const PaypalReturnPage = lazy(() => import('./pages/shopping-view/StripeReturnPage'));
-const PaymentSuccessPage = lazy(() => import('./pages/shopping-view/payment-success'));
-const SearchProducts = lazy(() => import('./pages/shopping-view/search'));
-const HelpPage = lazy(() => import('./pages/shopping-view/customer-service/help'));
-const ContactPage = lazy(() => import('./pages/shopping-view/customer-service/contact'));
-const ProductSupportPage = lazy(() => import('./pages/shopping-view/customer-service/product-support'));
-const TechnicalSupportPage = lazy(() => import('./pages/shopping-view/customer-service/technical-support'));
-const DistributorPage = lazy(() => import('./components/shopping-view/distributor'));
-const UnauthPage = lazy(() => import('./pages/unauth-page'));
-const NotFound = lazy(() => import('./pages/not-found'));
-
 // --- Separate inner component that uses navigate ---
 function AppRoutes() {
- const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
+  const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -121,49 +122,46 @@ function AppRoutes() {
   }
 
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/shop/home" replace />} />
-        <Route path="/shop" element={<ShoppingLayout />}>
-          <Route index element={<Navigate to="/shop/home" replace />} />
-          <Route path="home" element={<ShoppingHome />} />
-          <Route path="listing" element={<ShoppingListing />} />
-          <Route path="checkout" element={<ShoppingCheckout />} />
-          <Route path="account" element={<ShoppingAccount />} />
-          <Route path="paypal-return" element={<PaypalReturnPage />} />
-          <Route path="payment-success" element={<PaymentSuccessPage />} />
-          <Route path="search" element={<SearchProducts />} />
-          <Route path="/shop/help" element={<HelpPage />} />
-          <Route path="/shop/contact" element={<ContactPage />} />
-          <Route path="/shop/product-support" element={<ProductSupportPage />} />
-          <Route path="/shop/technical-support" element={<TechnicalSupportPage />} />
-          <Route path="/shop/distributor" element={<DistributorPage />} />
-           <Route path="product/:id" element={<ProductDetailsPage />} />
-        </Route>
+    <Routes>
+      <Route path="/" element={<Navigate to="/shop/home" replace />} />
+      <Route path="/shop" element={<ShoppingLayout />}>
+        <Route index element={<Navigate to="/shop/home" replace />} />
+        <Route path="home" element={<ShoppingHome />} />
+        <Route path="listing" element={<ShoppingListing />} />
+        <Route path="product/:id" element={<ProductDetailsPage />} />
+        <Route path="checkout" element={<ShoppingCheckout />} />
+        <Route path="account" element={<ShoppingAccount />} />
+        <Route path="paypal-return" element={<PaypalReturnPage />} />
+        <Route path="payment-success" element={<PaymentSuccessPage />} />
+        <Route path="search" element={<SearchProducts />} />
+        <Route path="help" element={<HelpPage />} />
+        <Route path="contact" element={<ContactPage />} />
+        <Route path="product-support" element={<ProductSupportPage />} />
+        <Route path="technical-support" element={<TechnicalSupportPage />} />
+        <Route path="distributor" element={<DistributorPage />} />
+      </Route>
 
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<AuthLogin />} />
-          <Route path="register" element={<AuthRegister />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="reset-password/:token" element={<ResetPassword />} />
-        </Route>
+      <Route path="/auth" element={<AuthLayout />}>
+        <Route path="login" element={<AuthLogin />} />
+        <Route path="register" element={<AuthRegister />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password/:token" element={<ResetPassword />} />
+      </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="features" element={<AdminFeatures />} />
-          <Route path="brands" element={<Brands />} />
-          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
-         <Route path="/admin/distributor" element={<AdminDistributorsPage />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="products" element={<AdminProducts />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="features" element={<AdminFeatures />} />
+        <Route path="brands" element={<Brands />} />
+        <Route path="categories" element={<AdminCategoriesPage />} />
+        <Route path="distributor" element={<AdminDistributorsPage />} />
+      </Route>
 
-        </Route>
-
-        <Route path="/unauth-page" element={<UnauthPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+      <Route path="/unauth-page" element={<UnauthPage />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
