@@ -1,3 +1,4 @@
+// src/components/shopping-view/checkout.js
 import React, { useEffect, useState } from "react";
 import Address from "@/components/shopping-view/address";
 import img from "../../assets/account.jpg";
@@ -11,7 +12,7 @@ import api from "@/api";
 import { getImageUrl } from "@/utils/imageUtils";
 
 function ShoppingCheckout() {
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const { cartItems, loading, error } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymentStart] = useState(false);
@@ -60,12 +61,11 @@ function ShoppingCheckout() {
   }
 
   const getImageSrc = (item) => {
-  if (item?.image && item.image.trim() !== "") return getImageUrl(item.image);
-  if (Array.isArray(item?.images) && item.images.length > 0)
-    return getImageUrl(item.images[0]);
-  return "https://picsum.photos/seed/checkout/80/80.jpg";
-};
-
+    if (item?.image && item.image.trim() !== "") return getImageUrl(item.image);
+    if (Array.isArray(item?.images) && item.images.length > 0)
+      return getImageUrl(item.images[0]);
+    return "https://picsum.photos/seed/checkout/80/80.jpg";
+  };
 
   async function handleStripeCheckout() {
     if (!performValidations()) return;
@@ -178,7 +178,11 @@ function ShoppingCheckout() {
         />
 
         <div className="flex flex-col gap-4">
-          {cartItemsArray.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : cartItemsArray.length > 0 ? (
             cartItemsArray.map((item, idx) => (
               <UserCartItemsContent key={item._id || idx} cartItem={item} />
             ))
@@ -199,7 +203,7 @@ function ShoppingCheckout() {
             <Button
               onClick={handleStripeCheckout}
               className="w-full"
-              disabled={isProcessing || isPaymentStart}
+              disabled={isProcessing || isPaymentStart || loading || cartItemsArray.length === 0}
             >
               {isProcessing || isPaymentStart
                 ? "Processing..."
@@ -208,7 +212,7 @@ function ShoppingCheckout() {
             <Button
               onClick={handleCashOnDeliveryCheckout}
               className="w-full"
-              disabled={isProcessing}
+              disabled={isProcessing || loading || cartItemsArray.length === 0}
             >
               {isProcessing ? "Processing..." : "Pay with Cash on Delivery"}
             </Button>
