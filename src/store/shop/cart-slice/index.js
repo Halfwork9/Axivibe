@@ -1,3 +1,4 @@
+// src/store/shop/cart-slice/index.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api";
 
