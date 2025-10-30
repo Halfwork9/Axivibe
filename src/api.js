@@ -1,29 +1,30 @@
+// src/api/index.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://api.nikhilmamdekar.site/api",
-  withCredentials: true,
+  baseURL: "https://api.nikhilmamdekar.site/api", // Use the full URL for production
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Add a request interceptor to ensure credentials are always included
+// Add request interceptor to include auth token if needed
 api.interceptors.request.use(
   (config) => {
-    config.withCredentials = true;
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Add a response interceptor to handle auth errors
+// Add response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Redirect to login if unauthorized
-      window.location.href = '/auth/login';
-    }
+    console.error("API Error:", error);
     return Promise.reject(error);
   }
 );
