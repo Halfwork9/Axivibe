@@ -6,9 +6,9 @@ import UserCartItemsContent from "./cart-items-content";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 
-export default function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet }) {
+export default function UserCartWrapper({ isOpen, setOpenCartSheet }) {
   const navigate = useNavigate();
-  const { loading } = useSelector((state) => state.shopCart);
+  const { cartItems, loading } = useSelector((state) => state.shopCart);
 
   const validItems = Array.isArray(cartItems) ? cartItems : [];
 
@@ -66,15 +66,6 @@ export default function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet })
 }
 
 UserCartWrapper.propTypes = {
-  cartItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string,
-      title: PropTypes.string,
-      price: PropTypes.number,
-      salePrice: PropTypes.number,
-      quantity: PropTypes.number,
-    })
-  ),
   isOpen: PropTypes.bool.isRequired,
   setOpenCartSheet: PropTypes.func.isRequired,
 };
