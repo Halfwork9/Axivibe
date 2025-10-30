@@ -19,6 +19,9 @@ export default function UserCartWrapper({ cartItems, isOpen, setOpenCartSheet })
       }, 0)
     : 0;
 
+  // Debug log to check cart items
+  console.log("UserCartWrapper cartItems:", validItems);
+
   return (
     <Sheet open={isOpen} onOpenChange={setOpenCartSheet}>
       <SheetContent className="w-full sm:max-w-md">
