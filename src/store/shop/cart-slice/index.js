@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api";
 
-// ✅ Normalize backend response safely
+//  Normalize backend response safely
 const normalizeCartResponse = (data) => {
   if (!data) return [];
   if (Array.isArray(data.cartItems)) return data.cartItems;
@@ -9,7 +9,7 @@ const normalizeCartResponse = (data) => {
   return [];
 };
 
-// ✅ Fetch all items
+//  Fetch all items
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
@@ -23,7 +23,7 @@ export const fetchCartItems = createAsyncThunk(
   }
 );
 
-// ✅ Add to cart
+//  Add to cart
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
@@ -37,11 +37,12 @@ export const addToCart = createAsyncThunk(
   }
 );
 
-// ✅ Update cart quantity
+// ✅ Update cart quantity - Fixed the URL path
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
+      // Changed from update-cart to update to match backend route
       const res = await api.put(`/shop/cart/update`, { userId, productId, quantity });
       return normalizeCartResponse(res.data);
     } catch (err) {
@@ -110,23 +111,60 @@ const cartSlice = createSlice({
         state.error = action.payload;
       })
 
-      // 🛒 Add / Update / Delete / Clear
+      // 🛒 Add
+      .addCase(addToCart.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(addToCart.fulfilled, (state, action) => {
-        state.cartItems = action.payload || [];
         state.loading = false;
+        state.cartItems = action.payload || [];
         state.error = null;
       })
-      .addCase(updateCartQuantity.fulfilled, (state, action) => {
-        state.cartItems = action.payload || [];
+      .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+
+      // 🔄 Update
+      .addCase(updateCartQuantity.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateCartQuantity.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cartItems = action.payload || [];
+        state.error = null;
+      })
+      .addCase(updateCartQuantity.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // 🗑️ Delete
+      .addCase(deleteCartItem.pending, (state) => {
+        state.loading = true;
       })
       .addCase(deleteCartItem.fulfilled, (state, action) => {
-        state.cartItems = action.payload || [];
         state.loading = false;
+        state.cartItems = action.payload || [];
+        state.error = null;
+      })
+      .addCase(deleteCartItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // 🗑️ Clear
+      .addCase(clearCart.pending, (state) => {
+        state.loading = true;
       })
       .addCase(clearCart.fulfilled, (state, action) => {
-        state.cartItems = action.payload || [];
         state.loading = false;
+        state.cartItems = action.payload || [];
+        state.error = null;
+      })
+      .addCase(clearCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
