@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api";
 
-//  Normalize backend response safely
+// ✅ Normalize backend response safely
 const normalizeCartResponse = (data) => {
   if (!data) return [];
   if (Array.isArray(data.cartItems)) return data.cartItems;
@@ -9,7 +9,7 @@ const normalizeCartResponse = (data) => {
   return [];
 };
 
-//  Fetch all items
+// ✅ Fetch all items
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
@@ -23,12 +23,14 @@ export const fetchCartItems = createAsyncThunk(
   }
 );
 
-//  Add to cart
+// ✅ Add to cart
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
+      console.log("Adding to cart:", { userId, productId, quantity });
       const res = await api.post(`/shop/cart/add`, { userId, productId, quantity });
+      console.log("Add to cart response:", res.data);
       return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ addToCart error:", err);
@@ -37,12 +39,11 @@ export const addToCart = createAsyncThunk(
   }
 );
 
-// ✅ Update cart quantity - Fixed the URL path
+// ✅ Update cart quantity
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      // Changed from update-cart to update to match backend route
       const res = await api.put(`/shop/cart/update`, { userId, productId, quantity });
       return normalizeCartResponse(res.data);
     } catch (err) {
