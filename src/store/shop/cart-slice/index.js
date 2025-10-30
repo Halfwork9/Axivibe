@@ -59,8 +59,10 @@ export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
+      console.log("Deleting cart item:", { userId, productId });
       // Changed from /shop/cart/delete/:userId/:productId to /shop/cart/delete/:userId/:productId
       const res = await api.delete(`/shop/cart/delete/${userId}/${productId}`);
+      console.log("Delete cart item response:", res.data);
       return normalizeCartResponse(res.data);
     } catch (err) {
       console.error("❌ deleteCartItem error:", err);
