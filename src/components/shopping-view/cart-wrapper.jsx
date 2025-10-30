@@ -24,12 +24,12 @@ export default function UserCartWrapper({ isOpen, setOpenCartSheet }) {
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpenCartSheet}>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Your Cart</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-4 max-h-[60vh] overflow-y-auto">
           {loading ? (
             <div className="flex justify-center py-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -43,7 +43,7 @@ export default function UserCartWrapper({ isOpen, setOpenCartSheet }) {
           )}
         </div>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-4 sticky bottom-0 bg-background pt-4">
           <div className="flex justify-between">
             <span className="font-bold">Total</span>
             <span className="font-bold">₹{totalAmount.toFixed(2)}</span>
