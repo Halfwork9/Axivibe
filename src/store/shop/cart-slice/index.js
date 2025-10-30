@@ -1,11 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api";
 
-const normalizeCartResponse = (data) =>
-  data?.cartItems && Array.isArray(data.cartItems)
-    ? data.cartItems
-    : data?.data || [];
+// ✅ Normalize backend response safely
+const normalizeCartResponse = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data.cartItems)) return data.cartItems;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+};
 
+// ✅ Fetch all items
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
@@ -19,6 +23,7 @@ export const fetchCartItems = createAsyncThunk(
   }
 );
 
+// ✅ Add to cart
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
@@ -32,6 +37,7 @@ export const addToCart = createAsyncThunk(
   }
 );
 
+// ✅ Update cart quantity
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
@@ -45,19 +51,21 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
-export const removeFromCart = createAsyncThunk(
-  "cart/removeFromCart",
+// ✅ Remove a product
+export const deleteCartItem = createAsyncThunk(
+  "cart/deleteCartItem",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const res = await api.delete(`/shop/cart/remove/${userId}/${productId}`);
+      const res = await api.delete(`/shop/cart/delete/${userId}/${productId}`);
       return normalizeCartResponse(res.data);
     } catch (err) {
-      console.error("❌ removeFromCart error:", err);
+      console.error("❌ deleteCartItem error:", err);
       return rejectWithValue(err.response?.data || "Error removing item");
     }
   }
 );
 
+// ✅ Clear full cart
 export const clearCart = createAsyncThunk(
   "cart/clearCart",
   async (userId, { rejectWithValue }) => {
@@ -71,6 +79,7 @@ export const clearCart = createAsyncThunk(
   }
 );
 
+// ✅ Slice
 const cartSlice = createSlice({
   name: "shopCart",
   initialState: {
@@ -81,32 +90,43 @@ const cartSlice = createSlice({
   reducers: {
     resetCart: (state) => {
       state.cartItems = [];
+      state.loading = false;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      // 🔄 Fetch
       .addCase(fetchCartItems.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchCartItems.fulfilled, (state, action) => {
         state.loading = false;
         state.cartItems = action.payload || [];
+        state.error = null;
       })
       .addCase(fetchCartItems.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+
+      // 🛒 Add / Update / Delete / Clear
       .addCase(addToCart.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
+        state.loading = false;
+        state.error = null;
       })
       .addCase(updateCartQuantity.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
+        state.loading = false;
       })
-      .addCase(removeFromCart.fulfilled, (state, action) => {
+      .addCase(deleteCartItem.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
+        state.loading = false;
       })
       .addCase(clearCart.fulfilled, (state, action) => {
         state.cartItems = action.payload || [];
+        state.loading = false;
       });
   },
 });
