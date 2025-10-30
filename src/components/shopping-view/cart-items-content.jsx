@@ -86,13 +86,18 @@ function UserCartItemsContent({ cartItem }) {
   }
 
   const getImageSrc = () => {
-    const imageUrl =
-      cartItem?.image && cartItem.image.trim() !== ""
-        ? getImageUrl(cartItem.image)
-        : Array.isArray(cartItem?.images) && cartItem.images.length > 0
-        ? getImageUrl(cartItem.images[0])
-        : "https://picsum.photos/seed/cartitem/80/80.jpg";
-    return imageUrl;
+    // Check if cartItem has image property
+    if (cartItem?.image && cartItem.image.trim() !== "") {
+      return getImageUrl(cartItem.image);
+    }
+    
+    // Check if cartItem has images array
+    if (Array.isArray(cartItem?.images) && cartItem.images.length > 0) {
+      return getImageUrl(cartItem.images[0]);
+    }
+    
+    // Fallback to placeholder
+    return "https://picsum.photos/seed/cartitem/80/80.jpg";
   };
 
   useEffect(() => {
