@@ -53,12 +53,12 @@ function CategoryDropdown() {
 
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth || {});
-  const { cartItems = { items: [] } } = useSelector((state) => state.shopCart || {});
+  const { cartItems = [] } = useSelector((state) => state.shopCart || {});
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const cartCount = Array.isArray(cartItems?.items) ? cartItems.items.length : 0;
+  const cartCount = Array.isArray(cartItems) ? cartItems.length : 0;
 
   function handleLogout() {
     dispatch(logoutUser())
@@ -94,7 +94,6 @@ function HeaderRightContent() {
       <UserCartWrapper
         isOpen={openCartSheet}
         setOpenCartSheet={setOpenCartSheet}
-        cartItems={cartItems.items || []}
       />
 
       {/* 👤 USER DROPDOWN */}
