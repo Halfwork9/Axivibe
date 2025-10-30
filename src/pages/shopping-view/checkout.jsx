@@ -61,9 +61,17 @@ function ShoppingCheckout() {
   }
 
   const getImageSrc = (item) => {
-    if (item?.image && item.image.trim() !== "") return getImageUrl(item.image);
-    if (Array.isArray(item?.images) && item.images.length > 0)
+    // Check if item has image property
+    if (item?.image && item.image.trim() !== "") {
+      return getImageUrl(item.image);
+    }
+    
+    // Check if item has images array
+    if (Array.isArray(item?.images) && item.images.length > 0) {
       return getImageUrl(item.images[0]);
+    }
+    
+    // Fallback to placeholder
     return "https://picsum.photos/seed/checkout/80/80.jpg";
   };
 
