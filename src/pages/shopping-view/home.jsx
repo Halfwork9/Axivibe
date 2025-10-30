@@ -1,3 +1,4 @@
+// src/components/shopping-view/shopping-home.js
 import { Button } from '@/components/ui/button';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -53,8 +54,9 @@ function ShoppingHome() {
       return;
     }
     
-    dispatch(addToCart({ userId: user.id, productId: id, quantity: 1 })).then((res) => {
-      if (res?.payload?.success) {
+    dispatch(addToCart({ userId: user.id, productId: id, quantity: 1 })).then((action) => {
+      if (action.meta.requestStatus === 'fulfilled') {
+        // Refresh cart items after adding
         dispatch(fetchCartItems(user.id));
         toast({ title: 'Product added to cart' });
       } else {
