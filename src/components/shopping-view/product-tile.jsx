@@ -1,3 +1,4 @@
+// src/components/shopping-view/product-tile.js
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import PropTypes from "prop-types";
 import { Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { getImageUrl } from '@/utils/imageUtils';
+import { useSelector } from 'react-redux';
 
 // Helper component to display star ratings
 const StarRating = ({ rating = 0 }) => {
@@ -34,6 +36,8 @@ StarRating.propTypes = {
 function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart }) {
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { loading } = useSelector((state) => state.shopCart);
   
   const isOnSale = product?.isOnSale && product?.price > 0 && product?.salePrice < product?.price;
   const discount = isOnSale
@@ -56,6 +60,15 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
     e.stopPropagation();
     setImageError(false); // Reset error state when changing images
     setCurrentImageIndex(prev => (prev === productImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleAddToCartClick = async () => {
+    setIsAddingToCart(true);
+    try {
+      await handleAddtoCart(product?._id);
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   return (
@@ -170,12 +183,17 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
 
       <CardFooter className="p-4 pt-0">
         <Button
-          onClick={() => handleAddtoCart(product?._id)}
+          onClick={handleAddToCartClick}
           className="w-full"
-          disabled={product?.totalStock === 0}
+          disabled={product?.totalStock === 0 || isAddingToCart || loading}
         >
           {product?.totalStock === 0 ? (
             "Out Of Stock"
+          ) : isAddingToCart || loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Adding...
+            </>
           ) : (
             <>
               <ShoppingCart className="mr-2 h-4 w-4" />
