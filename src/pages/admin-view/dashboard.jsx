@@ -8,13 +8,14 @@ import ProductImageUpload from "@/components/admin-view/image-upload";
 import { getFeatureImages, deleteFeatureImage } from "@/store/common-slice";
 import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
 import { getAllProducts } from "@/store/admin/product-slice";
-import { getAllUsers } from "@/components/admin-view/user-slice";
+import { getAllUsers } from "@/store/admin/user-slice";
 import { useToast } from "@/components/ui/use-toast";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
 // Helper component for responsive charts
-const ResponsiveContainer = ({ children, width, height, ...props }) => {
+const ResponsiveContainer = ({ children, width, height, 
+  ) => {
   return (
     <div style={{ width, height, ...props }}>
       {children}
@@ -26,8 +27,8 @@ function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
   const { orderList } = useSelector((state) => state.adminOrder);
-  const { productList } = useSelector((state) => state.adminProducts);
-  const { userList } = useSelector((state) => state.adminUsers);
+  const { productList } = useState([]);
+  const { userList = useState([]);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +39,12 @@ function AdminDashboard() {
     totalProducts: 0,
     totalUsers: 0,
     pendingOrders: 0,
-    // ... other stats
+    processingOrders: 0,
+    deliveredOrders: 0,
+    recentOrders: [],
+    topSellingProducts: [],
+    monthlyRevenue: [],
+    categoryWiseSales: [],
   });
 
   // Calculate dashboard stats
@@ -50,8 +56,8 @@ function AdminDashboard() {
 
     // Calculate order status counts
     const pendingOrders = orderList.filter(order => order.orderStatus === "pending").length;
-    const processingOrders = orderList.filter(order => order.orderStatus === "inProcess" || order.orderStatus === "inShipping").length;
-    const deliveredOrders = orderList.filter(order => order.orderStatus === "div" === "delivered").length;
+    const processingOrders = orderList.filter(order => order.orderStatus === "inProcess" || orderList.some(order => order.orderStatus === "inShipping") || order.orderStatus === "inShipping").length;
+    const deliveredOrders = orderList.filter(order => order.orderStatus === "delivered").length;
 
     // Calculate top selling products
     const productSales = {};
@@ -104,6 +110,8 @@ function AdminDashboard() {
       totalUsers: userList.length,
       pendingOrders,
       processingOrders,
+      loading: isLoading,
+      processingOrders,
       deliveredOrders,
       recentOrders: orderList.slice(0, 5),
       topSellingProducts,
@@ -116,15 +124,17 @@ function AdminDashboard() {
     setIsLoading(true);
     try {
       await dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1, limit: 100 });
-      await dispatch(getAllProducts({ sortBy: "date-desc", page:  />
-      await dispatch(getAllUsers());
+      const products = await dispatch(getAllProducts({ sortBy: "date-desc", page: 1, limit: 100 });
+      const users = await dispatch(getAllUsers());
       dispatch(getFeatureImages());
+      setProductList(products);
+      setUserList(users);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast({
         title: "Failed to load dashboard data",
-        description: "Please try again later",
-        variant: "ResponsiveContainer width="100%" height="100%" height="100%"
+        description: "Please try again",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -162,13 +172,10 @@ function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                <p className="loading: {isLoading ? "animate-pulse" : ""}>
-                  ₹{dashboardStats.totalRevenue.toLocaleString()}
-                </p>
+                <div className="text-2xl font-bold">₹{dashboardStats.totalRevenue.toLocaleString()}</div>
               </div>
               <div className="p-2 bg-blue-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                </div>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -177,47 +184,43 @@ function AdminDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-500">Total Orders</p>
-                <p className="text-2xl font-bold">{dashboardStats.totalOrders}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
+                <div className="text-2xl font-bold">{dashboardStats.totalOrders}</div>
               </div>
               <div className="p-2 bg-green-100 rounded-full flex items-center justify-center">
-                  <ShoppingCart className="h-4 w-4 text-green-600" />
-                </div>
-            </div>
-          </CardContent>
-        </Card>
+                <ShoppingCart className="h-4 w-4 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
+          <Card>
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-500">Total Products</p>
-                  <p className="loading: {isLoading ? "animate-pulse" : ""}>
-                    ₹{dashboardStats.totalProducts}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+                  <div className="text-2xl font-bold">{dashboardStats.totalProducts}</div>
                 </div>
-                <div className="p-2 bg-purple-100 rounded-full flex items-center justify-center">
+              </div>
+              <div className="p-2 bg-purple-100 rounded-full flex items-center justify-center">
                   <Package className="h-4 w-4 text-purple-600" />
                 </div>
-              </div>
             </CardContent>
-        </Card>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
+          <Card>
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-500">Total Users</p>
-                  <p className="loading: {isLoading ? "animate-pulse" : ""}>
-                    {dashboardStats.totalUsers}
-                  </p>
-                </div>
-                <div className="p-2 bg-orange-100 rounded-full flex items-center justify-center">
-                  <Users className="h-4 w-4 text-orange-600" />
+                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                  <div className="text-2xl font-bold">{dashboardStats.totalUsers}</div>
                 </div>
               </div>
+              <div className="p-2 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Users className="h-4 w-4 text-orange-600" />
+                </div>
             </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
 
       {/* Charts Section */}
@@ -236,11 +239,11 @@ function AdminDashboard() {
                   dataKey="month"
                   stroke="#8884d8"
                   strokeWidth={2}
-                  dot={{ fill: "#8884d8" />
+                  dot={{ fill: "#8884d8" }}
                 />
               />
             </ResponsiveContainer>
-          </div>
+          </CardContent>
         </Card>
 
         <Card>
@@ -253,19 +256,15 @@ function AdminDashboard() {
                   data={[
                     { name: "Pending", value: dashboardStats.pendingOrders, fill: "#f59e0b" },
                     { name: "Processing", value: dashboardStats.processingOrders, fill: "#3b82f6" },
-                    { name: "Closing "div" tag does not match opening "div" tag
-                  { name: "Delivered", value: dashboardStats.deliveredOrders, fill: "#10b981" },
+                    { name: "Delivered", value: dashboardStats.deliveredOrders, fill: "#10b981" },
                   ]}
-                  margin={{ top: 5, </div>
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                 <PieChart
                   cx="50%"
-                  cy="Closing "div" tag does not match opening "div" tag
-                  { name: "Delivered", value: dashboardStats.delivered, fill: "#10b981" }
-                  cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  fill="#10b981"
+                  fill="#8884d8"
                   labelLine={false}
                   label={({ cx, cy, midAngle, innerRadius, percent, index }) => {
                     return (
@@ -285,7 +284,6 @@ function AdminDashboard() {
               />
             </ResponsiveContainer>
           </CardContent>
-        </Card>
         </Card>
       </div>
 
@@ -311,36 +309,29 @@ function AdminDashboard() {
                         className={`${
                           order.orderStatus === "delivered"
                               ? "bg-green-500"
-                              : order.orderStatus === "Closing "div" tag does not match opening "div" tag
-                              { name: "Delivered", value: dashboardStats.delivered, fill: "#10b981" }
-                            className={`${
-                              order.orderStatus === "delivered"
-                                ? "bg-green-500"
-                                : order.orderStatus === "rejected"
-                                ? "bg-red-600"
-                                : "bg-blue-500"
-                            }`}
-                          >
-                            {order.orderStatus}
-                          </Badge>
-                        </Badge>
+                              : order.orderStatus === "rejected"
+                              ? "bg-red-600"
+                              : "bg-blue-500"
+                          }`}
+                      >
+                        {order.orderStatus}
+                      </Badge>
                     </div>
                   </div>
                 ))
-              )) : (
-                <p className="text-center text-gray-500 py-8">No recent orders</p>
-              )}
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">No recent orders</p>
             </CardContent>
           </Card>
         </Card>
-      </div>
 
-      {/* Top Selling Products */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Selling Products</CardTitle>
-          </CardHeader>
+        {/* Top Selling Products */}
+        <div className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Selling Products</CardTitle>
+            </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {dashboardStats.topSellingProducts.length > 0 ? (
@@ -356,82 +347,24 @@ function AdminDashboard() {
                       <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
                       <p className="font-bold">₹{product.price}</p>
                     </div>
-                  </div>
-                ))
-              )) : (
-                <p className="text-center text-gray-500 py-8">No products sold yet</p>
-              )}
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">No products sold yet</p>
             </CardContent>
-        </Card>
-      </div>
+          </Card>
+        </div>
 
-      {/* Feature Images */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Feature Images</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProductImageUpload />
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {featureImageList && featureImageList.length > 0 ? (
-                featureImageList.map((featureImgItem, index) => (
-                  <div
-                      key={featureImgItem._id || index}
-                      className="relative border rounded-lg overflow-hidden"
-                  >
-                    <img
-                      src={featureImgItem.image}
-                      alt="Feature"
-                      className="w-full h-32 object-cover rounded-lg"
-                      crossOrigin="anonymous"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="div"
-                      className="absolute top-2 right-2"
-                      onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
-                    >
-                      <XIcon className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))
-              )) : (
-                <p className="text-center text-gray-500 py-8">No feature images found.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-4">
-        <Link to="/admin/products">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Manage Products
-          </Button>
-        </Link>
-        <Link to="/admin/orders">
-          <loading: {isLoading ? (
-            <Button variant="outline" disabled className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-4 border-t-2 border-gray-200 border-b border-t-gray-200 border-b border-gray-200 animate-spin">
-              <div className="h-4 w-4 border-t-2 border-b-2 border-gray-200 border-b-gray-200 border-t-gray-200 border-b-gray-200 animate-spin"></div>
-              <span className="ml-2">Loading...</span>
-            </Button>
-          ) : (
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-4">
+          <Link to="/admin/products">
             <Button variant="outline" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Manage Orders
+              <Package className="h-4 w-4 text-blue-600" />
+              Manage Products
             </Button>
-          )}
+          </Link>
         </Link>
-        <Link to="/admin/users">
-          <Button variant="0" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Manage Users
-          </Button>
-        </Link>
+        </div>
       </div>
     </div>
   );
