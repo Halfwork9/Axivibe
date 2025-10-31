@@ -1,16 +1,18 @@
+// src/store/admin/order-slice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
 const initialState = {
   orderList: [],
   orderDetails: null,
+  isLoading: false,
 };
 
 export const getAllOrdersForAdmin = createAsyncThunk(
   "/order/getAllOrdersForAdmin",
-  async () => {
+  async ({ sortBy, page }) => {
     const response = await api.get(
-      `/admin/orders/get`
+      `/admin/orders/get?sortBy=${sortBy}&page=${page}`
     );
 
     return response.data;
@@ -47,8 +49,6 @@ const adminOrderSlice = createSlice({
   initialState,
   reducers: {
     resetOrderDetails: (state) => {
-      console.log("resetOrderDetails");
-
       state.orderDetails = null;
     },
   },
@@ -80,5 +80,4 @@ const adminOrderSlice = createSlice({
 });
 
 export const { resetOrderDetails } = adminOrderSlice.actions;
-
 export default adminOrderSlice.reducer;
