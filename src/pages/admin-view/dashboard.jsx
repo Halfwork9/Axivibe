@@ -30,9 +30,9 @@ import {
 function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { orderList, isLoading: ordersLoading } = useSelector(
-    (state) => state.adminOrderSlice
-  );
+  const { orderList = [], isLoading = false, pagination = null } =
+  useSelector((state) => state.adminOrder) || {};
+
 
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
