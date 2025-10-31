@@ -24,6 +24,7 @@ import {
   getFeatureImages,
   deleteFeatureImage,
 } from "@/store/common-slice";
+import Sparkline from "@/components/admin-view/charts/Sparkline";
 
 function AdminDashboard() {
   const dispatch = useDispatch();
@@ -94,6 +95,12 @@ function AdminDashboard() {
       </div>
     );
   }
+  // Prepare data for sparklines
+  const orderSparklineData = salesOverview.slice(-7).map(d => ({ value: d.orders }));
+  const revenueChange = stats?.revenueGrowthPercentage > 0 
+    ? `+${stats.revenueGrowthPercentage}% vs last month` 
+    : `${stats.revenueGrowthPercentage}% vs last month`;
+
 
   return (
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
@@ -137,10 +144,31 @@ function AdminDashboard() {
         />
       </div>
 
-      {/* CHARTS SECTION */}
+      {/* CHARTS SECTION WITH TITLES */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SalesOverviewChart data={salesOverview} />
-        <TopProductsChart data={stats?.topProducts || []} />
+        <Card className="shadow-sm">
+          <CardHeader className="flex justify-between items-center">
+            <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+              Sales Overview (Last 30 Days)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SalesOverviewChart data={salesOverview} />
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="flex justify-between items-center">
+            <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-blue-500" />
+              Top 5 Selling Products
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TopProductsChart data={stats?.topProducts || []} />
+          </CardContent>
+        </Card>
       </div>
 
       {/* RECENT ORDERS */}
@@ -213,10 +241,10 @@ function AdminDashboard() {
 }
 
 /* 🔸 Reusable Dashboard Card */
-const DashboardCard = ({ title, value, icon, change }) => (
+const DashboardCard = ({ title, value, icon, change, sparklineData, sparklineColor }) => (
   <Card className="shadow-sm">
     <CardContent className="p-5 flex items-center justify-between">
-      <div>
+      <div className="flex-1">
         <p className="text-gray-500 text-sm">{title}</p>
         <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
         <p
@@ -224,12 +252,18 @@ const DashboardCard = ({ title, value, icon, change }) => (
             change.startsWith("+") ? "text-green-500" : "text-red-500"
           }`}
         >
-          {change} from last week
+          {change}
         </p>
+        {sparklineData && (
+          <div className="mt-2 w-24">
+            <Sparkline data={sparklineData} color={sparklineColor} />
+          </div>
+        )}
       </div>
-      <div className="p-3 rounded-full bg-gray-100">{icon}</div>
+      <div className="p-3 rounded-full bg-gray-100 ml-4">{icon}</div>
     </CardContent>
   </Card>
 );
+
 
 export default AdminDashboard;
