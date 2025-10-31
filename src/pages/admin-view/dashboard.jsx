@@ -11,11 +11,9 @@ import { getAllProducts } from "@/store/admin/product-slice";
 import { getAllUsers } from "@/store/admin/user-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 
 // Helper component for responsive charts
-const ResponsiveContainer = ({ children, width, height, 
-  ) => {
+const ResponsiveContainer = ({ children, width, height, ...props }) => {
   return (
     <div style={{ width, height, ...props }}>
       {children}
@@ -24,15 +22,15 @@ const ResponsiveContainer = ({ children, width, height,
 };
 
 function AdminDashboard() {
-  const dispatch = useDispatch();
+  const dispatch = const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { orderList } = useSelector((state) => state.adminOrder);
-  const { productList } = useState([]);
-  const { userList = useState([]);
+  const { orderList = useSelector((state) => state.adminOrder);
+  const [productList, setProductList] = useState([]);
+  const [userList, setUserList] = useState([]);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  // State for dashboard stats
+  // Calculate dashboard stats
   const [dashboardStats, setDashboardStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
@@ -40,23 +38,19 @@ function AdminDashboard() {
     totalUsers: 0,
     pendingOrders: 0,
     processingOrders: 0,
-    deliveredOrders: 0,
-    recentOrders: [],
-    topSellingProducts: [],
-    monthlyRevenue: [],
-    categoryWiseSales: [],
+    // ... other stats
   });
 
   // Calculate dashboard stats
   const calculateStats = () => {
-    // Calculate total revenue from orders
-    const totalRevenue = orderList.reduce((sum, order) => {
+      // Calculate total revenue from orders
+      const totalRevenue = orderList.reduce((sum, order) => {
       return sum + (order.totalAmount || 0);
     }, 0);
 
     // Calculate order status counts
     const pendingOrders = orderList.filter(order => order.orderStatus === "pending").length;
-    const processingOrders = orderList.filter(order => order.orderStatus === "inProcess" || orderList.some(order => order.orderStatus === "inShipping") || order.orderStatus === "inShipping").length;
+    const processingOrders = orderList.filter(order => order.orderStatus === "inProcess" || order.orderStatus === "inShipping" || order.orderStatus === "inShipping").length;
     const deliveredOrders = orderList.filter(order => order.orderStatus === "delivered").length;
 
     // Calculate top selling products
@@ -109,7 +103,6 @@ function AdminDashboard() {
       totalProducts: productList.length,
       totalUsers: userList.length,
       pendingOrders,
-      processingOrders,
       loading: isLoading,
       processingOrders,
       deliveredOrders,
@@ -126,9 +119,9 @@ function AdminDashboard() {
       await dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1, limit: 100 });
       const products = await dispatch(getAllProducts({ sortBy: "date-desc", page: 1, limit: 100 });
       const users = await dispatch(getAllUsers());
-      dispatch(getFeatureImages());
       setProductList(products);
       setUserList(users);
+      dispatch(getFeatureImages());
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast({
@@ -139,6 +132,7 @@ function AdminDashboard() {
     } finally {
       setIsLoading(false);
     }
+  </div;
   };
 
   useEffect(() => {
@@ -166,7 +160,7 @@ function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -187,17 +181,19 @@ function AdminDashboard() {
                 <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
                 <div className="text-2xl font-bold">{dashboardStats.totalOrders}</div>
               </div>
-              <div className="p-2 bg-green-100 rounded-full flex items-center justify-center">
-                <ShoppingCart className="h-4 w-4 text-green-600" />
-              </div>
+              <div>
+                <div className="p-2 bg-green-100 rounded-full flex items-center justify-center">
+                  <ShoppingCart className="h-4 w-4 text-green-600" />
+                </div>
             </CardContent>
-          </Card>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+                <div>
                   <div className="text-2xl font-bold">{dashboardStats.totalProducts}</div>
                 </div>
               </div>
@@ -205,22 +201,21 @@ function AdminDashboard() {
                   <Package className="h-4 w-4 text-purple-600" />
                 </div>
             </CardContent>
-          </Card>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                  <div className="text-2xl font-bold">{dashboardStats.totalUsers}</div>
-                </div>
+                <div className="text-2xl font-bold">{dashboardStats.totalUsers}</div>
               </div>
               <div className="p-2 bg-orange-100 rounded-full flex items-center justify-center">
                   <Users className="h-4 w-4 text-orange-600" />
                 </div>
             </CardContent>
           </Card>
-        </div>
+        </Card>
       </div>
 
       {/* Charts Section */}
@@ -253,10 +248,10 @@ function AdminDashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart
-                  data={[
-                    { name: "Pending", value: dashboardStats.pendingOrders, fill: "#f59e0b" },
-                    { name: "Processing", value: dashboardStats.processingOrders, fill: "#3b82f6" },
-                    { name: "Delivered", value: dashboardStats.deliveredOrders, fill: "#10b981" },
+                data={[
+                  { name: "Pending", value: dashboardStats.pendingOrders, fill: "#f59e0b" },
+                  { name: "Processing", value: dashboardStats.processingOrders, fill: "#3b82f6" },
+                  { name: "Delivered", value: dashboardStats.delivered, fill: "#10b981" },
                   ]}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
@@ -264,7 +259,7 @@ function AdminDashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  fill="#8884d8"
+                  fill="#10b981"
                   labelLine={false}
                   label={({ cx, cy, midAngle, innerRadius, percent, index }) => {
                     return (
@@ -279,7 +274,7 @@ function AdminDashboard() {
                         {`${percent.toFixed(0)}%`}
                       </text>
                     );
-                  }}
+                  />
                 />
               />
             </ResponsiveContainer>
@@ -291,32 +286,31 @@ function AdminDashboard() {
       <div className="mt-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
+          <CardTitle>Recent Orders</CardTitle>
+        </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {dashboardStats.recentOrders.length > 0 ? (
-                dashboardStats.recentOrders.map((order) => (
-                  <div key={order._id} className="flex items-center justify-between p-3 border-b last:border-0">
-                    <div>
-                      <p className="font-medium">{order._id.substring(0, 8)}...</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(order.orderDate, "MMM d, yyyy")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <Badge
-                        className={`${
-                          order.orderStatus === "delivered"
-                              ? "bg-green-500"
-                              : order.orderStatus === "rejected"
-                              ? "bg-red-600"
-                              : "bg-blue-500"
-                          }`}
-                      >
-                        {order.orderStatus}
-                      </Badge>
-                    </div>
+          <div className="space-y-4">
+            {dashboardStats.recentOrders.length > 0 ? (
+              dashboardStats.recentOrders.map((order) => (
+                <div key={order._id} className="flex items-center justify-between p-3 border-b last:border-0">
+                  <div>
+                    <p className="font-medium">{order._id.substring(0, 8)}...</p>
+                    <p className="text-sm text-gray-500">
+                      {format(new Date(order.orderDate, "MMM d, yyyy")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <Badge
+                      className={`${
+                        order.orderStatus === "delivered"
+                          ? "bg-green-500"
+                          : order.orderStatus === "rejected"
+                          ? "bg-red-600"
+                          : "bg-blue-500"
+                      }`}
+                    >
+                      {order.orderStatus}
+                    </Badge>
                   </div>
                 ))
               ))
@@ -325,48 +319,31 @@ function AdminDashboard() {
             </CardContent>
           </Card>
         </Card>
+      </div>
 
-        {/* Top Selling Products */}
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Selling Products</CardTitle>
-            </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {dashboardStats.topSellingProducts.length > 0 ? (
-                dashboardStats.topSellingProducts.map((product, index) => (
-                  <div key={product.productId} className="flex items-center space-x-4 p-3 border-b last:border-0">
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      className="w-16 h-16 object-cover rounded-md"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{product.title}</p>
-                      <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
-                      <p className="font-bold">₹{product.price}</p>
-                    </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-8">No products sold yet</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-4">
-          <Link to="/admin/products">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-blue-600" />
-              Manage Products
-            </Button>
-          </Link>
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-4">
+        <Link to="/admin/products">
+          <Button variant="outline" className="flex items-center gap-2">
+          <ShoppingCart className="h-4 w-4 text-blue-600" />
+          Manage Products
+        </Button>
         </Link>
-        </div>
+        <Link to="/admin/orders">
+          <Button variant="outline" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4 text-blue-600" />
+            Manage Orders
+          </Button>
+        </Link>
+        </Link to="/admin/users">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-orange-600" />
+            Manage Users
+          </Button>
+        </Link>
       </div>
     </div>
+  </div>
   );
 }
 
