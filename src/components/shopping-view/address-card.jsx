@@ -1,7 +1,8 @@
+// components/shopping-view/address-card.jsx
 import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Label } from "../ui/label";
-import PropTypes from "prop-types"; // ✅ import PropTypes
+import PropTypes from "prop-types";
 
 function AddressCard({
   addressInfo,
@@ -28,7 +29,10 @@ function AddressCard({
         <Label>City: {addressInfo?.city}</Label>
         <Label>Pincode: {addressInfo?.pincode}</Label>
         <Label>Phone: {addressInfo?.phone}</Label>
-    //    <Label>Notes: {addressInfo?.notes}</Label>
+        {/* Only show notes if they exist */}
+        {addressInfo?.notes && (
+          <Label>Notes: {addressInfo?.notes}</Label>
+        )}
       </CardContent>
       <CardFooter className="p-3 flex justify-between">
         <Button onClick={() => handleEditAddress(addressInfo)}>Edit</Button>
@@ -38,7 +42,7 @@ function AddressCard({
   );
 }
 
-// ✅ PropTypes validation
+// PropTypes validation
 AddressCard.propTypes = {
   addressInfo: PropTypes.shape({
     _id: PropTypes.string.isRequired,
@@ -46,7 +50,7 @@ AddressCard.propTypes = {
     city: PropTypes.string.isRequired,
     pincode: PropTypes.string.isRequired,
     phone: PropTypes.string.isRequired,
-    notes: PropTypes.string,
+    notes: PropTypes.string, // Keep notes optional
   }).isRequired,
   handleDeleteAddress: PropTypes.func.isRequired,
   handleEditAddress: PropTypes.func.isRequired,
