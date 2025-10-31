@@ -26,6 +26,7 @@ import ResetPassword from './pages/auth/reset-password';
 import AdminDashboard from './pages/admin-view/dashboard';
 import AdminProducts from './pages/admin-view/products';
 import AdminOrders from './pages/admin-view/orders';
+import AdminOrderDetails from "./components/admin-view/order-details";
 import AdminFeatures from './pages/admin-view/features';
 import Brands from './pages/admin-view/brands';
 import AdminCategoriesPage from './components/admin-view/categories-page';
@@ -153,6 +154,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="orders" element={<AdminOrders />} />
+        <Route path="orders/details/:id" element={<AdminOrderDetails />} />
         <Route path="features" element={<AdminFeatures />} />
         <Route path="brands" element={<Brands />} />
         <Route path="categories" element={<AdminCategoriesPage />} />
