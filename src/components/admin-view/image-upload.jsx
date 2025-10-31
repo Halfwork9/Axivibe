@@ -24,6 +24,8 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
 
+  const { toast } = useToast();
+
   const MAX_IMAGES = 5;
   const MAX_RETRIES = 3;
 
@@ -31,11 +33,8 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
   const uploadWithRetry = async (files, retryAttempt = 0) => {
     const data = new FormData();
     
-    files.forEach((file, index) => {
+    files.forEach((file) => {
       data.append("images", file);
-      if (retryAttempt > 0) {
-        data.append("retryAttempt", retryAttempt);
-      }
     });
 
     try {
@@ -45,10 +44,8 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
         onUploadProgress: (progressEvent) => {
           const { loaded, total } = progressEvent;
           const percentCompleted = Math.round((loaded / total) * 100);
-          setUploadProgress(prev => ({
-            ...prev,
-            [`file-${index}`]: percentCompleted
-          }));
+          // We'll just show a single progress for the batch for simplicity
+          setUploadProgress({ batch: percentCompleted });
         }
       });
 
@@ -64,47 +61,52 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
   };
 
   // Upload images with retry logic
+  // FIX: Removed 'retryCount' from dependency array to prevent potential infinite loops.
+  // The function uses the latest state value via the setter function form.
   const uploadImages = useCallback(async () => {
     if (imageFiles.length === 0) return;
 
     setIsUploading(true);
     setUploadError("");
-    setRetryCount(0);
 
     try {
       const results = await uploadWithRetry(imageFiles, retryCount);
       const imageUrls = results.data || [];
       
       setUploadedImageUrls((prev) =>
-        [...prev, ...imageUrls.slice(0, MAX_IMAGES)]
+        [...prev, ...imageUrls.slice(0, MAX_IMAGES - prev.length)]
       );
       
       setImageFiles([]);
       if (inputRef.current) inputRef.current.value = "";
-      setRetryCount(0);
+      setRetryCount(0); // Reset retry count on success
     } catch (error) {
       console.error("Upload failed:", error);
       
       // Retry logic
-      if (retryCount < MAX_RETRIES) {
-        setRetryCount(prev => prev + 1);
-        setTimeout(() => uploadImages(), 1000 * retryCount); // Exponential backoff
-      } else {
-        setUploadError(
-          error.message || "Upload failed. Please check your connection or try again."
-        );
-      }
+      setRetryCount((currentCount) => {
+        if (currentCount < MAX_RETRIES) {
+          setTimeout(() => uploadImages(), 1000 * (currentCount + 1)); // Exponential backoff
+          return currentCount + 1;
+        } else {
+          setUploadError(
+            error.message || "Upload failed. Please check your connection or try again."
+          );
+          return 0; // Reset retry count after final failure
+        }
+      });
     } finally {
       setIsUploading(false);
+      setUploadProgress({});
     }
-  }, [imageFiles, retryCount]);
+  }, [imageFiles, setUploadedImageUrls]); // Keep dependencies stable
 
   // Auto-trigger upload when new files are selected
   useEffect(() => {
     if (imageFiles.length > 0) {
       uploadImages();
     }
-  }, [imageFiles]);
+  }, [imageFiles, uploadImages]);
 
   // Prevent invalid main index
   useEffect(() => {
@@ -112,6 +114,32 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
       setMainImageIndex(0);
     }
   }, [uploadedImageUrls, mainImageIndex]);
+
+  // FIX: Added the missing handler for file input changes
+  const handleFileChange = (event) => {
+    const selectedFiles = Array.from(event.target.files);
+    if (selectedFiles.length + uploadedImageUrls.length > MAX_IMAGES) {
+      toast({
+        title: "Too many images",
+        description: `You can only upload a maximum of ${MAX_IMAGES} images.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    setImageFiles(selectedFiles);
+    setUploadError(""); // Clear previous errors
+  };
+
+  // FIX: Added the missing handler for removing an image
+  const handleRemoveImage = (indexToRemove) => {
+    setUploadedImageUrls((prevUrls) =>
+      prevUrls.filter((_, index) => index !== indexToRemove)
+    );
+    // If the removed image was the main image or before it, adjust the index
+    if (mainImageIndex >= indexToRemove && mainImageIndex > 0) {
+      setMainImageIndex(mainImageIndex - 1);
+    }
+  };
 
   const canUploadMore = uploadedImageUrls.length < MAX_IMAGES;
 
@@ -154,9 +182,10 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
               size="icon"
               variant="outline"
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
+              // FIX: Removed the extra closing parenthesis that was causing the build error
               onClick={() =>
                 setMainImageIndex(
-                  (prev) => (prev + 1) % uploadedImageUrls.length)
+                  (prev) => (prev + 1) % uploadedImageUrls.length
                 )
               }
             >
@@ -192,41 +221,30 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
             </Button>
           </div>
         ))}
-        
-        {/* Upload Progress Indicators */}
-        {isUploading && Object.keys(uploadProgress).length > 0 && (
-          <div className="mt-2 space-y-2">
-            {Object.entries(uploadProgress).map(([fileId, progress]) => (
-              <div key={fileId} className="w-full">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-600">Uploading...</span>
-                  <span className="text-xs text-gray-600">{progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Upload Progress Indicator */}
+      {isUploading && Object.keys(uploadProgress).length > 0 && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-gray-600">Uploading images...</span>
+            <span className="text-xs text-gray-600">{uploadProgress.batch || 0}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress.batch || 0}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
 
       {/* Upload Error Message */}
       {uploadError && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
           <p className="font-medium">{uploadError}</p>
-          {retryCount > 0 && (
-            <Button 
-              onClick={() => uploadImages()} 
-              variant="outline" 
-              size="sm"
-              className="mt-2"
-            >
-              Retry ({MAX_RETRIES - retryCount} attempts left)
-            </Button>
+          {retryCount > 0 && retryCount <= MAX_RETRIES && (
+            <p className="text-sm mt-1">Retrying... ({retryCount}/{MAX_RETRIES})</p>
           )}
         </div>
       )}
