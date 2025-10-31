@@ -36,7 +36,6 @@ function AdminOrdersView() {
   const dispatch = useDispatch();
 
   function handleFetchOrderDetails(getId) {
-    // Navigate to the order details page instead of opening a dialog
     navigate(`/admin/orders/details/${getId}`);
   }
 
@@ -65,29 +64,37 @@ function AdminOrdersView() {
         {/* Controls */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
           {/* Sort */}
-          <select
-            className="border px-3 py-2 rounded-md"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            {sortOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">Sort by:</label>
+            <select
+              className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setPage(1); // Reset to first page when sorting changes
+              }}
+            >
+              {sortOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
           {/* Pagination */}
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
+              size="sm"
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
             >
               Prev
             </Button>
-            <span>
+            <span className="text-sm">
               Page <strong>{page}</strong> of <strong>{totalPages}</strong>
             </span>
             <Button
               variant="outline"
+              size="sm"
               disabled={page >= totalPages}
               onClick={() => setPage(p => p + 1)}
             >
@@ -132,6 +139,7 @@ function AdminOrdersView() {
                       <TableCell>₹{orderItem?.totalAmount}</TableCell>
                       <TableCell>
                         <Button
+                          size="sm"
                           onClick={() => handleFetchOrderDetails(orderItem?._id)}
                         >
                           View Details
