@@ -9,8 +9,6 @@ import {
   Truck,
   Users,
   Loader2,
-  TrendingUp,
-  BarChart3,
 } from "lucide-react";
 
 import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
@@ -30,12 +28,12 @@ import {
 function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { orderList = [], isLoading = false, pagination = null } =
-  useSelector((state) => state.adminOrder) || {};
+  const { orderList = [], isLoading: ordersLoading } = useSelector(
+    (state) => state.adminOrder
+  );
 
-
-  const [imageFile, setImageFile] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  // FIX: State for the new ProductImageUpload component
+  const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
 
   const [stats, setStats] = useState(null);
@@ -65,15 +63,18 @@ function AdminDashboard() {
     dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1 }));
   }, [dispatch]);
 
-  // 🧠 Feature image upload handlers
-  function handleUploadFeatureImage() {
-    if (!uploadedImageUrl) return;
-    dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(getFeatureImages());
-        setImageFile(null);
-        setUploadedImageUrl("");
-      }
+  // 🧠 Feature image upload handlers (Updated for array of images)
+  function handleUploadFeatureImages() {
+    if (uploadedFeatureImages.length === 0) return;
+
+    // Assuming your backend can handle adding them one by one
+    const uploadPromises = uploadedFeatureImages.map((imageUrl) =>
+      dispatch(addFeatureImage(imageUrl))
+    );
+
+    Promise.all(uploadPromises).then(() => {
+      dispatch(getFeatureImages());
+      setUploadedFeatureImages([]); // Clear the list after uploading
     });
   }
 
@@ -113,7 +114,7 @@ function AdminDashboard() {
         <DashboardCard
           title="Revenue"
           icon={<DollarSign className="text-green-500" size={28} />}
-          value={`₹${stats?.totalRevenue?.toLocaleString() || 0}`}
+          value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
           change="+8%"
         />
         <DashboardCard
@@ -143,7 +144,8 @@ function AdminDashboard() {
       </div>
 
       {/* RECENT ORDERS */}
-      <RecentOrdersTable orders={orderList || []} isLoading={isLoading} />
+      {/* FIX: Pass the correct loading state variable */}
+      <RecentOrdersTable orders={orderList || []} isLoading={ordersLoading} />
 
       {/* FEATURE IMAGES MANAGEMENT */}
       <Card className="shadow-sm mt-8">
@@ -153,34 +155,33 @@ function AdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* FIX: Pass the correct props to the updated ProductImageUpload component */}
           <ProductImageUpload
-            imageFile={imageFile}
-            setImageFile={setImageFile}
-            uploadedImageUrl={uploadedImageUrl}
-            setUploadedImageUrl={setUploadedImageUrl}
+            uploadedImageUrls={uploadedFeatureImages}
+            setUploadedImageUrls={setUploadedFeatureImages}
             setImageLoadingState={setImageLoadingState}
             imageLoadingState={imageLoadingState}
             isCustomStyling={true}
           />
           <Button
-            onClick={handleUploadFeatureImage}
+            onClick={handleUploadFeatureImages}
             className="mt-4 w-full"
-            disabled={!uploadedImageUrl}
+            disabled={uploadedFeatureImages.length === 0 || imageLoadingState}
           >
             {imageLoadingState ? (
               <>
                 <Loader2 className="animate-spin mr-2 h-4 w-4" /> Uploading...
               </>
             ) : (
-              "Upload"
+              "Upload to Features"
             )}
           </Button>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
             {Array.isArray(featureImageList) && featureImageList.length > 0 ? (
-              featureImageList.map((img, i) => (
+              featureImageList.map((img) => (
                 <div
-                  key={img._id || i}
+                  key={img._id}
                   className="relative border rounded-lg overflow-hidden shadow-sm"
                 >
                   <img
@@ -200,7 +201,7 @@ function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 text-center">
+              <p className="text-gray-500 text-center col-span-full">
                 No feature images found.
               </p>
             )}
