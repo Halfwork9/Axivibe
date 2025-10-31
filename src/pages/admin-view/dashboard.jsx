@@ -8,12 +8,19 @@ import ProductImageUpload from "@/components/admin-view/image-upload";
 import { getFeatureImages, deleteFeatureImage } from "@/store/common-slice";
 import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
 import { getAllProducts } from "@/store/admin/product-slice";
-import { getAllUsers } from "@/store/admin/user-slice";
+import { getAllUsers } from "@/components/admin-view/user-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowUp, ArrowDown, Eye, MoreHorizontal } from "lucide-react";
-import { Loader2 } from "lucide-react";
+
+// Helper component for responsive charts
+const ResponsiveContainer = ({ children, width, height, ...props }) => {
+  return (
+    <div style={{ width, height, ...props }}>
+      {children}
+    </div>
+  );
+};
 
 function AdminDashboard() {
   const dispatch = useDispatch();
@@ -31,12 +38,7 @@ function AdminDashboard() {
     totalProducts: 0,
     totalUsers: 0,
     pendingOrders: 0,
-    processingOrders: 0,
-    deliveredOrders: 0,
-    recentOrders: [],
-    topSellingProducts: [],
-    monthlyRevenue: [],
-    categoryWiseSales: [],
+    // ... other stats
   });
 
   // Calculate dashboard stats
@@ -49,7 +51,7 @@ function AdminDashboard() {
     // Calculate order status counts
     const pendingOrders = orderList.filter(order => order.orderStatus === "pending").length;
     const processingOrders = orderList.filter(order => order.orderStatus === "inProcess" || order.orderStatus === "inShipping").length;
-    const deliveredOrders = orderList.filter(order => order.orderStatus === "delivered").length;
+    const deliveredOrders = orderList.filter(order => order.orderStatus === "div" === "delivered").length;
 
     // Calculate top selling products
     const productSales = {};
@@ -72,7 +74,7 @@ function AdminDashboard() {
           title: product?.title || "Unknown Product",
           quantity,
           image: product?.image || "",
-          price: product?.price || 0
+          price: product?.price || 0,
         };
       });
 
@@ -101,7 +103,6 @@ function AdminDashboard() {
       totalProducts: productList.length,
       totalUsers: userList.length,
       pendingOrders,
-      loading: false,
       processingOrders,
       deliveredOrders,
       recentOrders: orderList.slice(0, 5),
@@ -114,8 +115,8 @@ function AdminDashboard() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      await dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1, limit: 100 }));
-      await dispatch(getAllProducts({ sortBy: "date-desc", page: 1, limit: 100 }));
+      await dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1, limit: 100 });
+      await dispatch(getAllProducts({ sortBy: "date-desc", page:  />
       await dispatch(getAllUsers());
       dispatch(getFeatureImages());
     } catch (error) {
@@ -123,7 +124,7 @@ function AdminDashboard() {
       toast({
         title: "Failed to load dashboard data",
         description: "Please try again later",
-        variant: "destructive",
+        variant: "ResponsiveContainer width="100%" height="100%" height="100%"
       });
     } finally {
       setIsLoading(false);
@@ -146,158 +147,150 @@ function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mr-2" />
-            <p className="mt-2">Loading dashboard...</p>
-          </div>
-        </div>
-      )}
-
       {/* Page Header */}
-      {!isLoading && (
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <div className="text-sm text-muted-foreground">
-            {format(new Date(), "EEEE, MMMM d, yyyy")}
-          </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <div className="text-sm text-muted-foreground">
+          {format(new Date(), "EEEE, MMMM d, yyyy")}
         </div>
-      )}
+      </div>
 
       {/* Stats Cards */}
-      {!isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">₹{dashboardStats.totalRevenue.toLocaleString()}</p>
-                </div>
-                <div className="p-2 bg-blue-100 rounded-full flex items-center justify-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                <p className="loading: {isLoading ? "animate-pulse" : ""}>
+                  ₹{dashboardStats.totalRevenue.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-2 bg-blue-100 rounded-full flex items-center justify-center">
                   <TrendingUp className="h-4 w-4 text-blue-600" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                  <p className="text-2xl font-bold">{dashboardStats.totalOrders}</p>
-                </div>
-                <div className="p-2 bg-green-100 rounded-full flex items-center justify-center">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-500">Total Orders</p>
+                <p className="text-2xl font-bold">{dashboardStats.totalOrders}</p>
+              </div>
+              <div className="p-2 bg-green-100 rounded-full flex items-center justify-center">
                   <ShoppingCart className="h-4 w-4 text-green-600" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Products</p>
-                  <p className="text-2xl font-bold">{dashboardStats.totalProducts}</p>
+                  <p className="text-sm font-medium text-muted-500">Total Products</p>
+                  <p className="loading: {isLoading ? "animate-pulse" : ""}>
+                    ₹{dashboardStats.totalProducts}
+                  </p>
                 </div>
                 <div className="p-2 bg-purple-100 rounded-full flex items-center justify-center">
                   <Package className="h-4 w-4 text-purple-600" />
                 </div>
               </div>
             </CardContent>
-          </Card>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                  <p className="text-2xl font-bold">{dashboardStats.totalUsers}</p>
+                  <p className="text-sm font-medium text-muted-500">Total Users</p>
+                  <p className="loading: {isLoading ? "animate-pulse" : ""}>
+                    {dashboardStats.totalUsers}
+                  </p>
                 </div>
                 <div className="p-2 bg-orange-100 rounded-full flex items-center justify-center">
                   <Users className="h-4 w-4 text-orange-600" />
                 </div>
               </div>
             </CardContent>
-          </Card>
-        </div>
-      )}
+        </Card>
+      </div>
 
       {/* Charts Section */}
-      {!isLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Revenue</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={dashboardStats.monthlyRevenue}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <LineChart
-                      dataKey="month"
-                      stroke="#8884d8"
-                      strokeWidth={2}
-                      dot={{ fill: "#8884d8" }}
-                    />
-                  />
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Revenue</CardTitle>
+          </CardHeader>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={dashboardStats.monthlyRevenue}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <LineChart
+                  dataKey="month"
+                  stroke="#8884d8"
+                  strokeWidth={2}
+                  dot={{ fill: "#8884d8" />
+                />
+              />
+            </ResponsiveContainer>
+          </div>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                      data={[
-                        { name: "Pending", value: dashboardStats.pendingOrders, fill: "#f59e0b" },
-                        { name: "Processing", value: dashboardStats.processingOrders, fill: "#3b82f6" },
-                        { name: "Delivered", value: dashboardStats.deliveredOrders, fill: "#10b981" },
-                      ]}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                    <PieChart
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      labelLine={false}
-                      label={({ cx, cy, midAngle, innerRadius, percent, index }) => {
-                        return (
-                          <text
-                            x={cx}
-                            y={cy - 10}
-                            fill="white"
-                            textAnchor="middle"
-                            textAnchorOffset="middle"
-                            className="fill-current text-xs"
-                          >
-                            {`${percent.toFixed(0)}%`}
-                          </text>
-                        );
-                      }}
-                    />
-                  </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Status</CardTitle>
+          </CardHeader>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart
+                  data={[
+                    { name: "Pending", value: dashboardStats.pendingOrders, fill: "#f59e0b" },
+                    { name: "Processing", value: dashboardStats.processingOrders, fill: "#3b82f6" },
+                    { name: "Closing "div" tag does not match opening "div" tag
+                  { name: "Delivered", value: dashboardStats.deliveredOrders, fill: "#10b981" },
+                  ]}
+                  margin={{ top: 5, </div>
+                >
+                <PieChart
+                  cx="50%"
+                  cy="Closing "div" tag does not match opening "div" tag
+                  { name: "Delivered", value: dashboardStats.delivered, fill: "#10b981" }
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#10b981"
+                  labelLine={false}
+                  label={({ cx, cy, midAngle, innerRadius, percent, index }) => {
+                    return (
+                      <text
+                        x={cx}
+                        y={cy - 10}
+                        fill="white"
+                        textAnchor="middle"
+                        textAnchorOffset="middle"
+                        className="text-xs"
+                      >
+                        {`${percent.toFixed(0)}%`}
+                      </text>
+                    );
+                  }}
+                />
+              />
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        </Card>
+      </div>
 
       {/* Recent Orders */}
-      {!isLoading && (
+      <div className="mt-6">
         <Card>
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
@@ -310,7 +303,7 @@ function AdminDashboard() {
                     <div>
                       <p className="font-medium">{order._id.substring(0, 8)}...</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(order.orderDate), "MMM d, yyyy")}
+                        {format(new Date(order.orderDate, "MMM d, yyyy")}
                       </p>
                     </div>
                     <div className="text-right">
@@ -318,26 +311,32 @@ function AdminDashboard() {
                         className={`${
                           order.orderStatus === "delivered"
                               ? "bg-green-500"
-                              : order.orderStatus === "rejected"
-                              ? "bg-red-600"
-                              : "bg-blue-500"
-                        }`}
-                      >
-                        {order.orderStatus}
-                      </Badge>
+                              : order.orderStatus === "Closing "div" tag does not match opening "div" tag
+                              { name: "Delivered", value: dashboardStats.delivered, fill: "#10b981" }
+                            className={`${
+                              order.orderStatus === "delivered"
+                                ? "bg-green-500"
+                                : order.orderStatus === "rejected"
+                                ? "bg-red-600"
+                                : "bg-blue-500"
+                            }`}
+                          >
+                            {order.orderStatus}
+                          </Badge>
+                        </Badge>
                     </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-8">No recent orders</p>
-            )}
-          </CardContent>
+                ))
+              )) : (
+                <p className="text-center text-gray-500 py-8">No recent orders</p>
+              )}
+            </CardContent>
+          </Card>
         </Card>
-      )}
+      </div>
 
       {/* Top Selling Products */}
-      {!isLoading && (
+      <div className="mt-6">
         <Card>
           <CardHeader>
             <CardTitle>Top Selling Products</CardTitle>
@@ -358,17 +357,16 @@ function AdminDashboard() {
                       <p className="font-bold">₹{product.price}</p>
                     </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-8">No products sold yet</p>
-            )}
-          </CardContent>
+                ))
+              )) : (
+                <p className="text-center text-gray-500 py-8">No products sold yet</p>
+              )}
+            </CardContent>
         </Card>
-      )}
+      </div>
 
       {/* Feature Images */}
-      {!isLoading && (
+      <div className="mt-6">
         <Card>
           <CardHeader>
             <CardTitle>Feature Images</CardTitle>
@@ -390,7 +388,7 @@ function AdminDashboard() {
                     />
                     <Button
                       variant="destructive"
-                      size="sm"
+                      size="div"
                       className="absolute top-2 right-2"
                       onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
                     >
@@ -399,47 +397,44 @@ function AdminDashboard() {
                   </div>
                 ))
               )) : (
-                <p className="text-gray-500 text-center py-8">No feature images found.</p>
+                <p className="text-center text-gray-500 py-8">No feature images found.</p>
               )}
             </div>
           </CardContent>
         </Card>
-      )}
+      </div>
 
       {/* Quick Actions */}
-      {!isLoading && (
-        <div className="flex flex-wrap gap-4">
-          <Link to="/admin/products">
+      <div className="flex flex-wrap gap-4">
+        <Link to="/admin/products">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Manage Products
+          </Button>
+        </Link>
+        <Link to="/admin/orders">
+          <loading: {isLoading ? (
+            <Button variant="outline" disabled className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-4 border-t-2 border-gray-200 border-b border-t-gray-200 border-b border-gray-200 animate-spin">
+              <div className="h-4 w-4 border-t-2 border-b-2 border-gray-200 border-b-gray-200 border-t-gray-200 border-b-gray-200 animate-spin"></div>
+              <span className="ml-2">Loading...</span>
+            </Button>
+          ) : (
             <Button variant="outline" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
-              Manage Products
-            </Button>
-          </Link>
-          <Link to="/admin/orders">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
               Manage Orders
             </Button>
-          </Link>
-          <Link to="/admin/users">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Manage Users
-            </Button>
-          </Link>
-        </div>
-      )}
+          )}
+        </Link>
+        <Link to="/admin/users">
+          <Button variant="0" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Manage Users
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
-
-// Helper component for responsive charts
-const ResponsiveContainer = ({ children, width, height, ...props }) => {
-  return (
-    <div style={{ width, height, ...props }}>
-      {children}
-    </div>
-  );
-};
 
 export default AdminDashboard;
