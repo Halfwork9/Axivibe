@@ -12,7 +12,7 @@ import {
   updateOrderStatus,
 } from "@/store/admin/order-slice";
 import { useToast } from "../ui/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 import CommonForm from "../common/form";
 
 const initialFormData = {
@@ -23,6 +23,7 @@ function AdminOrderDetailsView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState(initialFormData);
+  const [isUpdating, setIsUpdating] = useState(false);
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { orderDetails, isLoading } = useSelector((state) => state.adminOrder);
@@ -31,15 +32,32 @@ function AdminOrderDetailsView() {
     event.preventDefault();
     const { status } = formData;
 
+    if (!status) {
+      toast({
+        title: "Please select a status",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdating(true);
     dispatch(
       updateOrderStatus({ id, orderStatus: status })
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(getOrderDetailsForAdmin(id));
+        setFormData(initialFormData);
         toast({
-          title: data?.payload?.message,
+          title: "Order status updated successfully",
+        });
+      } else {
+        toast({
+          title: "Failed to update order status",
+          variant: "destructive",
         });
       }
+    }).finally(() => {
+      setIsUpdating(false);
     });
   }
 
@@ -73,8 +91,25 @@ function AdminOrderDetailsView() {
     );
   }
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-500";
+      case "rejected":
+        return "bg-red-600";
+      case "inProcess":
+        return "bg-blue-500";
+      case "inShipping":
+        return "bg-orange-500";
+      case "delivered":
+        return "bg-purple-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className="container mx-auto p-4 md:p-6 max-w-4xl">
       <div className="flex items-center mb-6">
         <Button variant="outline" onClick={handleBackToOrders} className="mr-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -86,98 +121,136 @@ function AdminOrderDetailsView() {
       <Card>
         <CardContent className="p-6">
           <div className="grid gap-6">
-            <div className="grid gap-2">
-              <div className="flex mt-6 items-center justify-between">
-                <p className="font-medium">Order ID</p>
-                <Label>{orderDetails?._id}</Label>
-              </div>
-              <div className="flex mt-2 items-center justify-between">
-                <p className="font-medium">Order Date</p>
-                <Label>{orderDetails?.orderDate?.split("T")[0]}</Label>
-              </div>
-              <div className="flex mt-2 items-center justify-between">
-                <p className="font-medium">Order Price</p>
-                <Label>₹{orderDetails?.totalAmount}</Label>
-              </div>
-              <div className="flex mt-2 items-center justify-between">
-                <p className="font-medium">Payment method</p>
-                <Label>{orderDetails?.paymentMethod}</Label>
-              </div>
-              <div className="flex mt-2 items-center justify-between">
-                <p className="font-medium">Payment Status</p>
-                <Label>{orderDetails?.paymentStatus}</Label>
-              </div>
-              <div className="flex mt-2 items-center justify-between">
-                <p className="font-medium">Order Status</p>
-                <Label>
-                  <Badge
-                    className={`py-1 px-3 ${
-                      orderDetails?.orderStatus === "confirmed"
-                        ? "bg-green-500"
-                        : orderDetails?.orderStatus === "rejected"
-                        ? "bg-red-600"
-                        : "bg-black"
-                    }`}
-                  >
+            {/* Order Summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold mb-3">Order Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Order ID</p>
+                  <p className="font-medium">{orderDetails?._id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Order Date</p>
+                  <p className="font-medium">{orderDetails?.orderDate?.split("T")[0]}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Order Price</p>
+                  <p className="font-medium text-lg">₹{orderDetails?.totalAmount}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Payment Method</p>
+                  <p className="font-medium">{orderDetails?.paymentMethod}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Payment Status</p>
+                  <Badge className="bg-green-500">{orderDetails?.paymentStatus}</Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Order Status</p>
+                  <Badge className={`${getStatusColor(orderDetails?.orderStatus)}`}>
                     {orderDetails?.orderStatus}
                   </Badge>
-                </Label>
-              </div>
-            </div>
-            <Separator />
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <div className="font-medium">Order Details</div>
-                <ul className="grid gap-3">
-                  {orderDetails?.cartItems?.length > 0
-                    ? orderDetails.cartItems.map((item, idx) => (
-                        <li
-                          key={item.productId || idx}
-                          className="flex items-center justify-between"
-                        >
-                          <span>Title: {item.title}</span>
-                          <span>Quantity: {item.quantity}</span>
-                          <span>Price: ₹{item.price}</span>
-                        </li>
-                      ))
-                    : null}
-                </ul>
-              </div>
-            </div>
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <div className="font-medium">Shipping Info</div>
-                <div className="grid gap-0.5 text-muted-foreground">
-                  <span>{orderDetails?.addressInfo?.address}</span>
-                  <span>{orderDetails?.addressInfo?.city}</span>
-                  <span>{orderDetails?.addressInfo?.pincode}</span>
-                  <span>{orderDetails?.addressInfo?.phone}</span>
-                  <span>{orderDetails?.addressInfo?.notes}</span>
                 </div>
               </div>
             </div>
 
-            <div>
-              <CommonForm
-                formControls={[
-                  {
-                    label: "Order Status",
-                    name: "status",
-                    componentType: "select",
-                    options: [
-                      { id: "pending", label: "Pending" },
-                      { id: "inProcess", label: "In Process" },
-                      { id: "inShipping", label: "In Shipping" },
-                      { id: "delivered", label: "Delivered" },
-                      { id: "rejected", label: "Rejected" },
-                    ],
-                  },
-                ]}
-                formData={formData}
-                setFormData={setFormData}
-                buttonText={"Update Order Status"}
-                onSubmit={handleUpdateStatus}
-              />
+            <Separator />
+
+            {/* Order Items */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Order Items</h3>
+              <div className="border rounded-lg p-4">
+                {orderDetails?.cartItems?.length > 0 ? (
+                  <div className="space-y-3">
+                    {orderDetails.cartItems.map((item, idx) => (
+                      <div key={item.productId || idx} className="flex items-center justify-between p-3 border-b last:border-0">
+                        <div className="flex-1">
+                          <p className="font-medium">{item.title}</p>
+                          <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">₹{item.price}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No items in this order</p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Shipping Info */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Shipping Information</h3>
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-sm text-gray-600">Address</p>
+                    <p className="font-medium">{orderDetails?.addressInfo?.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">City</p>
+                    <p className="font-medium">{orderDetails?.addressInfo?.city}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Pincode</p>
+                    <p className="font-medium">{orderDetails?.addressInfo?.pincode}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="font-medium">{orderDetails?.addressInfo?.phone}</p>
+                  </div>
+                  {orderDetails?.addressInfo?.notes && (
+                    <div>
+                      <p className="text-sm text-gray-600">Notes</p>
+                      <p className="font-medium">{orderDetails?.addressInfo?.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Update Status */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Update Order Status</h3>
+              <form onSubmit={handleUpdateStatus} className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <select
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  >
+                    <option value="">Select Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="inProcess">In Process</option>
+                    <option value="inShipping">In Shipping</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <Button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="w-full sm:w-auto"
+                  >
+                    {isUpdating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Update Status
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </CardContent>
