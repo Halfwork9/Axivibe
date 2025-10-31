@@ -1,3 +1,4 @@
+// components/shopping-view/address.jsx
 import { useEffect, useState } from "react";
 import CommonForm from "../common/form";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -11,14 +12,14 @@ import {
 } from "@/store/shop/address-slice";
 import AddressCard from "./address-card";
 import { useToast } from "../ui/use-toast";
-import PropTypes from "prop-types"; // ✅ Added PropTypes
+import PropTypes from "prop-types";
 
 const initialAddressFormData = {
   address: "",
   city: "",
   phone: "",
   pincode: "",
-  notes: "",
+  notes: "", // Keep notes in initial state but make it optional
 };
 
 function Address({ setCurrentSelectedAddress, selectedId }) {
@@ -88,13 +89,15 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
       city: getCurrentAddress?.city,
       phone: getCurrentAddress?.phone,
       pincode: getCurrentAddress?.pincode,
-      notes: getCurrentAddress?.notes,
+      notes: getCurrentAddress?.notes || "", // Handle empty notes
     });
   }
 
   function isFormValid() {
-    return Object.keys(formData)
-      .map((key) => formData[key].trim() !== "")
+    // Only check for required fields, not notes
+    const requiredFields = ['address', 'city', 'phone', 'pincode'];
+    return requiredFields
+      .map((key) => formData[key] && formData[key].trim() !== "")
       .every((item) => item);
   }
 
@@ -102,7 +105,7 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
     if (user?.id) {
       dispatch(fetchAllAddresses(user?.id));
     }
-  }, [dispatch, user?.id]); // ✅ Added user?.id as dependency
+  }, [dispatch, user?.id]);
 
   return (
     <Card>
@@ -110,7 +113,7 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
         {addressList && addressList.length > 0
           ? addressList.map((singleAddressItem) => (
               <AddressCard
-                key={singleAddressItem._id} // ✅ Fixed missing key
+                key={singleAddressItem._id}
                 selectedId={selectedId}
                 handleDeleteAddress={handleDeleteAddress}
                 addressInfo={singleAddressItem}
@@ -139,10 +142,12 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
   );
 }
 
-// ✅ PropTypes
+// PropTypes
 Address.propTypes = {
   setCurrentSelectedAddress: PropTypes.func.isRequired,
-  selectedId: PropTypes.string,
+  selectedId: PropTypes.shape({
+    _id: PropTypes.string,
+  }),
 };
 
 export default Address;
