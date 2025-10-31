@@ -1,350 +1,255 @@
-// src/components/admin-view/dashboard.jsx
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { BarChart, BarChart3, LineChart, PieChart, ShoppingCart, Users, Package, TrendingUp } from "lucide-react";
-import { Tabs, TabsContent, TabsList } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  addFeatureImage,
+  getFeatureImages,
+  deleteFeatureImage,
+} from "@/store/common-slice";
 import ProductImageUpload from "@/components/admin-view/image-upload";
-import { getFeatureImages, deleteFeatureImage } from "@/store/common-slice";
-import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
-import { getAllProducts } from "@/store/admin/product-slice";
-import { getAllUsers } from "@/store/admin/user-slice";
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
-
-// Helper component for responsive charts
-const ResponsiveContainer = ({ children, width, height, ...props }) => {
-  return (
-    <div style={{ width, height, ...props }}>
-      {children}
-    </div>
-  );
-};
+import { getImageUrl } from "@/utils/imageUtils";
+import {
+  ShoppingCart,
+  Package,
+  DollarSign,
+  Truck,
+  TrendingUp,
+  BarChart3,
+  Users,
+  Loader2,
+} from "lucide-react";
 
 function AdminDashboard() {
-  const dispatch = const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { orderList = useSelector((state) => state.adminOrder);
-  const [productList, setProductList] = useState([]);
-  const [userList, setUserList] = useState([]);
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Calculate dashboard stats
-  const [dashboardStats, setDashboardStats] = useState({
-    totalRevenue: 0,
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [imageLoadingState, setImageLoadingState] = useState(false);
+
+  const [stats, setStats] = useState({
     totalOrders: 0,
-    totalProducts: 0,
-    totalUsers: 0,
+    totalRevenue: 0,
     pendingOrders: 0,
-    processingOrders: 0,
-    // ... other stats
+    deliveredOrders: 0,
+    customers: 0,
   });
 
-  // Calculate dashboard stats
-  const calculateStats = () => {
-      // Calculate total revenue from orders
-      const totalRevenue = orderList.reduce((sum, order) => {
-      return sum + (order.totalAmount || 0);
-    }, 0);
-
-    // Calculate order status counts
-    const pendingOrders = orderList.filter(order => order.orderStatus === "pending").length;
-    const processingOrders = orderList.filter(order => order.orderStatus === "inProcess" || order.orderStatus === "inShipping" || order.orderStatus === "inShipping").length;
-    const deliveredOrders = orderList.filter(order => order.orderStatus === "delivered").length;
-
-    // Calculate top selling products
-    const productSales = {};
-    orderList.forEach(order => {
-      order.cartItems.forEach(item => {
-        if (!productSales[item.productId]) {
-          productSales[item.productId] = 0;
-        }
-        productSales[item.productId] += item.quantity;
-      });
-    });
-
-    const topSellingProducts = Object.entries(productSales)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([productId, quantity]) => {
-        const product = productList.find(p => p._id === productId);
-        return {
-          productId,
-          title: product?.title || "Unknown Product",
-          quantity,
-          image: product?.image || "",
-          price: product?.price || 0,
-        };
-      });
-
-    // Calculate monthly revenue (last 6 months)
-    const monthlyRevenue = [];
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthRevenue = orderList
-        .filter(order => {
-          const orderDate = new Date(order.orderDate);
-          return orderDate.getMonth() === monthDate.getMonth() && 
-                 orderDate.getFullYear() === monthDate.getFullYear() &&
-                 order.orderStatus === "delivered"
-        })
-        .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-      monthlyRevenue.push({
-        month: monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
-        revenue: monthRevenue
-      });
-    }
-
-    setDashboardStats({
-      totalRevenue,
-      totalOrders: orderList.length,
-      totalProducts: productList.length,
-      totalUsers: userList.length,
-      pendingOrders,
-      loading: isLoading,
-      processingOrders,
-      deliveredOrders,
-      recentOrders: orderList.slice(0, 5),
-      topSellingProducts,
-      monthlyRevenue
-    });
-  };
-
-  // Fetch all data
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      await dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1, limit: 100 });
-      const products = await dispatch(getAllProducts({ sortBy: "date-desc", page: 1, limit: 100 });
-      const users = await dispatch(getAllUsers());
-      setProductList(products);
-      setUserList(users);
-      dispatch(getFeatureImages());
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      toast({
-        title: "Failed to load dashboard data",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  </div;
-  };
-
   useEffect(() => {
-    fetchData();
-  }, []);
+    dispatch(getFeatureImages());
+    // 🧠 Simulated stats (replace with API call later)
+    setTimeout(() => {
+      setStats({
+        totalOrders: 242,
+        totalRevenue: 95860,
+        pendingOrders: 18,
+        deliveredOrders: 210,
+        customers: 420,
+      });
+    }, 600);
+  }, [dispatch]);
 
-  const handleDeleteFeatureImage = (id) => {
-    dispatch(deleteFeatureImage(id)).then((data) => {
+  function handleUploadFeatureImage() {
+    if (!uploadedImageUrl) return;
+    dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
       if (data?.payload?.success) {
-        toast({
-          title: "Feature image deleted successfully",
-        });
+        dispatch(getFeatureImages());
+        setImageFile(null);
+        setUploadedImageUrl("");
       }
     });
-  };
+  }
+
+  function handleDeleteFeatureImage(id) {
+    dispatch(deleteFeatureImage(id)).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(getFeatureImages());
+      }
+    });
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <div className="text-sm text-muted-foreground">
-          {format(new Date(), "EEEE, MMMM d, yyyy")}
-        </div>
+    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+        <Button variant="outline">View Store</Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                <div className="text-2xl font-bold">₹{dashboardStats.totalRevenue.toLocaleString()}</div>
-              </div>
-              <div className="p-2 bg-blue-100 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-blue-600" />
+      {/* DASHBOARD STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
+        <DashboardCard
+          title="Total Orders"
+          icon={<ShoppingCart className="text-blue-500" size={28} />}
+          value={stats.totalOrders}
+          change="+12%"
+          color="blue"
+        />
+        <DashboardCard
+          title="Revenue"
+          icon={<DollarSign className="text-green-500" size={28} />}
+          value={`₹${stats.totalRevenue.toLocaleString()}`}
+          change="+8%"
+          color="green"
+        />
+        <DashboardCard
+          title="Pending Orders"
+          icon={<Package className="text-yellow-500" size={28} />}
+          value={stats.pendingOrders}
+          change="-3%"
+          color="yellow"
+        />
+        <DashboardCard
+          title="Delivered"
+          icon={<Truck className="text-indigo-500" size={28} />}
+          value={stats.deliveredOrders}
+          change="+15%"
+          color="indigo"
+        />
+        <DashboardCard
+          title="Customers"
+          icon={<Users className="text-purple-500" size={28} />}
+          value={stats.customers}
+          change="+5%"
+          color="purple"
+        />
+      </div>
+
+      {/* ANALYTICS PREVIEW SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="shadow-sm">
+          <CardHeader className="flex justify-between items-center">
+            <CardTitle className="text-lg font-semibold text-gray-700">
+              Sales Overview
+            </CardTitle>
+            <TrendingUp className="text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="h-[220px] flex items-center justify-center text-gray-400">
+              📈 Chart placeholder (use Chart.js / Recharts later)
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                <div className="text-2xl font-bold">{dashboardStats.totalOrders}</div>
-              </div>
-              <div>
-                <div className="p-2 bg-green-100 rounded-full flex items-center justify-center">
-                  <ShoppingCart className="h-4 w-4 text-green-600" />
-                </div>
-            </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Products</p>
-                <div>
-                  <div className="text-2xl font-bold">{dashboardStats.totalProducts}</div>
-                </div>
-              </div>
-              <div className="p-2 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Package className="h-4 w-4 text-purple-600" />
-                </div>
-            </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                <div className="text-2xl font-bold">{dashboardStats.totalUsers}</div>
-              </div>
-              <div className="p-2 bg-orange-100 rounded-full flex items-center justify-center">
-                  <Users className="h-4 w-4 text-orange-600" />
-                </div>
-            </CardContent>
-          </Card>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Revenue</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="flex justify-between items-center">
+            <CardTitle className="text-lg font-semibold text-gray-700">
+              Category Performance
+            </CardTitle>
+            <BarChart3 className="text-blue-500" />
           </CardHeader>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={dashboardStats.monthlyRevenue}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <LineChart
-                  dataKey="month"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                  dot={{ fill: "#8884d8" }}
-                />
-              />
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Status</CardTitle>
-          </CardHeader>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart
-                data={[
-                  { name: "Pending", value: dashboardStats.pendingOrders, fill: "#f59e0b" },
-                  { name: "Processing", value: dashboardStats.processingOrders, fill: "#3b82f6" },
-                  { name: "Delivered", value: dashboardStats.delivered, fill: "#10b981" },
-                  ]}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                <PieChart
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#10b981"
-                  labelLine={false}
-                  label={({ cx, cy, midAngle, innerRadius, percent, index }) => {
-                    return (
-                      <text
-                        x={cx}
-                        y={cy - 10}
-                        fill="white"
-                        textAnchor="middle"
-                        textAnchorOffset="middle"
-                        className="text-xs"
-                      >
-                        {`${percent.toFixed(0)}%`}
-                      </text>
-                    );
-                  />
-                />
-              />
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Orders */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
-        </CardHeader>
           <CardContent>
-          <div className="space-y-4">
-            {dashboardStats.recentOrders.length > 0 ? (
-              dashboardStats.recentOrders.map((order) => (
-                <div key={order._id} className="flex items-center justify-between p-3 border-b last:border-0">
-                  <div>
-                    <p className="font-medium">{order._id.substring(0, 8)}...</p>
-                    <p className="text-sm text-gray-500">
-                      {format(new Date(order.orderDate, "MMM d, yyyy")}
-                    </p>
+            <div className="space-y-3">
+              {["Electronics", "Fashion", "Home Decor", "Beauty", "Books"].map(
+                (cat, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <span className="text-gray-600">{cat}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-40 bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${
+                            i % 2 ? "bg-blue-500" : "bg-green-500"
+                          }`}
+                          style={{ width: `${70 - i * 10}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {70 - i * 10}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <Badge
-                      className={`${
-                        order.orderStatus === "delivered"
-                          ? "bg-green-500"
-                          : order.orderStatus === "rejected"
-                          ? "bg-red-600"
-                          : "bg-blue-500"
-                      }`}
-                    >
-                      {order.orderStatus}
-                    </Badge>
-                  </div>
-                ))
+                )
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* FEATURE IMAGES MANAGEMENT */}
+      <Card className="shadow-sm mt-8">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-700">
+            Homepage Feature Images
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProductImageUpload
+            imageFile={imageFile}
+            setImageFile={setImageFile}
+            uploadedImageUrl={uploadedImageUrl}
+            setUploadedImageUrl={setUploadedImageUrl}
+            setImageLoadingState={setImageLoadingState}
+            imageLoadingState={imageLoadingState}
+            isCustomStyling={true}
+          />
+          <Button
+            onClick={handleUploadFeatureImage}
+            className="mt-4 w-full"
+            disabled={!uploadedImageUrl}
+          >
+            {imageLoadingState ? (
+              <>
+                <Loader2 className="animate-spin mr-2 h-4 w-4" /> Uploading...
+              </>
+            ) : (
+              "Upload"
+            )}
+          </Button>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {Array.isArray(featureImageList) && featureImageList.length > 0 ? (
+              featureImageList.map((img, i) => (
+                <div
+                  key={img._id || i}
+                  className="relative border rounded-lg overflow-hidden shadow-sm"
+                >
+                  <img
+                    src={getImageUrl(img.image)}
+                    alt="Feature"
+                    className="w-full h-48 object-cover rounded-md"
+                    crossOrigin="anonymous"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => handleDeleteFeatureImage(img._id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-8">No recent orders</p>
-            </CardContent>
-          </Card>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-4">
-        <Link to="/admin/products">
-          <Button variant="outline" className="flex items-center gap-2">
-          <ShoppingCart className="h-4 w-4 text-blue-600" />
-          Manage Products
-        </Button>
-        </Link>
-        <Link to="/admin/orders">
-          <Button variant="outline" className="flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4 text-blue-600" />
-            Manage Orders
-          </Button>
-        </Link>
-        </Link to="/admin/users">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-orange-600" />
-            Manage Users
-          </Button>
-        </Link>
-      </div>
+              <p className="text-gray-500 text-center">
+                No feature images found.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  </div>
   );
 }
+
+/* 🔸 Reusable Dashboard Card */
+const DashboardCard = ({ title, value, icon, change }) => (
+  <Card className="shadow-sm">
+    <CardContent className="p-5 flex items-center justify-between">
+      <div>
+        <p className="text-gray-500 text-sm">{title}</p>
+        <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
+        <p
+          className={`text-sm mt-1 ${
+            change.startsWith("+") ? "text-green-500" : "text-red-500"
+          }`}
+        >
+          {change} from last week
+        </p>
+      </div>
+      <div className="p-3 rounded-full bg-gray-100">{icon}</div>
+    </CardContent>
+  </Card>
+);
 
 export default AdminDashboard;
