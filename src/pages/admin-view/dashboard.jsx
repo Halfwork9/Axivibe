@@ -177,7 +177,17 @@ function AdminDashboard() {
       </div>
 
       {/* RECENT ORDERS */}
-      <RecentOrdersTable orders={orderList || []} isLoading={ordersLoading} />
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+            <Package className="h-5 w-5 text-blue-500" />
+            Recent Orders
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RecentOrdersTable orders={orderList || []} isLoading={ordersLoading} />
+        </CardContent>
+      </Card>
 
       {/* FEATURE IMAGES MANAGEMENT */}
       <Card className="shadow-sm mt-8">
