@@ -62,7 +62,8 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
     setCurrentImageIndex(prev => (prev === productImages.length - 1 ? 0 : prev + 1));
   };
 
-  const handleAddToCartClick = async () => {
+  const handleAddToCartClick = async (e) => {
+    e.stopPropagation(); // Prevent event bubbling
     setIsAddingToCart(true);
     try {
       await handleAddtoCart(product?._id, product?.totalStock);
@@ -185,11 +186,11 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
         <Button
           onClick={handleAddToCartClick}
           className="w-full"
-          disabled={product?.totalStock === 0 || isAddingToCart || loading}
+          disabled={product?.totalStock === 0 || isAddingToCart}
         >
           {product?.totalStock === 0 ? (
             "Out Of Stock"
-          ) : isAddingToCart || loading ? (
+          ) : isAddingToCart ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               Adding...
