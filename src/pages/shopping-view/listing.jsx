@@ -1,5 +1,4 @@
 import ProductFilter from "@/components/shopping-view/filter";
-import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +12,11 @@ import { ArrowUpDownIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { sortOptions } from "@/config";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { fetchShopProducts, fetchProductDetails } from "@/store/shop/products-slice";
+import { fetchShopProducts } from "@/store/shop/products-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -32,7 +32,8 @@ function createSearchParamsHelper(filterParams) {
 
 function ShoppingListing() {
   const dispatch = useDispatch();
-  const { productList, pagination, productDetails } = useSelector(
+  const navigate = useNavigate();
+  const { productList, pagination } = useSelector(
     (state) => state.shopProducts
   );
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -40,7 +41,6 @@ function ShoppingListing() {
   const { toast } = useToast();
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState("price-lowtohigh");
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -80,7 +80,8 @@ function ShoppingListing() {
   }
 
   function handleGetProductDetails(id) {
-    dispatch(fetchProductDetails(id));
+    // Navigate to the product details page instead of opening a dialog
+    navigate(`/shop/product/${id}`);
   }
 
   function handleAddtoCart(productId, totalStock) {
@@ -106,10 +107,6 @@ function ShoppingListing() {
     setSearchParams(new URLSearchParams(queryString));
     dispatch(fetchShopProducts({ filterParams: filters, sortParams: sort, page, limit: 20 }));
   }, [dispatch, sort, filters, page, setSearchParams]);
-
-  useEffect(() => {
-    if (productDetails) setOpenDetailsDialog(true);
-  }, [productDetails]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 p-4 md:p-6">
@@ -185,13 +182,6 @@ function ShoppingListing() {
           </div>
         )}
       </div>
-
-      {/* Product Details Modal */}
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setOpenDetailsDialog}
-        productDetails={productDetails}
-      />
     </div>
   );
 }
