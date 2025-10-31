@@ -1,3 +1,4 @@
+// src/components/admin-view/image-upload.jsx
 import {
   UploadCloudIcon,
   XIcon,
@@ -12,75 +13,100 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useRef, useCallback, useState } from "react";
 import PropTypes from "prop-types";
 import api from "@/api";
+import { useToast } from "@/components/ui/use-toast";
 
 function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
   const inputRef = useRef(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
   const [uploadError, setUploadError] = useState("");
   const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   const MAX_IMAGES = 5;
+  const MAX_RETRIES = 3;
 
-  /**  Handle local file selection */
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length > 0) {
-      const remainingSlots = MAX_IMAGES - uploadedImageUrls.length;
-      const filesToUpload = selectedFiles.slice(0, remainingSlots);
-      setImageFiles(filesToUpload);
+  // Function to handle upload with retry logic
+  const uploadWithRetry = async (files, retryAttempt = 0) => {
+    const data = new FormData();
+    
+    files.forEach((file, index) => {
+      data.append("images", file);
+      if (retryAttempt > 0) {
+        data.append("retryAttempt", retryAttempt);
+      }
+    });
+
+    try {
+      const response = await api.post("/admin/upload/upload-images", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 30000, // Increased timeout
+        onUploadProgress: (progressEvent) => {
+          const { loaded, total } = progressEvent;
+          const percentCompleted = Math.round((loaded / total) * 100);
+          setUploadProgress(prev => ({
+            ...prev,
+            [`file-${index}`]: percentCompleted
+          }));
+        }
+      });
+
+      if (response?.data?.success) {
+        return response.data;
+      } else {
+        throw new Error(response?.data?.message || "Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
     }
   };
 
-  /**  Remove an uploaded image */
-  const handleRemoveImage = (indexToRemove) => {
-    setUploadedImageUrls((prev) =>
-      prev.filter((_, index) => index !== indexToRemove)
-    );
-    if (mainImageIndex >= indexToRemove) {
-      setMainImageIndex((prev) => Math.max(0, prev - 1));
-    }
-  };
-
-  /**  Upload images to backend/Cloudinary */
+  // Upload images with retry logic
   const uploadImages = useCallback(async () => {
     if (imageFiles.length === 0) return;
 
     setIsUploading(true);
     setUploadError("");
-    const data = new FormData();
-
-    imageFiles.forEach((file) => data.append("images", file));
+    setRetryCount(0);
 
     try {
-      const response = await api.post("/admin/upload/upload-images", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response?.data?.success) {
-        setUploadedImageUrls((prev) =>
-          [...prev, ...response.data.data].slice(0, MAX_IMAGES)
-        );
-      } else {
-        throw new Error("Upload failed. Please try again.");
-      }
-
+      const results = await uploadWithRetry(imageFiles, retryCount);
+      const imageUrls = results.data || [];
+      
+      setUploadedImageUrls((prev) =>
+        [...prev, ...imageUrls.slice(0, MAX_IMAGES)]
+      );
+      
       setImageFiles([]);
       if (inputRef.current) inputRef.current.value = "";
-    } catch (err) {
-      console.error("Image upload failed:", err);
-      setUploadError("Upload failed. Please check your connection or try again.");
+      setRetryCount(0);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      
+      // Retry logic
+      if (retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => uploadImages(), 1000 * retryCount); // Exponential backoff
+      } else {
+        setUploadError(
+          error.message || "Upload failed. Please check your connection or try again."
+        );
+      }
     } finally {
       setIsUploading(false);
     }
-  }, [imageFiles, setUploadedImageUrls]);
+  }, [imageFiles, retryCount]);
 
-  /**  Auto-trigger upload when new files are selected */
+  // Auto-trigger upload when new files are selected
   useEffect(() => {
-    if (imageFiles.length > 0) uploadImages();
-  }, [imageFiles, uploadImages]);
+    if (imageFiles.length > 0) {
+      uploadImages();
+    }
+  }, [imageFiles]);
 
-  /**  Prevent invalid main index */
+  // Prevent invalid main index
   useEffect(() => {
     if (uploadedImageUrls.length > 0 && mainImageIndex >= uploadedImageUrls.length) {
       setMainImageIndex(0);
@@ -93,7 +119,7 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
     <div className="w-full mt-4">
       <Label className="text-lg font-semibold mb-2 block">Product Images</Label>
 
-      {/*  Main Image Preview */}
+      {/* Main Image Preview */}
       <div className="relative mb-4">
         <div className="w-full h-64 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
           {uploadedImageUrls.length > 0 ? (
@@ -130,7 +156,7 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
               onClick={() =>
                 setMainImageIndex(
-                  (prev) => (prev + 1) % uploadedImageUrls.length
+                  (prev) => (prev + 1) % uploadedImageUrls.length)
                 )
               }
             >
@@ -140,7 +166,7 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
         )}
       </div>
 
-      {/*  Thumbnail Grid */}
+      {/* Thumbnail Grid */}
       <div className="grid grid-cols-5 gap-2 mb-4">
         {uploadedImageUrls.map((url, index) => (
           <div
@@ -166,13 +192,44 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
             </Button>
           </div>
         ))}
-
-        {isUploading && (
-          <div className="flex items-center justify-center aspect-square border rounded-md">
-            <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
+        
+        {/* Upload Progress Indicators */}
+        {isUploading && Object.keys(uploadProgress).length > 0 && (
+          <div className="mt-2 space-y-2">
+            {Object.entries(uploadProgress).map(([fileId, progress]) => (
+              <div key={fileId} className="w-full">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-600">Uploading...</span>
+                  <span className="text-xs text-gray-600">{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Upload Error Message */}
+      {uploadError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
+          <p className="font-medium">{uploadError}</p>
+          {retryCount > 0 && (
+            <Button 
+              onClick={() => uploadImages()} 
+              variant="outline" 
+              size="sm"
+              className="mt-2"
+            >
+              Retry ({MAX_RETRIES - retryCount} attempts left)
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* 🔸 Upload Area */}
       {canUploadMore && (
@@ -209,11 +266,6 @@ function ProductImageUpload({ uploadedImageUrls = [], setUploadedImageUrls }) {
             )}
           </Label>
         </div>
-      )}
-
-      {/*  Error Feedback */}
-      {uploadError && (
-        <p className="text-red-600 text-sm mt-2 text-center">{uploadError}</p>
       )}
     </div>
   );
