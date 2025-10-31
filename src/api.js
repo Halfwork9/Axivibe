@@ -3,7 +3,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://api.nikhilmamdekar.site/api", // Use the full URL for production
-  timeout: 10000, // Increase timeout to 10 seconds
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -33,6 +33,10 @@ api.interceptors.response.use(
     // Handle 404 errors
     if (error.response?.status === 404) {
       console.error("Resource not found:", error.config?.url);
+    }
+    // Handle 502 errors
+    if (error.response?.status === 502) {
+      console.error("Server error:", error.config?.url);
     }
     return Promise.reject(error);
   }
