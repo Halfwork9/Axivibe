@@ -1,3 +1,4 @@
+// src/components/admin-view/AdminDashboard.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,8 @@ import {
   Truck,
   Users,
   Loader2,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 
 import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
@@ -24,7 +27,7 @@ import {
   getFeatureImages,
   deleteFeatureImage,
 } from "@/store/common-slice";
-import Sparkline from "@/components/admin-view/charts/Sparkline";
+import Sparkline from "@/components/admin-view/charts/Sparkline"; // <-- Import Sparkline
 
 function AdminDashboard() {
   const dispatch = useDispatch();
@@ -33,7 +36,6 @@ function AdminDashboard() {
     (state) => state.adminOrder
   );
 
-  // FIX: State for the new ProductImageUpload component
   const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
 
@@ -41,7 +43,6 @@ function AdminDashboard() {
   const [salesOverview, setSalesOverview] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🧩 Fetch dashboard stats and analytics
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -64,18 +65,16 @@ function AdminDashboard() {
     dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1 }));
   }, [dispatch]);
 
-  // 🧠 Feature image upload handlers (Updated for array of images)
   function handleUploadFeatureImages() {
     if (uploadedFeatureImages.length === 0) return;
 
-    // Assuming your backend can handle adding them one by one
     const uploadPromises = uploadedFeatureImages.map((imageUrl) =>
       dispatch(addFeatureImage(imageUrl))
     );
 
     Promise.all(uploadPromises).then(() => {
       dispatch(getFeatureImages());
-      setUploadedFeatureImages([]); // Clear the list after uploading
+      setUploadedFeatureImages([]);
     });
   }
 
@@ -95,12 +94,15 @@ function AdminDashboard() {
       </div>
     );
   }
-  // Prepare data for sparklines
-  const orderSparklineData = salesOverview.slice(-7).map(d => ({ value: d.orders }));
-  const revenueChange = stats?.revenueGrowthPercentage > 0 
-    ? `+${stats.revenueGrowthPercentage}% vs last month` 
-    : `${stats.revenueGrowthPercentage}% vs last month`;
 
+  // Prepare data for sparklines and safely calculate revenue change
+  const orderSparklineData = salesOverview.slice(-7).map(d => ({ value: d.orders }));
+  const revenueSparklineData = salesOverview.slice(-7).map(d => ({ value: d.revenue }));
+  
+  const revenueGrowth = stats?.revenueGrowthPercentage ?? 0;
+  const revenueChange = revenueGrowth > 0 
+    ? `+${revenueGrowth}% vs last month` 
+    : `${revenueGrowth}% vs last month`;
 
   return (
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
@@ -116,31 +118,35 @@ function AdminDashboard() {
           title="Total Orders"
           icon={<ShoppingCart className="text-blue-500" size={28} />}
           value={stats?.totalOrders || 0}
-          change="+12%"
+          change="+12% from last week"
+          sparklineData={orderSparklineData}
+          sparklineColor="#3b82f6"
         />
         <DashboardCard
           title="Revenue"
           icon={<DollarSign className="text-green-500" size={28} />}
           value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
-          change="+8%"
+          change={revenueChange}
+          sparklineData={revenueSparklineData}
+          sparklineColor="#10b981"
         />
         <DashboardCard
           title="Pending Orders"
           icon={<Package className="text-yellow-500" size={28} />}
           value={stats?.pendingOrders || 0}
-          change="-3%"
+          change="-3% from last week"
         />
         <DashboardCard
           title="Delivered"
           icon={<Truck className="text-indigo-500" size={28} />}
           value={stats?.deliveredOrders || 0}
-          change="+15%"
+          change="+15% from last week"
         />
         <DashboardCard
           title="Customers"
           icon={<Users className="text-purple-500" size={28} />}
           value={stats?.totalCustomers || 0}
-          change="+5%"
+          change="+5% from last week"
         />
       </div>
 
@@ -172,7 +178,6 @@ function AdminDashboard() {
       </div>
 
       {/* RECENT ORDERS */}
-      {/* FIX: Pass the correct loading state variable */}
       <RecentOrdersTable orders={orderList || []} isLoading={ordersLoading} />
 
       {/* FEATURE IMAGES MANAGEMENT */}
@@ -183,7 +188,6 @@ function AdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* FIX: Pass the correct props to the updated ProductImageUpload component */}
           <ProductImageUpload
             uploadedImageUrls={uploadedFeatureImages}
             setUploadedImageUrls={setUploadedFeatureImages}
@@ -240,7 +244,7 @@ function AdminDashboard() {
   );
 }
 
-/* 🔸 Reusable Dashboard Card */
+/* 🔸 Enhanced Reusable Dashboard Card */
 const DashboardCard = ({ title, value, icon, change, sparklineData, sparklineColor }) => (
   <Card className="shadow-sm">
     <CardContent className="p-5 flex items-center justify-between">
@@ -264,6 +268,5 @@ const DashboardCard = ({ title, value, icon, change, sparklineData, sparklineCol
     </CardContent>
   </Card>
 );
-
 
 export default AdminDashboard;
