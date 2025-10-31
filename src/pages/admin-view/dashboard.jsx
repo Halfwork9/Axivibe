@@ -143,7 +143,7 @@ function AdminDashboard() {
       </div>
 
       {/* RECENT ORDERS */}
-      <RecentOrdersTable orders={orderList || []} isLoading={ordersLoading} />
+      <RecentOrdersTable orders={orderList || []} isLoading={isLoading} />
 
       {/* FEATURE IMAGES MANAGEMENT */}
       <Card className="shadow-sm mt-8">
