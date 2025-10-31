@@ -6,6 +6,7 @@ const initialState = {
   orderList: [],
   orderDetails: null,
   isLoading: false,
+  pagination: null,
 };
 
 export const getAllOrdersForAdmin = createAsyncThunk(
@@ -60,10 +61,12 @@ const adminOrderSlice = createSlice({
       .addCase(getAllOrdersForAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderList = action.payload.data;
+        state.pagination = action.payload.pagination;
       })
       .addCase(getAllOrdersForAdmin.rejected, (state) => {
         state.isLoading = false;
         state.orderList = [];
+        state.pagination = null;
       })
       .addCase(getOrderDetailsForAdmin.pending, (state) => {
         state.isLoading = true;
@@ -75,6 +78,24 @@ const adminOrderSlice = createSlice({
       .addCase(getOrderDetailsForAdmin.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
+      })
+      .addCase(updateOrderStatus.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Update the order in the list if it exists
+        if (state.orderList && state.orderList.length > 0) {
+          const index = state.orderList.findIndex(
+            (order) => order._id === action.payload.data._id
+          );
+          if (index !== -1) {
+            state.orderList[index] = action.payload.data;
+          }
+        }
+      })
+      .addCase(updateOrderStatus.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });
