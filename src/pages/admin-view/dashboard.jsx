@@ -27,7 +27,7 @@ import {
   getFeatureImages,
   deleteFeatureImage,
 } from "@/store/common-slice";
-import Sparkline from "@/components/admin-view/charts/Sparkline"; // <-- Import Sparkline
+import Sparkline from "@/components/admin-view/charts/Sparkline";
 
 function AdminDashboard() {
   const dispatch = useDispatch();
@@ -67,11 +67,9 @@ function AdminDashboard() {
 
   function handleUploadFeatureImages() {
     if (uploadedFeatureImages.length === 0) return;
-
     const uploadPromises = uploadedFeatureImages.map((imageUrl) =>
       dispatch(addFeatureImage(imageUrl))
     );
-
     Promise.all(uploadPromises).then(() => {
       dispatch(getFeatureImages());
       setUploadedFeatureImages([]);
@@ -95,14 +93,15 @@ function AdminDashboard() {
     );
   }
 
-  // Prepare data for sparklines and safely calculate revenue change
+  // Prepare data for sparklines and dynamic changes
   const orderSparklineData = salesOverview.slice(-7).map(d => ({ value: d.orders }));
   const revenueSparklineData = salesOverview.slice(-7).map(d => ({ value: d.revenue }));
   
-  const revenueGrowth = stats?.revenueGrowthPercentage ?? 0;
-  const revenueChange = revenueGrowth > 0 
-    ? `+${revenueGrowth}% vs last month` 
-    : `${revenueGrowth}% vs last month`;
+  const formatChange = (change) => {
+    const { value, percentage } = change || {};
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value} (${sign}${percentage}%) this week`;
+  };
 
   return (
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
@@ -118,7 +117,7 @@ function AdminDashboard() {
           title="Total Orders"
           icon={<ShoppingCart className="text-blue-500" size={28} />}
           value={stats?.totalOrders || 0}
-          change="+12% from last week"
+          change={formatChange(stats?.ordersChange)}
           sparklineData={orderSparklineData}
           sparklineColor="#3b82f6"
         />
@@ -126,7 +125,7 @@ function AdminDashboard() {
           title="Revenue"
           icon={<DollarSign className="text-green-500" size={28} />}
           value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
-          change={revenueChange}
+          change={`${stats?.revenueGrowthPercentage > 0 ? '+' : ''}${stats?.revenueGrowthPercentage || 0}% vs last month`}
           sparklineData={revenueSparklineData}
           sparklineColor="#10b981"
         />
@@ -134,19 +133,19 @@ function AdminDashboard() {
           title="Pending Orders"
           icon={<Package className="text-yellow-500" size={28} />}
           value={stats?.pendingOrders || 0}
-          change="-3% from last week"
+          change={formatChange(stats?.pendingChange)}
         />
         <DashboardCard
           title="Delivered"
           icon={<Truck className="text-indigo-500" size={28} />}
           value={stats?.deliveredOrders || 0}
-          change="+15% from last week"
+          change={formatChange(stats?.deliveredChange)}
         />
         <DashboardCard
           title="Customers"
           icon={<Users className="text-purple-500" size={28} />}
           value={stats?.totalCustomers || 0}
-          change="+5% from last week"
+          change={formatChange(stats?.customersChange)}
         />
       </div>
 
@@ -245,28 +244,28 @@ function AdminDashboard() {
 }
 
 /* 🔸 Enhanced Reusable Dashboard Card */
-const DashboardCard = ({ title, value, icon, change, sparklineData, sparklineColor }) => (
-  <Card className="shadow-sm">
-    <CardContent className="p-5 flex items-center justify-between">
-      <div className="flex-1">
-        <p className="text-gray-500 text-sm">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
-        <p
-          className={`text-sm mt-1 ${
-            change.startsWith("+") ? "text-green-500" : "text-red-500"
-          }`}
-        >
-          {change}
-        </p>
-        {sparklineData && (
-          <div className="mt-2 w-24">
-            <Sparkline data={sparklineData} color={sparklineColor} />
-          </div>
-        )}
-      </div>
-      <div className="p-3 rounded-full bg-gray-100 ml-4">{icon}</div>
-    </CardContent>
-  </Card>
-);
+const DashboardCard = ({ title, value, icon, change, sparklineData, sparklineColor }) => {
+  const isPositive = change && (change.includes('+') || !change.startsWith('-'));
+
+  return (
+    <Card className="shadow-sm">
+      <CardContent className="p-5 flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-gray-500 text-sm">{title}</p>
+          <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
+          <p className={`text-sm mt-1 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+            {change}
+          </p>
+          {sparklineData && (
+            <div className="mt-2 w-24">
+              <Sparkline data={sparklineData} color={sparklineColor} />
+            </div>
+          )}
+        </div>
+        <div className="p-3 rounded-full bg-gray-100 ml-4">{icon}</div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default AdminDashboard;
