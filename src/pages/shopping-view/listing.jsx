@@ -1,3 +1,4 @@
+// src/pages/shopping-view/listing.js
 import ProductFilter from "@/components/shopping-view/filter";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Button } from "@/components/ui/button";
@@ -91,15 +92,21 @@ function ShoppingListing() {
         title: `Only ${totalStock} available in stock.`,
         variant: "destructive",
       });
-      return;
+      return false; // Return false to indicate failure
     }
 
-    dispatch(addToCart({ userId: user?.id, productId, quantity: 1 })).then((res) => {
-      if (res?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({ title: "Added to cart" });
-      }
-    });
+    return dispatch(addToCart({ userId: user?.id, productId, quantity: 1 }))
+      .then((res) => {
+        if (res?.payload?.success) {
+          dispatch(fetchCartItems(user?.id));
+          toast({ title: "Added to cart" });
+          return true; // Return true to indicate success
+        }
+        return false; // Return false to indicate failure
+      })
+      .catch(() => {
+        return false; // Return false to indicate failure
+      });
   }
 
   useEffect(() => {
