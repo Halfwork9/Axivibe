@@ -73,17 +73,17 @@ function ProductDetailsPage() {
 
   const handlePrevImage = () => {
     setImageError(false);
-    setCurrentIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
+    setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
   };
 
   const handleNextImage = () => {
     setImageError(false);
-    setCurrentIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
   };
 
   const handleThumbnailClick = (index) => {
     setImageError(false);
-    setCurrentIndex(index);
+    setCurrentImageIndex(index);
   };
 
   const handleQuantityChange = (type) => {
