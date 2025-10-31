@@ -65,7 +65,7 @@ function ShoppingProductTile({ product, handleGetProductDetails, handleAddtoCart
   const handleAddToCartClick = async () => {
     setIsAddingToCart(true);
     try {
-      await handleAddtoCart(product?._id);
+      await handleAddtoCart(product?._id, product?.totalStock);
     } finally {
       setIsAddingToCart(false);
     }
