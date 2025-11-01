@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { updatePaymentStatus } from "@/store/admin/order-slice";
 import { useNavigate } from "react-router-dom";
-import { updatePaymentStatus } from "@/store/admin/order-slice";
 
 export default function RecentOrdersTable({ orders, isLoading }) {
   const dispatch = useDispatch();
