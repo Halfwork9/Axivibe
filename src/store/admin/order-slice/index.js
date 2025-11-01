@@ -45,6 +45,21 @@ export const updateOrderStatus = createAsyncThunk(
   }
 );
 
+// ✅ NEW: Add the async thunk for updating payment status
+export const updatePaymentStatus = createAsyncThunk(
+  'adminOrder/updatePaymentStatus',
+  async ({ orderId, status }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/admin/orders/${orderId}/payment-status`, {
+        paymentStatus: status,
+      });
+      return response.data; // This will be { success: true, data: updatedOrder }
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 const adminOrderSlice = createSlice({
   name: "adminOrderSlice",
   initialState,
@@ -96,6 +111,24 @@ const adminOrderSlice = createSlice({
       })
       .addCase(updateOrderStatus.rejected, (state) => {
         state.isLoading = false;
+      })
+      // ✅ NEW: Add extraReducers for the new updatePaymentStatus thunk
+      .addCase(updatePaymentStatus.pending, (state) => {
+        // You could add a specific loading state here if needed
+      })
+      .addCase(updatePaymentStatus.fulfilled, (state, action) => {
+        if (action.payload.success) {
+          const updatedOrder = action.payload.data;
+          // Find the order in the list and update it
+          const index = state.orderList.findIndex(order => order._id === updatedOrder._id);
+          if (index !== -1) {
+            state.orderList[index] = updatedOrder;
+          }
+        }
+      })
+      .addCase(updatePaymentStatus.rejected, (state, action) => {
+        // Handle error, maybe show a toast notification
+        console.error("Failed to update payment status:", action.payload);
       });
   },
 });
