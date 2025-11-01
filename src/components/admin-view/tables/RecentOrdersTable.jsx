@@ -1,4 +1,3 @@
-// src/components/admin-view/tables/RecentOrdersTable.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
@@ -8,10 +7,10 @@ import { Loader2, CheckCircle, Eye, ChevronLeft, ChevronRight } from "lucide-rea
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { updatePaymentStatus } from "@/store/admin/order-slice";
-import { fetchOrdersForAdmin } from "@/store/admin/order-slice"; // ✅ Import the new thunk
+import { fetchOrdersForAdmin } from "@/store/admin/order-slice";
 import { useNavigate } from "react-router-dom";
 
-export default function RecentOrdersTable({ initialOrders, isLoading: initialLoading }) {
+export default function RecentOrdersTable({ initialOrders, initialLoading }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,7 +18,7 @@ export default function RecentOrdersTable({ initialOrders, isLoading: initialLoa
 
   // ✅ NEW: State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const ordersPerPage = 10; // Should match the backend limit
+  const ordersPerPage = 10;
 
   // Get orders and pagination from Redux
   const { orderList, pagination, isLoading } = useSelector((state) => state.adminOrder);
@@ -92,9 +91,8 @@ export default function RecentOrdersTable({ initialOrders, isLoading: initialLoa
       {/* Mobile View: Card Layout */}
       <div className="md:hidden space-y-4">
         {orderList && orderList.length > 0 ? (
-          orders.map((order) => (
+          orderList.map((order) => (
             <Card key={order._id} className="shadow-sm">
-              {/* ... (mobile card content remains the same) */}
               <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -105,6 +103,7 @@ export default function RecentOrdersTable({ initialOrders, isLoading: initialLoa
                     {order.orderStatus}
                   </Badge>
                 </div>
+                
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Amount:</span>
@@ -125,6 +124,7 @@ export default function RecentOrdersTable({ initialOrders, isLoading: initialLoa
                     {order.userId?.userName || "Guest"}
                   </div>
                 </div>
+
                 <div className="flex gap-2 mt-4 pt-3 border-t">
                   <Button size="sm" variant="outline" onClick={() => handleViewOrder(order._id)} className="flex-1">
                     <Eye className="h-4 w-4 mr-1" /> View
@@ -170,7 +170,7 @@ export default function RecentOrdersTable({ initialOrders, isLoading: initialLoa
           </thead>
           <tbody>
             {orderList && orderList.length > 0 ? (
-              orders.map((order) => (
+              orderList.map((order) => (
                 <tr key={order._id} className="border-t">
                   <td className="px-4 py-2 font-mono">{order._id.slice(-6)}</td>
                   <td className="px-4 py-2">{order.userId?.userName || "Guest"}</td>
