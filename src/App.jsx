@@ -30,7 +30,7 @@ import AdminOrderDetails from "./components/admin-view/order-details";
 import AdminFeatures from './pages/admin-view/features';
 import Brands from './pages/admin-view/brands';
 import AdminCategoriesPage from './components/admin-view/categories-page';
-import AdminDistributorsPage from './components/admin-view/distributor-page';
+import AdminDistributorsPage from './components/admin-view/distributors-page';
 import ShoppingListing from './pages/shopping-view/listing';
 import ShoppingCheckout from './pages/shopping-view/checkout';
 import ShoppingAccount from './pages/shopping-view/account';
