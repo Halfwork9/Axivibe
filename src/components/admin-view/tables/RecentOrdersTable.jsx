@@ -87,13 +87,14 @@ export default function RecentOrdersTable({ orders, isLoading }) {
   <Button size="sm" variant="outline" onClick={() => handleViewOrder(order._id)}>
     <Eye className="h-4 w-4" />
   </Button>
-  {/* ✅ CORRECTED CONDITION */}
+  
   {order.paymentMethod === 'Cash on Delivery' && 
    order.orderStatus.toLowerCase() === 'delivered' && 
    order.paymentStatus.toLowerCase() === 'pending' && (
     <Button
       size="sm"
       onClick={() => handleMarkAsPaid(order._id)}
+      //  The disabled logic is correct, but the issue was likely the rendering condition
       disabled={updatingOrderId === order._id}
     >
       {updatingOrderId === order._id ? (
