@@ -1,4 +1,3 @@
-// src/components/admin-view/AdminDashboard.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import {
   BarChart3,
 } from "lucide-react";
 
-import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
+import { fetchOrdersForAdmin } from "@/store/admin/order-slice";
 import api from "@/api";
 
 import ProductImageUpload from "@/components/admin-view/image-upload";
@@ -32,7 +31,9 @@ import Sparkline from "@/components/admin-view/charts/Sparkline";
 function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { orderList = [], isLoading: ordersLoading } = useSelector(
+  
+  // ✅ FIX: Select only the necessary state from the adminOrder slice
+  const { orderList, isLoading: ordersLoading } = useSelector(
     (state) => state.adminOrder
   );
 
@@ -62,7 +63,8 @@ function AdminDashboard() {
 
     fetchDashboardData();
     dispatch(getFeatureImages());
-    dispatch(getAllOrdersForAdmin({ sortBy: "date-desc", page: 1 }));
+    // ✅ FIX: Dispatch the new thunk to fetch the first page of orders
+    dispatch(fetchOrdersForAdmin({ page: 1, limit: 10 }));
   }, [dispatch]);
 
   function handleUploadFeatureImages() {
@@ -185,7 +187,11 @@ function AdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <RecentOrdersTable orders={orderList || []} isLoading={ordersLoading} />
+          {/* ✅ FIX: Pass only the list and loading state. The table now handles its own pagination. */}
+          <RecentOrdersTable 
+            orders={orderList || []} 
+            isLoading={ordersLoading} 
+          />
         </CardContent>
       </Card>
 
