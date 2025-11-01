@@ -44,7 +44,7 @@ import TechnicalSupportPage from './pages/shopping-view/customer-service/technic
 import DistributorPage from './components/shopping-view/distributor';
 import UnauthPage from './pages/unauth-page';
 import NotFound from './pages/not-found';
-
+import OrderDetailsPage from "@/components/admin-view/OrderDetailsPage";
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component {
   state = { error: null, errorInfo: null };
@@ -159,6 +159,7 @@ function AppRoutes() {
         <Route path="brands" element={<Brands />} />
         <Route path="categories" element={<AdminCategoriesPage />} />
         <Route path="distributor" element={<AdminDistributorsPage />} />
+        <Route path="orders/:id" element={<OrderDetailsPage />} />
       </Route>
 
       <Route path="/unauth-page" element={<UnauthPage />} />
