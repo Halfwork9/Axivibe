@@ -1,7 +1,16 @@
 // src/components/shopping-view/UserOrdersPage.jsx
 
 import { useEffect, useState } from "react";
-// ... (keep other imports)
+import { useDispatch, useSelector } from "react-redux"; // ✅ FIXED: Added useSelector to the import
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import ShoppingOrderDetailsView from "@/components/shopping-view/order-details";
+import { getAllOrdersByUserId, getOrderDetails, resetOrderDetails } from "@/store/shop/order-slice";
+import { Calendar, Package, Rupee, Eye, ShoppingBag } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function UserOrdersPage() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
