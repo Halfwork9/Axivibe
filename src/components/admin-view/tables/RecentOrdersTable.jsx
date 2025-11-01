@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, CheckCircle, Eye, ChevronLeft, ChevronRight, Calendar, User, CreditCard, Package } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { updatePaymentStatus } from "@/store/admin/order-slice";
