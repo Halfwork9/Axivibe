@@ -1,46 +1,27 @@
+// src/components/shopping-view/UserOrdersPage.jsx
+
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import ShoppingOrderDetailsView from "@/components/shopping-view/order-details";
-import { getAllOrdersByUserId, getOrderDetails, resetOrderDetails } from "@/store/shop/order-slice";
-import { Calendar, Package, Rupee, Eye, ShoppingBag } from "lucide-react";
+// ... (keep other imports)
 
-// Helper component for the empty state
-const EmptyOrdersState = () => (
-  <div className="flex flex-col items-center justify-center py-16 text-center">
-    <ShoppingBag className="h-16 w-16 text-gray-300 mb-4" />
-    <h3 className="text-xl font-semibold text-gray-700 mb-2">No orders yet</h3>
-    <p className="text-gray-500 mb-6">You haven't placed any orders. Start shopping to see them here!</p>
-    <Button onClick={() => window.location.href = '/shop/home'}>Continue Shopping</Button>
-  </div>
-);
-
-// Helper component for the loading skeleton
-const OrdersTableSkeleton = () => (
-  <div className="space-y-4">
-    {[...Array(5)].map((_, i) => (
-      <div key={i} className="flex items-center space-x-4">
-        <Skeleton className="h-12 w-12 rounded" />
-        <div className="space-y-2 flex-1">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-1/4" />
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-// Main component
 function UserOrdersPage() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const { orderList, orderDetails, isLoading } = useSelector((state) => state.shopOrder);
   const dispatch = useDispatch();
+
+  // ✅ NEW: State to hold the sorted list
+  const [sortedOrderList, setSortedOrderList] = useState([]);
+
+  // ✅ NEW: useEffect to sort the list whenever the original list changes
+  useEffect(() => {
+    if (orderList && orderList.length > 0) {
+      // Create a new array and sort it by date, newest first
+      const sorted = [...orderList].sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+      setSortedOrderList(sorted);
+    } else {
+      setSortedOrderList([]);
+    }
+  }, [orderList]); // This effect runs whenever `orderList` from Redux changes
 
   useEffect(() => {
     if (user?.id) {
@@ -48,38 +29,8 @@ function UserOrdersPage() {
     }
   }, [dispatch, user?.id]);
 
-  useEffect(() => {
-    if (orderDetails) {
-      setOpenDetailsDialog(true);
-    }
-  }, [orderDetails]);
+  // ... (keep the rest of the component logic)
 
-  function handleFetchOrderDetails(orderId) {
-    dispatch(getOrderDetails(orderId));
-  }
-
-  function handleCloseDialog() {
-    setOpenDetailsDialog(false);
-    dispatch(resetOrderDetails());
-  }
-
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'shipped':
-        return 'bg-blue-100 text-blue-800';
-      case 'pending':
-      case 'processing':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
   if (isLoading) {
     return (
       <div className="p-4 sm:p-6 lg:p-8">
@@ -103,12 +54,14 @@ function UserOrdersPage() {
             <CardTitle>My Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            {orderList && orderList.length > 0 ? (
+            {/* ✅ IMPORTANT: Use `sortedOrderList` instead of `orderList` */}
+            {sortedOrderList && sortedOrderList.length > 0 ? (
               <>
                 {/* Mobile View: Card Layout */}
                 <div className="md:hidden space-y-4">
-                  {orderList.map((order) => (
+                  {sortedOrderList.map((order) => (
                     <Card key={order._id} className="shadow-sm">
+                      {/* ... (rest of the mobile card is the same) */}
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <p className="text-xs text-gray-500">Order ID</p>
@@ -153,7 +106,7 @@ function UserOrdersPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orderList.map((order) => (
+                      {sortedOrderList.map((order) => (
                         <TableRow key={order._id}>
                           <TableCell className="font-medium text-sm">{order._id.slice(-8)}</TableCell>
                           <TableCell className="text-sm">{new Date(order.orderDate).toLocaleDateString()}</TableCell>
