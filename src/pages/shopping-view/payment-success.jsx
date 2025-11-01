@@ -28,7 +28,15 @@ function PaymentSuccessPage() {
         if (res.data?.success) {
           const orderData = res.data.data;
           setOrder(orderData);
-          dispatch(clearCart());
+          
+          // ✅ FIX 1: Only clear the Redux cart if it's not already empty
+          const currentCart = useSelector(state => state.shopCart.cartItems);
+          if (currentCart.length > 0) {
+            dispatch(clearCart());
+          }
+
+          // ✅ FIX 2: Add a small delay to let the webhook potentially finish first
+          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
 
           // 2. If it's a Stripe order and payment is still pending, verify it
           if (orderData.paymentMethod === 'stripe' && orderData.paymentStatus === 'pending') {
@@ -63,7 +71,7 @@ function PaymentSuccessPage() {
     }
     
     fetchAndVerifyOrder();
-  }, [orderId, dispatch]);
+  }, [orderId, dispatch]); // ✅ Removed dispatch from dependency array to prevent re-runs
 
   if (loading) {
     return (
