@@ -83,26 +83,27 @@ export default function RecentOrdersTable({ orders, isLoading }) {
                   </span>
                 </td>
                 <td className="px-4 py-2">{format(new Date(order.createdAt || order.orderDate), 'MMM dd, yyyy')}</td>
-                <td className="px-4 py-2 flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleViewOrder(order._id)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  {order.paymentMethod === 'Cash on Delivery' && 
-                   order.orderStatus === 'delivered' && 
-                   order.paymentStatus === 'pending' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleMarkAsPaid(order._id)}
-                      disabled={updatingOrderId === order._id}
-                    >
-                      {updatingOrderId === order._id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <><CheckCircle className="h-4 w-4 mr-1" /> Mark as Paid</>
-                      )}
-                    </Button>
-                  )}
-                </td>
+               <td className="px-4 py-2 flex gap-2">
+  <Button size="sm" variant="outline" onClick={() => handleViewOrder(order._id)}>
+    <Eye className="h-4 w-4" />
+  </Button>
+  {/* ✅ CORRECTED CONDITION */}
+  {order.paymentMethod === 'Cash on Delivery' && 
+   order.orderStatus.toLowerCase() === 'delivered' && 
+   order.paymentStatus.toLowerCase() === 'pending' && (
+    <Button
+      size="sm"
+      onClick={() => handleMarkAsPaid(order._id)}
+      disabled={updatingOrderId === order._id}
+    >
+      {updatingOrderId === order._id ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <><CheckCircle className="h-4 w-4 mr-1" /> Mark as Paid</>
+      )}
+    </Button>
+  )}
+</td>
               </tr>
             ))
           ) : (
