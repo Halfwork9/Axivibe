@@ -9,6 +9,18 @@ const initialState = {
   pagination: null,
 };
 
+export const fetchOrdersForAdmin = createAsyncThunk(
+  'adminOrder/fetchOrdersForAdmin',
+  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/admin/orders/get?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 export const getAllOrdersForAdmin = createAsyncThunk(
   "/order/getAllOrdersForAdmin",
   async ({ sortBy, page }) => {
@@ -70,6 +82,18 @@ const adminOrderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchOrdersForAdmin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchOrdersForAdmin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.orderList = action.payload.data;
+        state.pagination = action.payload.pagination; // Save pagination info
+      })
+      .addCase(fetchOrdersForAdmin.rejected, (state) => {
+        state.isLoading = false;
+        // Don't clear the list on error, just stop loading
+      })
       .addCase(getAllOrdersForAdmin.pending, (state) => {
         state.isLoading = true;
       })
