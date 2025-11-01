@@ -116,7 +116,7 @@ function AppRoutes() {
 
   // ✅ FIX: Remove the problematic useEffect. Routing logic is now handled in the render.
   
-  if (authLoading) {
+ if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Skeleton className="w-80 h-96" />
@@ -126,7 +126,27 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/shop/home" replace />} />
+      {/* ✅ FIX: The root path now renders the ShoppingLayout directly */}
+      <Route path="/" element={<ShoppingLayout />}>
+        {/* ✅ FIX: The index route inside the layout now renders the home page */}
+        <Route index element={<ShoppingHome />} />
+        <Route path="home" element={<Navigate to="/shop/home" replace />} />
+        <Route path="listing" element={<ShoppingListing />} />
+        <Route path="product/:id" element={<ProductDetailsPage />} />
+        <Route path="checkout" element={<ShoppingCheckout />} />
+        <Route path="account" element={
+          isAuthenticated ? <ShoppingAccount /> : <Navigate to="/auth/login" state={{ from: location }} replace />
+        } />
+        <Route path="paypal-return" element={<PaypalReturnPage />} />
+        <Route path="payment-success" element={<PaymentSuccessPage />} />
+        <Route path="search" element={<SearchProducts />} />
+        <Route path="help" element={<HelpPage />} />
+        <Route path="contact" element={<ContactPage />} />
+        <Route path="product-support" element={<ProductSupportPage />} />
+        <Route path="technical-support" element={<TechnicalSupportPage />} />
+        <Route path="distributor" element={<DistributorPage />} />
+      </Route>
+
       <Route path="/shop" element={<ShoppingLayout />}>
         <Route index element={<Navigate to="/shop/home" replace />} />
         <Route path="home" element={<ShoppingHome />} />
@@ -134,7 +154,6 @@ function AppRoutes() {
         <Route path="product/:id" element={<ProductDetailsPage />} />
         <Route path="checkout" element={<ShoppingCheckout />} />
         <Route path="account" element={
-          // ✅ FIX: Protect the account route
           isAuthenticated ? <ShoppingAccount /> : <Navigate to="/auth/login" state={{ from: location }} replace />
         } />
         <Route path="paypal-return" element={<PaypalReturnPage />} />
@@ -149,7 +168,6 @@ function AppRoutes() {
 
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={
-          // ✅ FIX: Redirect if already logged in
           !isAuthenticated ? <AuthLogin /> : <Navigate to="/shop/home" replace />
         } />
         <Route path="register" element={
@@ -160,7 +178,6 @@ function AppRoutes() {
       </Route>
 
       <Route path="/admin" element={
-        // ✅ FIX: Protect the entire admin section
         isAuthenticated && user?.role === 'admin' ? <AdminLayout /> : <Navigate to="/auth/login" state={{ from: location }} replace />
       }>
         <Route index element={<AdminDashboard />} />
@@ -180,6 +197,7 @@ function AppRoutes() {
     </Routes>
   );
 }
+
 
 // --- Main wrapper ---
 export default function App() {
