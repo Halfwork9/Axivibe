@@ -1,19 +1,34 @@
+// src/components/admin-view/tables/RecentOrdersTable.jsx
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, Eye, Calendar, User, CreditCard, Package } from "lucide-react";
+import { Loader2, CheckCircle, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { updatePaymentStatus } from "@/store/admin/order-slice";
+import { fetchOrdersForAdmin } from "@/store/admin/order-slice"; // ✅ Import the new thunk
 import { useNavigate } from "react-router-dom";
 
-export default function RecentOrdersTable({ orders, isLoading }) {
+export default function RecentOrdersTable({ initialOrders, isLoading: initialLoading }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
+
+  // ✅ NEW: State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 10; // Should match the backend limit
+
+  // Get orders and pagination from Redux
+  const { orderList, pagination, isLoading } = useSelector((state) => state.adminOrder);
+
+  // ✅ NEW: Function to handle page changes
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    dispatch(fetchOrdersForAdmin({ page: newPage, limit: ordersPerPage }));
+  };
 
   const handleMarkAsPaid = async (orderId) => {
     const isConfirmed = window.confirm("Are you sure you want to mark this order as paid?");
@@ -63,7 +78,8 @@ export default function RecentOrdersTable({ orders, isLoading }) {
     return 'bg-gray-100 text-gray-800';
   };
 
-  if (isLoading) {
+  // Show initial loading state
+  if (initialLoading) {
     return (
       <div className="flex justify-center items-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -75,9 +91,10 @@ export default function RecentOrdersTable({ orders, isLoading }) {
     <>
       {/* Mobile View: Card Layout */}
       <div className="md:hidden space-y-4">
-        {orders && orders.length > 0 ? (
+        {orderList && orderList.length > 0 ? (
           orders.map((order) => (
             <Card key={order._id} className="shadow-sm">
+              {/* ... (mobile card content remains the same) */}
               <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -88,7 +105,6 @@ export default function RecentOrdersTable({ orders, isLoading }) {
                     {order.orderStatus}
                   </Badge>
                 </div>
-                
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Amount:</span>
@@ -109,7 +125,6 @@ export default function RecentOrdersTable({ orders, isLoading }) {
                     {order.userId?.userName || "Guest"}
                   </div>
                 </div>
-
                 <div className="flex gap-2 mt-4 pt-3 border-t">
                   <Button size="sm" variant="outline" onClick={() => handleViewOrder(order._id)} className="flex-1">
                     <Eye className="h-4 w-4 mr-1" /> View
@@ -135,9 +150,7 @@ export default function RecentOrdersTable({ orders, isLoading }) {
             </Card>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            No recent orders found.
-          </div>
+          <div className="text-center py-8 text-gray-500">No recent orders found.</div>
         )}
       </div>
 
@@ -156,7 +169,7 @@ export default function RecentOrdersTable({ orders, isLoading }) {
             </tr>
           </thead>
           <tbody>
-            {orders && orders.length > 0 ? (
+            {orderList && orderList.length > 0 ? (
               orders.map((order) => (
                 <tr key={order._id} className="border-t">
                   <td className="px-4 py-2 font-mono">{order._id.slice(-6)}</td>
@@ -197,14 +210,43 @@ export default function RecentOrdersTable({ orders, isLoading }) {
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
-                  No recent orders found.
-                </td>
+                <td colSpan={7} className="text-center py-4 text-gray-500">No recent orders found.</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* ✅ NEW: Pagination Controls */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between space-x-2 mt-4">
+          <p className="text-sm text-gray-700">
+            Showing {((currentPage - 1) * ordersPerPage) + 1} to{" "}
+            {Math.min(currentPage * ordersPerPage, pagination.totalOrders)} of{" "}
+            {pagination.totalOrders} orders
+          </p>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === pagination.totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
