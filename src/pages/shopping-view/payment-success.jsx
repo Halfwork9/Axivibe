@@ -24,9 +24,8 @@ function PaymentSuccessPage() {
       return;
     }
 
-    let isCancelled = false; // Flag to stop polling when component unmounts
+    let isCancelled = false;
 
-    // ✅ NEW: Polling function to check for payment status
     const pollForPaymentStatus = async () => {
       try {
         const res = await api.get(`/shop/order/details/${orderId}`);
@@ -34,7 +33,6 @@ function PaymentSuccessPage() {
           const orderData = res.data.data;
           setOrder(orderData);
 
-          // If payment is successful, stop polling and update UI
           if (orderData.paymentStatus === 'paid') {
             console.log("✅ Payment confirmed via polling.");
             setLoading(false);
@@ -42,7 +40,6 @@ function PaymentSuccessPage() {
             return;
           }
 
-          // If payment is still pending, poll again after 3 seconds
           console.log("Payment still pending, polling again in 3 seconds...");
           setTimeout(() => {
             if (!isCancelled) {
@@ -50,7 +47,6 @@ function PaymentSuccessPage() {
             }
           }, 3000);
         } else {
-          // Handle case where order details can't be fetched
           throw new Error(res.data.message || "Failed to fetch order details.");
         }
       } catch (err) {
@@ -61,25 +57,27 @@ function PaymentSuccessPage() {
       }
     };
     
-    // Initial actions when component mounts
+    // ✅ FIX: Move the logic into an async function to defer execution
     const initialize = async () => {
       setIsVerifying(true);
-      // Clear the Redux cart state to ensure it's empty
+      
+      // ✅ FIX: Move useSelector inside the async function
+      // This ensures it runs after the component has fully mounted and context is available
       const currentCart = useSelector(state => state.shopCart.cartItems);
       if (currentCart.length > 0) {
         dispatch(clearCart());
       }
-      // Start the polling process
+      
       pollForPaymentStatus();
     };
 
     initialize();
 
-    // Cleanup function to stop polling when the component unmounts
     return () => {
       isCancelled = true;
     };
-  }, [orderId, dispatch]);
+  }, [orderId, dispatch]); // dispatch is needed for the dispatch call inside initialize
+
 
   if (loading) {
     return (
