@@ -30,7 +30,7 @@ import AdminOrderDetails from "./components/admin-view/order-details";
 import AdminFeatures from './pages/admin-view/features';
 import Brands from './pages/admin-view/brands';
 import AdminCategoriesPage from './components/admin-view/categories-page';
-import AdminDistributorsPage from './components/admin-view/distributors-page';
+import AdminDistributorsPage from './components/admin-view/distributor-page';
 import ShoppingListing from './pages/shopping-view/listing';
 import ShoppingCheckout from './pages/shopping-view/checkout';
 import ShoppingAccount from './pages/shopping-view/account';
@@ -45,6 +45,7 @@ import DistributorPage from './components/shopping-view/distributor';
 import UnauthPage from './pages/unauth-page';
 import NotFound from './pages/not-found';
 import OrderDetailsPage from "@/components/admin-view/OrderDetailsPage";
+
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component {
   state = { error: null, errorInfo: null };
@@ -86,34 +87,35 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ✅ FIX: Single useEffect to handle initial auth check and data fetching
   useEffect(() => {
-    // Check authentication on initial load
-    dispatch(checkAuth()).then((res) => {
-      if (res.payload?.user) {
-        // Only fetch data when user is logged in
-        dispatch(fetchAllCategories());
-        dispatch(fetchAllBrands());
+    const initializeApp = async () => {
+      try {
+        // Dispatch checkAuth and wait for it to complete
+        const result = await dispatch(checkAuth());
+        
+        // If checkAuth was successful, fetch initial data
+        if (result.meta.requestStatus === 'fulfilled') {
+          console.log("User is authenticated, fetching data...");
+          dispatch(fetchAllCategories());
+          dispatch(fetchAllBrands());
+          // Fetch cart items if user object is available
+          if (result.payload?.id) {
+            dispatch(fetchCartItems(result.payload.id));
+          }
+        } else {
+          console.log("User is not authenticated.");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
       }
-    });
-  }, [dispatch]);
+    };
 
-  useEffect(() => {
-    const isAuthRoute = location.pathname.startsWith('/auth');
-    const isUnauthRoute = location.pathname.startsWith('/unauth');
+    initializeApp();
+  }, [dispatch]); // ✅ This effect now only runs once on mount
 
-    // Only redirect if not loading, not authenticated, and not on auth/unauth page
-    if (!authLoading && !isAuthenticated && !isAuthRoute && !isUnauthRoute) {
-      navigate('/auth/login');
-    }
-  }, [dispatch, isAuthenticated, authLoading, navigate, location]);
-
-  // Add a separate effect for fetching cart items
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      dispatch(fetchCartItems(user.id)).catch(console.error);
-    }
-  }, [dispatch, isAuthenticated, user?.id]);
-
+  // ✅ FIX: Remove the problematic useEffect. Routing logic is now handled in the render.
+  
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -131,7 +133,10 @@ function AppRoutes() {
         <Route path="listing" element={<ShoppingListing />} />
         <Route path="product/:id" element={<ProductDetailsPage />} />
         <Route path="checkout" element={<ShoppingCheckout />} />
-        <Route path="account" element={<ShoppingAccount />} />
+        <Route path="account" element={
+          // ✅ FIX: Protect the account route
+          isAuthenticated ? <ShoppingAccount /> : <Navigate to="/auth/login" state={{ from: location }} replace />
+        } />
         <Route path="paypal-return" element={<PaypalReturnPage />} />
         <Route path="payment-success" element={<PaymentSuccessPage />} />
         <Route path="search" element={<SearchProducts />} />
@@ -143,13 +148,21 @@ function AppRoutes() {
       </Route>
 
       <Route path="/auth" element={<AuthLayout />}>
-        <Route path="login" element={<AuthLogin />} />
-        <Route path="register" element={<AuthRegister />} />
+        <Route path="login" element={
+          // ✅ FIX: Redirect if already logged in
+          !isAuthenticated ? <AuthLogin /> : <Navigate to="/shop/home" replace />
+        } />
+        <Route path="register" element={
+          !isAuthenticated ? <AuthRegister /> : <Navigate to="/shop/home" replace />
+        } />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password/:token" element={<ResetPassword />} />
       </Route>
 
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin" element={
+        // ✅ FIX: Protect the entire admin section
+        isAuthenticated && user?.role === 'admin' ? <AdminLayout /> : <Navigate to="/auth/login" state={{ from: location }} replace />
+      }>
         <Route index element={<AdminDashboard />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="products" element={<AdminProducts />} />
