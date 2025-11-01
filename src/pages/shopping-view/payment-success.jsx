@@ -1,8 +1,10 @@
+// src/components/shop/PaymentSuccessPage.jsx
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux"; // ✅ Make sure useSelector is imported
 import { clearCart } from "@/store/shop/cart-slice";
 import api from "@/api";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -18,61 +20,62 @@ function PaymentSuccessPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    async function fetchAndVerifyOrder() {
-      if (!orderId) return;
-      
-      try {
-        // 1. First, fetch the order details
-        const res = await api.get(`/shop/order/details/${orderId}`);
+    if (!orderId) return;
 
+    let isCancelled = false; // Flag to stop polling when component unmounts
+
+    // ✅ NEW: Polling function
+    const pollForPaymentStatus = async () => {
+      try {
+        const res = await api.get(`/shop/order/details/${orderId}`);
         if (res.data?.success) {
           const orderData = res.data.data;
           setOrder(orderData);
-          
-          // ✅ FIX 1: Only clear the Redux cart if it's not already empty
-          const currentCart = useSelector(state => state.shopCart.cartItems);
-          if (currentCart.length > 0) {
-            dispatch(clearCart());
+
+          // If payment is successful, stop polling
+          if (orderData.paymentStatus === 'paid') {
+            console.log("✅ Payment confirmed via polling.");
+            setLoading(false);
+            setIsVerifying(false);
+            return;
           }
 
-          // ✅ FIX 2: Add a small delay to let the webhook potentially finish first
-          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
-
-          // 2. If it's a Stripe order and payment is still pending, verify it
-          if (orderData.paymentMethod === 'stripe' && orderData.paymentStatus === 'pending') {
-            setIsVerifying(true);
-            setVerificationError(null);
-            try {
-              const verifyRes = await api.post('/shop/verify-payment', { orderId: orderData._id });
-              
-              if (verifyRes.data.success) {
-                // 3. If verification is successful, re-fetch the order to get the updated status
-                const updatedRes = await api.get(`/shop/order/details/${orderId}`);
-                if (updatedRes.data?.success) {
-                  setOrder(updatedRes.data.data);
-                }
-              } else {
-                // If verification fails, show an error
-                setVerificationError(verifyRes.data.message || "Payment verification failed.");
-              }
-            } catch (err) {
-              console.error("Payment verification API call failed:", err);
-              setVerificationError("We could not verify your payment automatically. Please contact support if the status is not updated shortly.");
-            } finally {
-              setIsVerifying(false);
+          // If payment is still pending, poll again after 3 seconds
+          setTimeout(() => {
+            if (!isCancelled) {
+              pollForPaymentStatus();
             }
-          }
+          }, 3000);
         }
       } catch (err) {
-        console.error("Error fetching order:", err);
-      } finally {
+        console.error("Error polling for payment status:", err);
+        setVerificationError("Could not verify payment status. Please refresh the page.");
         setLoading(false);
+        setIsVerifying(false);
       }
-    }
+    };
     
-    fetchAndVerifyOrder();
-  }, [orderId, dispatch]); // ✅ Removed dispatch from dependency array to prevent re-runs
+    // Initial actions
+    const initialize = async () => {
+      setIsVerifying(true);
+      const currentCart = useSelector(state => state.shopCart.cartItems);
+      if (currentCart.length > 0) {
+        dispatch(clearCart());
+      }
+      // Start the polling process
+      pollForPaymentStatus();
+    };
 
+    initialize();
+
+    // Cleanup function to stop polling on component unmount
+    return () => {
+      isCancelled = true;
+    };
+  }, [orderId, dispatch]); // Added dispatch back for clarity
+
+  // ... (the rest of the component JSX remains the same)
+  
   if (loading) {
     return (
       <Card className="p-10 max-w-md mx-auto mt-10">
@@ -120,7 +123,7 @@ function PaymentSuccessPage() {
         {isVerifying && (
           <div className="flex items-center justify-center p-4 bg-blue-50 rounded-lg">
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            <span>Verifying your payment with Stripe...</span>
+            <span>Waiting for payment confirmation...</span>
           </div>
         )}
 
