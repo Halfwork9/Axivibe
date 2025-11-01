@@ -1,10 +1,8 @@
-// src/components/shop/PaymentSuccessPage.jsx
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux"; // ✅ Make sure useSelector is imported
+import { useDispatch, useSelector } from "react-redux";
 import { clearCart } from "@/store/shop/cart-slice";
 import api from "@/api";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -20,11 +18,15 @@ function PaymentSuccessPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      console.error("Order ID not found in URL parameters.");
+      setLoading(false);
+      return;
+    }
 
     let isCancelled = false; // Flag to stop polling when component unmounts
 
-    // ✅ NEW: Polling function
+    // ✅ NEW: Polling function to check for payment status
     const pollForPaymentStatus = async () => {
       try {
         const res = await api.get(`/shop/order/details/${orderId}`);
@@ -32,7 +34,7 @@ function PaymentSuccessPage() {
           const orderData = res.data.data;
           setOrder(orderData);
 
-          // If payment is successful, stop polling
+          // If payment is successful, stop polling and update UI
           if (orderData.paymentStatus === 'paid') {
             console.log("✅ Payment confirmed via polling.");
             setLoading(false);
@@ -41,23 +43,28 @@ function PaymentSuccessPage() {
           }
 
           // If payment is still pending, poll again after 3 seconds
+          console.log("Payment still pending, polling again in 3 seconds...");
           setTimeout(() => {
             if (!isCancelled) {
               pollForPaymentStatus();
             }
           }, 3000);
+        } else {
+          // Handle case where order details can't be fetched
+          throw new Error(res.data.message || "Failed to fetch order details.");
         }
       } catch (err) {
         console.error("Error polling for payment status:", err);
-        setVerificationError("Could not verify payment status. Please refresh the page.");
+        setVerificationError("Could not verify payment status. Please refresh the page or contact support.");
         setLoading(false);
         setIsVerifying(false);
       }
     };
     
-    // Initial actions
+    // Initial actions when component mounts
     const initialize = async () => {
       setIsVerifying(true);
+      // Clear the Redux cart state to ensure it's empty
       const currentCart = useSelector(state => state.shopCart.cartItems);
       if (currentCart.length > 0) {
         dispatch(clearCart());
@@ -68,14 +75,12 @@ function PaymentSuccessPage() {
 
     initialize();
 
-    // Cleanup function to stop polling on component unmount
+    // Cleanup function to stop polling when the component unmounts
     return () => {
       isCancelled = true;
     };
-  }, [orderId, dispatch]); // Added dispatch back for clarity
+  }, [orderId, dispatch]);
 
-  // ... (the rest of the component JSX remains the same)
-  
   if (loading) {
     return (
       <Card className="p-10 max-w-md mx-auto mt-10">
@@ -93,9 +98,12 @@ function PaymentSuccessPage() {
         <CardHeader>
           <CardTitle>Order not found!</CardTitle>
         </CardHeader>
-        <Button className="mt-5" onClick={() => navigate("/shop/home")}>
-          Continue Shopping
-        </Button>
+        <CardContent className="text-center">
+          <p className="text-gray-500 mb-4">We couldn't find the details for this order. Please check your email for confirmation or contact support.</p>
+          <Button className="mt-5" onClick={() => navigate("/shop/home")}>
+            Continue Shopping
+          </Button>
+        </CardContent>
       </Card>
     );
   }
@@ -109,7 +117,7 @@ function PaymentSuccessPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p>Order ID: <span className="font-mono">{order._id}</span></p>
+        <p>Order ID: <span className="font-mono text-xs">{order._id}</span></p>
         <p>Total Paid: <span className="font-semibold">₹{order.totalAmount?.toLocaleString()}</span></p>
         <p>
           Payment Status: 
@@ -123,7 +131,7 @@ function PaymentSuccessPage() {
         {isVerifying && (
           <div className="flex items-center justify-center p-4 bg-blue-50 rounded-lg">
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            <span>Waiting for payment confirmation...</span>
+            <span>Waiting for payment confirmation from Stripe...</span>
           </div>
         )}
 
