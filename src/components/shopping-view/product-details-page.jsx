@@ -31,7 +31,8 @@ function ProductDetailsPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { user } = useSelector((state) => state.auth);
+  const { user, isLoading: authLoading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
   
@@ -128,6 +129,27 @@ function ProductDetailsPage() {
   };
 
   const handleSubmitReview = async () => {
+    // 1. Prevent action if auth is still loading
+    if (authLoading) {
+      toast({
+        title: "Please wait",
+        description: "Verifying your session...",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 2. Check if user is logged in
+    if (!user) {
+      toast({
+        title: "Please login to add a review",
+        variant: "destructive",
+      });
+      navigate("/auth/login");
+      return;
+    }
+
+    // 3. Validate form fields
     if (!rating || !comment.trim()) {
       toast({
         title: "Please fill all fields",
@@ -165,7 +187,6 @@ function ProductDetailsPage() {
       setSubmitting(false);
     }
   };
-
   const isOnSale = productDetails?.salePrice > 0 && productDetails?.salePrice < productDetails?.price;
   const discount = isOnSale
     ? Math.round(((productDetails.price - productDetails.salePrice) / productDetails.price) * 100)
