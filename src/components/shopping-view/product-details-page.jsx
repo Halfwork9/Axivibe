@@ -57,15 +57,17 @@ function ProductDetailsPage() {
   }, [productDetails]);
 
   const checkAuthAndFetchData = async () => {
-    if (id) {
-      try {
-        const res = await dispatch(fetchProductDetails(id));
-        if (res.meta.requestStatus === 'rejected') {
-          console.error("Failed to fetch product details:", res.payload);
-        }
+  if (id) {
+    try {
+      const res = await dispatch(fetchProductDetails(id));
+      if (res.meta.requestStatus === 'rejected') {
+        console.error("Failed to fetch product details:", res.payload);
       }
+    } catch (err) {
+      console.error("An unexpected error occurred:", err);
     }
-  };
+  }
+};
 
   // ✅ NEW: Effect to re-check authentication state
   useEffect(() => {
