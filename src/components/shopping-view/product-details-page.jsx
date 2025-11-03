@@ -12,18 +12,18 @@ import { addReviewToProduct, fetchProductDetails } from "../../store/shop/produc
 import { addToCart } from "../../store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import { getImageUrl } from '@/utils/imageUtils';
-import { 
-  Star, 
-  ShoppingCart, 
-  Heart, 
-  Share2, 
-  Truck, 
-  Shield, 
+import {
+  Star,
+  ShoppingCart,
+  Heart,
+  Share2,
+  Truck,
+  Shield,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
   Minus,
-  Plus
+  Plus,
 } from "lucide-react";
 
 function ProductDetailsPage() {
@@ -31,10 +31,10 @@ function ProductDetailsPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
-  
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -56,20 +56,6 @@ function ProductDetailsPage() {
       setQuantity(1);
     }
   }, [productDetails]);
-
-  if (isLoading || !productDetails) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-
-  const productImages = Array.isArray(productDetails.images) && productDetails.images.length > 0
-    ? productDetails.images
-    : (productDetails.image ? [productDetails.image] : []);
 
   const handlePrevImage = () => {
     setImageError(false);
@@ -127,28 +113,18 @@ function ProductDetailsPage() {
     }
   };
 
+  // ✅ NEW: A more robust handleSubmitReview function
   const handleSubmitReview = async () => {
-    // 1. Prevent action if auth is still loading
-    if (authLoading) {
+    // The most reliable check is to see if the user object exists and has an ID.
+    if (!user || !user.id) {
       toast({
-        title: "Please wait",
-        description: "Verifying your session...",
+        title: "Authentication required",
+        description: "Please log in to submit a review.",
         variant: "destructive",
       });
       return;
     }
 
-    // 2. Check if user is logged in
-    if (!user) {
-      toast({
-        title: "Please login to add a review",
-        variant: "destructive",
-      });
-      navigate("/auth/login");
-      return;
-    }
-
-    // 3. Validate form fields
     if (!rating || !comment.trim()) {
       toast({
         title: "Please fill all fields",
@@ -178,18 +154,28 @@ function ProductDetailsPage() {
       console.error("Failed to add review:", err);
       toast({
         title: "Failed to add review",
-        description:
-          err.message || "Something went wrong. Please try again later.",
+        description: err.message || "Something went wrong. Please try again later.",
         variant: "destructive",
       });
     } finally {
       setSubmitting(false);
     }
   };
-  const isOnSale = productDetails?.salePrice > 0 && productDetails?.salePrice < productDetails?.price;
+
+  const isOnSale =
+    productDetails?.salePrice > 0 && productDetails?.salePrice < productDetails?.price;
   const discount = isOnSale
-    ? Math.round(((productDetails.price - productDetails.salePrice) / productDetails.price) * 100)
+    ? Math.round(
+        ((productDetails.price - productDetails.salePrice) / productDetails.price) * 100
+      )
     : 0;
+
+  const productImages =
+    Array.isArray(productDetails.images) && productDetails.images.length > 0
+      ? productDetails.images
+      : productDetails.image
+      ? [productDetails.image]
+      : [];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -213,7 +199,11 @@ function ProductDetailsPage() {
           <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-square">
             {productImages.length > 0 ? (
               <img
-                src={imageError ? "https://picsum.photos/seed/product/600/600.jpg" : getImageUrl(productImages[currentImageIndex])}
+                src={
+                  imageError
+                    ? "https://picsum.photos/seed/product/600/600.jpg"
+                    : getImageUrl(productImages[currentImageIndex])
+                }
                 alt={productDetails.title}
                 className="w-full h-full object-cover"
                 crossOrigin="anonymous"
@@ -297,7 +287,9 @@ function ProductDetailsPage() {
                 ))}
               </div>
               <span className="text-sm text-gray-600">
-                {productDetails.averageReview.toFixed(1)} ({productDetails.reviews?.length || 0} reviews)
+                {productDetails.averageReview.toFixed(1)} (
+                  {productDetails.reviews?.length || 0} reviews
+                )}
               </span>
             </div>
             <div className="flex items-baseline gap-2 mt-4">
@@ -411,16 +403,17 @@ function ProductDetailsPage() {
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="shipping">Shipping & Returns</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="description" className="mt-6">
             <div className="prose max-w-none">
               <h3 className="text-lg font-semibold mb-4">Product Description</h3>
               <p className="text-gray-600 whitespace-pre-line">
-                {productDetails.description || "No description available for this product."}
+                {productDetails.description ||
+                  "No description available for this product."}
               </p>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="reviews" className="mt-6">
             <div className="space-y-6">
               <div>
@@ -444,7 +437,9 @@ function ProductDetailsPage() {
                                 />
                               ))}
                             </div>
-                            <span className="text-sm text-gray-600">{review.rating}/5</span>
+                            <span className="text-sm text-gray-600">
+                              {review.rating}/5
+                            </span>
                           </div>
                         </div>
                         <p className="text-gray-600">{review.comment}</p>
@@ -455,7 +450,7 @@ function ProductDetailsPage() {
                   <p className="text-gray-500">No reviews yet. Be the first to write one!</p>
                 )}
               </div>
-              
+
               {user && (
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-semibold mb-4">Add Your Review</h3>
@@ -473,8 +468,8 @@ function ProductDetailsPage() {
                         rows={4}
                       />
                     </div>
-                    <Button 
-                      onClick={handleSubmitReview} 
+                    <Button
+                      onClick={handleSubmitReview}
                       disabled={submitting}
                       className="w-full md:w-auto"
                     >
@@ -483,17 +478,24 @@ function ProductDetailsPage() {
                   </div>
                 </div>
               )}
-              
+
               {!user && (
                 <div className="border-t pt-6">
                   <p className="text-gray-500 italic">
-                    Please <button onClick={() => navigate("/auth/login")} className="text-primary hover:underline">log in</button> to add a review.
+                    Please{" "}
+                    <button
+                      onClick={() => navigate("/auth/login")}
+                      className="text-primary hover:underline"
+                    >
+                      log in
+                    </button>{" "}
+                    to add a review.
                   </p>
                 </div>
               )}
             </div>
           </TabsContent>
-          
+
           <TabsContent value="shipping" className="mt-6">
             <div className="space-y-6">
               <div>
@@ -505,9 +507,9 @@ function ProductDetailsPage() {
                   <p>International shipping available</p>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <h3 className="text-lg font-semibold mb-4">Return Policy</h3>
                 <div className="space-y-2 text-gray-600">
@@ -520,7 +522,6 @@ function ProductDetailsPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }
