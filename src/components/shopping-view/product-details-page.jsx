@@ -32,7 +32,6 @@ function ProductDetailsPage() {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
   
