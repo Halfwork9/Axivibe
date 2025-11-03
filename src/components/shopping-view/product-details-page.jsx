@@ -34,8 +34,7 @@ function ProductDetailsPage() {
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
 
-  // ✅ FIX: Provide default values to prevent race conditions
- const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0);
@@ -43,42 +42,28 @@ function ProductDetailsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-
+  // ✅ Fetch product details when id changes
   useEffect(() => {
     if (id) {
       dispatch(fetchProductDetails(id));
     }
   }, [dispatch, id]);
 
-  useEffect(() => {
-    // ✅ FIX: Update the logic to use the latest productDetails when it becomes available
-    if (productDetails) {
-      const images = Array.isArray(productDetails.images) && productDetails.images.length > 0
-        ? productDetails.images
-        : (productDetails.image ? [productDetails.image] : []);
-      setCurrentImageIndex(0);
-      setImageError(false);
-      setQuantity(1);
-    }
-  }, [productDetails]);
-
-  const checkAuthAndFetchData = async () => {
-  if (id) {
-    try {
-      const res = await dispatch(fetchProductDetails(id));
-      if (res.meta.requestStatus === 'rejected') {
-        console.error("Failed to fetch product details:", res.payload);
-      }
-    } catch (err) {
-      console.error("An unexpected error occurred:", err);
-    }
+  // ✅ Safe check: return loader or error message before product loads
+  if (isLoading || !productDetails) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[60vh] text-gray-500">
+        {isLoading ? "Loading product details..." : "Product not found"}
+      </div>
+    );
   }
-};
 
-  // ✅ NEW: Effect to re-check authentication state
-  useEffect(() => {
-    checkAuthAndFetchData();
-  }, [user, dispatch]);
+  // ✅ Compute safely after data exists
+  const productImages = Array.isArray(productDetails?.images) && productDetails.images.length > 0
+    ? productDetails.images
+    : productDetails?.image
+    ? [productDetails.image]
+    : [];
 
   const handlePrevImage = () => {
     setImageError(false);
@@ -86,13 +71,6 @@ function ProductDetailsPage() {
   };
 
   const handleNextImage = () => {
-    const productImages =
-      Array.isArray(productDetails.images) && productDetails.images.length > 0
-        ? productDetails.images
-        : productDetails.image
-        ? [productDetails.image]
-        : [];
-
     setImageError(false);
     setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
   };
@@ -129,21 +107,18 @@ function ProductDetailsPage() {
           quantity,
         })
       ).unwrap();
-      toast({
-        title: "Product added to cart successfully",
-      });
+      toast({ title: "Product added to cart successfully" });
     } catch (error) {
       toast({
         title: "Failed to add product to cart",
         description: error.message || "Something went wrong",
-        brand: "destructive",
+        variant: "destructive",
       });
     } finally {
       setIsAddingToCart(false);
     }
   };
 
-  // ✅ UPDATED: A more robust handleSubmitReview function
   const handleSubmitReview = async () => {
     if (!user || !user.id) {
       toast({
@@ -199,17 +174,10 @@ function ProductDetailsPage() {
       )
     : 0;
 
-  const productImages =
-    Array.isArray(productDetails.images) && productDetails.images.length > 0
-      ? productDetails.images
-      : productDetails.image
-      ? [productDetails.image]
-      : [];
-
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <div className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
+      <div className="flex flex-wrap items-center space-x-2 text-sm text-gray-500 mb-6">
         <button onClick={() => navigate("/shop/home")} className="hover:text-primary">
           Home
         </button>
@@ -218,13 +186,12 @@ function ProductDetailsPage() {
           Products
         </button>
         <span>/</span>
-        <span className="text-gray-900">{productDetails.title}</span>
+        <span className="text-gray-900">{productDetails?.title}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Product Images */}
         <div className="space-y-4">
-          {/* Main Image */}
           <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-square">
             {productImages.length > 0 ? (
               <img
@@ -233,7 +200,7 @@ function ProductDetailsPage() {
                     ? "https://picsum.photos/seed/product/600/600.jpg"
                     : getImageUrl(productImages[currentImageIndex])
                 }
-                alt={productDetails.title}
+                alt={productDetails?.title || "Product"}
                 className="w-full h-full object-cover"
                 crossOrigin="anonymous"
                 onError={() => setImageError(true)}
@@ -244,7 +211,6 @@ function ProductDetailsPage() {
               </div>
             )}
 
-            {/* Navigation Buttons */}
             {productImages.length > 1 && (
               <>
                 <Button
@@ -266,7 +232,6 @@ function ProductDetailsPage() {
               </>
             )}
 
-            {/* Discount Badge */}
             {discount > 0 && (
               <div className="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full">
                 {discount}% OFF
@@ -274,7 +239,7 @@ function ProductDetailsPage() {
             )}
           </div>
 
-          {/* Thumbnail Images */}
+          {/* Thumbnails */}
           {productImages.length > 1 && (
             <div className="flex space-x-2 overflow-x-auto">
               {productImages.map((image, index) => (
@@ -287,7 +252,7 @@ function ProductDetailsPage() {
                 >
                   <img
                     src={getImageUrl(image)}
-                    alt={`${productDetails.title} ${index + 1}`}
+                    alt={`${productDetails?.title || "Product"} ${index + 1}`}
                     className="w-full h-full object-cover"
                     crossOrigin="anonymous"
                   />
@@ -297,55 +262,50 @@ function ProductDetailsPage() {
           )}
         </div>
 
-        {/* Product Information */}
+        {/* Product Info */}
         <div className="space-y-6">
-          {/* Title and Price */}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{productDetails.title}</h1>
-            <div className="flex items-center mt-2 space-x-2">
-              <div className="flex text-yellow-500">
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <Star
-                    key={idx}
-                    className={`w-5 h-5 ${
-                      idx < productDetails.averageReview
-                        ? "fill-yellow-500"
-                        : "fill-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-600">
-                {productDetails.averageReview.toFixed(1)} (
-                  {productDetails.reviews?.length || 0} reviews
-                )}
-              </span>
+          <h1 className="text-2xl font-bold text-gray-900">{productDetails?.title}</h1>
+
+          <div className="flex items-center mt-2 space-x-2">
+            <div className="flex text-yellow-500">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <Star
+                  key={idx}
+                  className={`w-5 h-5 ${
+                    idx < productDetails?.averageReview ? "fill-yellow-500" : "fill-gray-300"
+                  }`}
+                />
+              ))}
             </div>
-            <div className="flex items-baseline gap-2 mt-4">
-              {isOnSale ? (
-                <>
-                  <span className="text-3xl font-bold text-red-600">
-                    ₹{productDetails.salePrice}
-                  </span>
-                  <span className="text-xl text-gray-500 line-through">
-                    ₹{productDetails.price}
-                  </span>
-                </>
-              ) : (
-                <span className="text-3xl font-bold text-gray-900">
-                  ₹{productDetails.price}
-                </span>
-              )}
-            </div>
+            <span className="text-sm text-gray-600">
+              {productDetails?.averageReview?.toFixed(1) || "0.0"} (
+              {productDetails?.reviews?.length || 0} reviews)
+            </span>
           </div>
 
-          {/* Category and Brand */}
-          <div className="flex items-center space-x-4 text-sm">
-            <Badge variant="outline">{productDetails.categoryId?.name}</Badge>
-            <Badge variant="outline">{productDetails.brandId?.name}</Badge>
-            {productDetails.totalStock > 0 ? (
+          <div className="flex items-baseline gap-2 mt-4">
+            {isOnSale ? (
+              <>
+                <span className="text-3xl font-bold text-red-600">
+                  ₹{productDetails?.salePrice}
+                </span>
+                <span className="text-xl text-gray-500 line-through">
+                  ₹{productDetails?.price}
+                </span>
+              </>
+            ) : (
+              <span className="text-3xl font-bold text-gray-900">
+                ₹{productDetails?.price}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-sm">
+            <Badge variant="outline">{productDetails?.categoryId?.name}</Badge>
+            <Badge variant="outline">{productDetails?.brandId?.name}</Badge>
+            {productDetails?.totalStock > 0 ? (
               <Badge variant="outline" className="text-green-600 border-green-600">
-                In Stock ({productDetails.totalStock})
+                In Stock ({productDetails?.totalStock})
               </Badge>
             ) : (
               <Badge variant="outline" className="text-red-600 border-red-600">
@@ -354,7 +314,6 @@ function ProductDetailsPage() {
             )}
           </div>
 
-          {/* Quantity and Add to Cart */}
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <span className="text-sm font-medium">Quantity:</span>
@@ -372,7 +331,7 @@ function ProductDetailsPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleQuantityChange("increase")}
-                  disabled={quantity >= productDetails.totalStock}
+                  disabled={quantity >= productDetails?.totalStock}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -382,7 +341,9 @@ function ProductDetailsPage() {
             <div className="flex space-x-4">
               <Button
                 onClick={handleAddToCart}
-                disabled={productDetails.totalStock === 0 || isAddingToCart || cartLoading}
+                disabled={
+                  productDetails?.totalStock === 0 || isAddingToCart || cartLoading
+                }
                 className="flex-1"
               >
                 {isAddingToCart || cartLoading ? (
@@ -392,8 +353,7 @@ function ProductDetailsPage() {
                   </>
                 ) : (
                   <>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Add to Cart
+                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                   </>
                 )}
               </Button>
@@ -406,7 +366,6 @@ function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* Product Features */}
           <div className="border rounded-md p-4 space-y-2">
             <div className="flex items-center space-x-2">
               <Truck className="h-5 w-5 text-primary" />
@@ -424,7 +383,7 @@ function ProductDetailsPage() {
         </div>
       </div>
 
-      {/* Product Details Tabs */}
+      {/* Tabs Section */}
       <div className="mt-12">
         <Tabs defaultValue="description" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -434,121 +393,90 @@ function ProductDetailsPage() {
           </TabsList>
 
           <TabsContent value="description" className="mt-6">
-            <div className="prose max-w-none">
-              <h3 className="text-lg font-semibold mb-4">Product Description</h3>
-              <p className="text-gray-600 whitespace-pre-line">
-                {productDetails.description ||
-                  "No description available for this product."}
-              </p>
-            </div>
+            <h3 className="text-lg font-semibold mb-4">Product Description</h3>
+            <p className="text-gray-600 whitespace-pre-line">
+              {productDetails?.description || "No description available for this product."}
+            </p>
           </TabsContent>
 
           <TabsContent value="reviews" className="mt-6">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
-                {productDetails.reviews && productDetails.reviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {productDetails.reviews.map((review) => (
-                      <div key={review._id} className="border rounded-md p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-semibold">{review.userName}</span>
-                          <div className="flex items-center">
-                            <div className="flex text-yellow-500 mr-2">
-                              {Array.from({ length: 5 }).map((_, idx) => (
-                                <Star
-                                  key={idx}
-                                  className={`w-4 h-4 ${
-                                    idx < review.rating
-                                      ? "fill-yellow-500"
-                                      : "fill-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-sm text-gray-600">
-                              {review.rating}/5
-                            </span>
-                          </div>
+            <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
+            {productDetails?.reviews && productDetails.reviews.length > 0 ? (
+              <div className="space-y-4">
+                {productDetails.reviews.map((review) => (
+                  <div key={review._id} className="border rounded-md p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-semibold">{review.userName}</span>
+                      <div className="flex items-center">
+                        <div className="flex text-yellow-500 mr-2">
+                          {Array.from({ length: 5 }).map((_, idx) => (
+                            <Star
+                              key={idx}
+                              className={`w-4 h-4 ${
+                                idx < review.rating ? "fill-yellow-500" : "fill-gray-300"
+                              }`}
+                            />
+                          ))}
                         </div>
-                        <p className="text-gray-600">{review.comment}</p>
+                        <span className="text-sm text-gray-600">{review.rating}/5</span>
                       </div>
-                    ))}
+                    </div>
+                    <p className="text-gray-600">{review.comment}</p>
                   </div>
-                ) : (
-                  <p className="text-gray-500">No reviews yet. Be the first to write one!</p>
-                )}
+                ))}
               </div>
+            ) : (
+              <p className="text-gray-500">No reviews yet. Be the first to write one!</p>
+            )}
 
-              {user && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Add Your Review</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Rating</label>
-                      <StarRatingInput rating={rating} setRating={setRating} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Review</label>
-                      <Textarea
-                        placeholder="Write your review..."
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSubmitReview}
-                      disabled={submitting}
-                      className="w-full md:w-auto"
-                    >
-                      {submitting ? "Submitting..." : "Submit Review"}
-                    </Button>
-                  </div>
+            {user && (
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold mb-4">Add Your Review</h3>
+                <div className="space-y-4">
+                  <StarRatingInput rating={rating} setRating={setRating} />
+                  <Textarea
+                    placeholder="Write your review..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={4}
+                  />
+                  <Button
+                    onClick={handleSubmitReview}
+                    disabled={submitting}
+                    className="w-full md:w-auto"
+                  >
+                    {submitting ? "Submitting..." : "Submit Review"}
+                  </Button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!user && (
-                <div className="border-t pt-6">
-                  <p className="text-gray-500 italic">
-                    Please{" "}
-                    <button
-                      onClick={() => navigate("/auth/login")}
-                      className="text-primary hover:underline"
-                    >
-                      log in
-                    </button>{" "}
-                    to add a review.
-                  </p>
-                </div>
-              )}
-            </div>
+            {!user && (
+              <p className="text-gray-500 italic mt-6">
+                Please{" "}
+                <button
+                  onClick={() => navigate("/auth/login")}
+                  className="text-primary hover:underline"
+                >
+                  log in
+                </button>{" "}
+                to add a review.
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="shipping" className="mt-6">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
-                <div className="space-y-2 text-gray-600">
-                  <p>Standard delivery: 5-7 business days</p>
-                  <p>Express delivery: 2-3 business days</p>
-                  <p>Free delivery on orders over ₹500</p>
-                  <p>International shipping available</p>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Return Policy</h3>
-                <div className="space-y-2 text-gray-600">
-                  <p>30 days return policy</p>
-                  <p>Product must be in original condition</p>
-                  <p>Original packaging required</p>
-                  <p>Return shipping fee may apply</p>
-                </div>
-              </div>
-            </div>
+            <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
+            <p className="text-gray-600">Standard delivery: 5-7 business days</p>
+            <p className="text-gray-600">Express delivery: 2-3 business days</p>
+            <p className="text-gray-600">Free delivery on orders over ₹500</p>
+            <p className="text-gray-600">International shipping available</p>
+            <Separator className="my-6" />
+            <h3 className="text-lg font-semibold mb-4">Return Policy</h3>
+            <p className="text-gray-600">30 days return policy</p>
+            <p className="text-gray-600">Product must be in original condition</p>
+            <p className="text-gray-600">Original packaging required</p>
+            <p className="text-gray-600">Return shipping fee may apply</p>
           </TabsContent>
         </Tabs>
       </div>
