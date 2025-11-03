@@ -34,6 +34,7 @@ function ProductDetailsPage() {
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
 
+  // ✅ FIX: Provide default values to prevent race conditions
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -41,6 +42,7 @@ function ProductDetailsPage() {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [productImages, setProductImages] = useState([]);
 
   useEffect(() => {
     if (id) {
@@ -49,7 +51,11 @@ function ProductDetailsPage() {
   }, [dispatch, id]);
 
   useEffect(() => {
+    // ✅ FIX: Update the logic to use the latest productDetails when it becomes available
     if (productDetails) {
+      const images = Array.isArray(productDetails.images) && productDetails.images.length > 0
+        ? productDetails.images
+        : (productDetails.image ? [productDetails.image] : []);
       setCurrentImageIndex(0);
       setImageError(false);
       setQuantity(1);
