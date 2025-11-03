@@ -33,10 +33,7 @@ function ProductDetailsPage() {
   const { toast } = useToast();
   const { user } = useSelector((state) => state.auth);
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
-  const { loading: cartLoading } = useSelector((state) => state.shopCart);
-  const { cartItems, loading: cartLoading } = useSelector(
-    (state) => state.shopCart
-  );
+  const { cartItems, loading: cartLoading } = useSelector((state) => state.shopCart);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
