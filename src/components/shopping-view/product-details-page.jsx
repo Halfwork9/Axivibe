@@ -35,14 +35,14 @@ function ProductDetailsPage() {
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
 
   // ✅ FIX: Provide default values to prevent race conditions
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+ const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [productImages, setProductImages] = useState([]);
+
 
   useEffect(() => {
     if (id) {
