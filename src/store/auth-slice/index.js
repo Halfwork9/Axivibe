@@ -29,12 +29,19 @@ export const loginUser = createAsyncThunk(
     try {
       const res = await api.post("/auth/login", payload, { withCredentials: true });
       if (!res.data.success) return rejectWithValue(res.data.message);
-      return res.data.user; // ✅ only return clean user object
+
+      // ✅ Store JWT in localStorage
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
+      return res.data.user;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Login failed");
     }
   }
 );
+
 
 // --- GOOGLE LOGIN ---
 export const loginWithGoogle = createAsyncThunk(
@@ -43,12 +50,19 @@ export const loginWithGoogle = createAsyncThunk(
     try {
       const res = await api.post("/auth/google-login", { token });
       if (!res.data.success) return rejectWithValue(res.data.message);
+
+      // ✅ Store JWT in localStorage
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
       return res.data.user;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Google login failed");
     }
   }
 );
+
 
 // --- REGISTER USER ---
 export const registerUser = createAsyncThunk(
