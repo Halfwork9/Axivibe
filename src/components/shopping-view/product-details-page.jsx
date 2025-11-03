@@ -56,11 +56,6 @@ function ProductDetailsPage() {
     }
   }, [productDetails]);
 
-  // ✅ NEW: Effect to re-check authentication state
-  useEffect(() => {
-    const checkAuthAndFetchData();
-  }, [user, dispatch]);
-
   const checkAuthAndFetchData = async () => {
     if (id) {
       try {
@@ -71,6 +66,11 @@ function ProductDetailsPage() {
       }
     }
   };
+
+  // ✅ NEW: Effect to re-check authentication state
+  useEffect(() => {
+    checkAuthAndFetchData();
+  }, [user, dispatch]);
 
   const handlePrevImage = () => {
     setImageError(false);
