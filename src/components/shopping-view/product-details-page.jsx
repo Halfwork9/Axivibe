@@ -1,5 +1,4 @@
-// src/components/shopping-view/product-details-page.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -11,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addReviewToProduct, fetchProductDetails } from "../../store/shop/products-slice";
 import { addToCart } from "../../store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
-import { getImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from "@/utils/imageUtils";
 import {
   Star,
   ShoppingCart,
@@ -57,12 +56,35 @@ function ProductDetailsPage() {
     }
   }, [productDetails]);
 
+  // ✅ NEW: Effect to re-check authentication state
+  useEffect(() => {
+    const checkAuthAndFetchData();
+  }, [user, dispatch]);
+
+  const checkAuthAndFetchData = async () => {
+    if (id) {
+      try {
+        const res = await dispatch(fetchProductDetails(id));
+        if (res.meta.requestStatus === 'rejected') {
+          console.error("Failed to fetch product details:", res.payload);
+        }
+      }
+    }
+  };
+
   const handlePrevImage = () => {
     setImageError(false);
     setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
   };
 
   const handleNextImage = () => {
+    const productImages =
+      Array.isArray(productDetails.images) && productDetails.images.length > 0
+        ? productDetails.images
+        : productDetails.image
+        ? [productDetails.image]
+        : [];
+
     setImageError(false);
     setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
   };
@@ -81,7 +103,7 @@ function ProductDetailsPage() {
   };
 
   const handleAddToCart = async () => {
-    if (!user) {
+    if (!user || !user.id) {
       toast({
         title: "Please login to add items to cart",
         variant: "destructive",
@@ -106,16 +128,15 @@ function ProductDetailsPage() {
       toast({
         title: "Failed to add product to cart",
         description: error.message || "Something went wrong",
-        variant: "destructive",
+        brand: "destructive",
       });
     } finally {
       setIsAddingToCart(false);
     }
   };
 
-  // ✅ NEW: A more robust handleSubmitReview function
+  // ✅ UPDATED: A more robust handleSubmitReview function
   const handleSubmitReview = async () => {
-    // The most reliable check is to see if the user object exists and has an ID.
     if (!user || !user.id) {
       toast({
         title: "Authentication required",
@@ -522,6 +543,7 @@ function ProductDetailsPage() {
             </div>
           </TabsContent>
         </Tabs>
+      </div>
     </div>
   );
 }
