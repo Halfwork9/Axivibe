@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import StarRatingInput from "./star-rating-input";
 import { useDispatch, useSelector } from "react-redux";
 import { addReviewToProduct, fetchProductDetails } from "../../store/shop/products-slice";
-import { addToCart } from "../../store/shop/cart-slice";
+import { addToCart,updateCartQuantity,
+  fetchCartItems, } from "../../store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import { getImageUrl } from "@/utils/imageUtils";
 import {
@@ -33,6 +34,9 @@ function ProductDetailsPage() {
   const { user } = useSelector((state) => state.auth);
   const { productDetails, isLoading } = useSelector((state) => state.shopProducts);
   const { loading: cartLoading } = useSelector((state) => state.shopCart);
+  const { cartItems, loading: cartLoading } = useSelector(
+    (state) => state.shopCart
+  );
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
@@ -42,12 +46,24 @@ function ProductDetailsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // ✅ Fetch product details when id changes
+  // ✅ Fetch product details and cart when id changes
   useEffect(() => {
-    if (id) {
-      dispatch(fetchProductDetails(id));
+    if (id) dispatch(fetchProductDetails(id));
+    if (user?.id) dispatch(fetchCartItems(user.id));
+  }, [dispatch, id, user]);
+
+  // ✅ Check if product already exists in cart
+  const existingCartItem = cartItems?.find(
+    (item) => item.productId === productDetails?._id
+  );
+
+  // ✅ Preload quantity if product already in cart
+  useEffect(() => {
+    if (existingCartItem) {
+      setQuantity(existingCartItem.quantity);
     }
-  }, [dispatch, id]);
+  }, [existingCartItem]);
+
 
   // ✅ Safe check: return loader or error message before product loads
   if (isLoading || !productDetails) {
@@ -80,13 +96,35 @@ function ProductDetailsPage() {
     setCurrentImageIndex(index);
   };
 
-  const handleQuantityChange = (type) => {
-    if (type === "increase") {
-      setQuantity((prev) => Math.min(prev + 1, productDetails.totalStock));
-    } else {
-      setQuantity((prev) => Math.max(prev - 1, 1));
+  // ✅ Quantity + Sync Cart
+  const handleQuantityChange = async (type) => {
+    const newQty =
+      type === "increase"
+        ? Math.min(quantity + 1, productDetails.totalStock)
+        : Math.max(quantity - 1, 1);
+
+    setQuantity(newQty);
+
+    // 🔄 Auto-update cart if item exists
+    if (user && existingCartItem) {
+      try {
+        await dispatch(
+          updateCartQuantity({
+            userId: user.id,
+            productId: productDetails._id,
+            quantity: newQty,
+          })
+        ).unwrap();
+      } catch (err) {
+        toast({
+          title: "Failed to update cart",
+          description: err.message || "Something went wrong",
+          variant: "destructive",
+        });
+      }
     }
   };
+
 
   const handleAddToCart = async () => {
     if (!user || !user.id) {
