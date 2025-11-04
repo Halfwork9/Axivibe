@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle, Eye, ChevronLeft, ChevronRight, Calendar, User, CreditCard, Package } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
-import { updatePaymentStatus } from "@/store/admin/order-slice";
+import { updatePaymentStatus, updateOrderStatus } from "@/store/admin/order-slice";
 import { fetchOrdersForAdmin } from "@/store/admin/order-slice";
 import { useNavigate } from "react-router-dom";
 
-export default function RecentOrdersTable({ initialOrders, initialLoading }) {
+export default function RecentOrdersTable({ initialOrders, initialLoading, onOrderStatusChange }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -43,6 +43,36 @@ export default function RecentOrdersTable({ initialOrders, initialLoading }) {
         title: "Success",
         description: "Order marked as paid.",
       });
+      // ✅ NEW: Trigger refresh callback if provided
+      if (onOrderStatusChange) {
+        onOrderStatusChange();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    setUpdatingOrderId(orderId);
+    try {
+      const result = await dispatch(updateOrderStatus({ orderId, orderStatus: newStatus }));
+      if (result.error) {
+        throw new Error(result.payload.message || "Failed to update status");
+      }
+      toast({
+        title: "Success",
+        description: `Order marked as ${newStatus}.`,
+      });
+      // ✅ NEW: Trigger refresh callback if provided
+      if (onOrderStatusChange) {
+        onOrderStatusChange();
+      }
     } catch (error) {
       toast({
         title: "Error",
