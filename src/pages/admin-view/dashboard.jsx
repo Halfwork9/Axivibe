@@ -1,4 +1,3 @@
-// src/pages/admin-view/dashboard.jsx
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -41,29 +40,58 @@ import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable"
 import Sparkline from "@/components/admin-view/charts/Sparkline";
 import { getImageUrl } from "@/utils/imageUtils";
 
-function AdminDashboard() {
-  const dispatch = useDispatch();
-  const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { salesOverview, orderStats, orderList, isLoading } = useSelector(
-    (state) => state.adminOrder
-  );
+// ──────────────────────────────────────────────────────────────
+// DEFAULT STATS (prevents null crash)
+// ──────────────────────────────────────────────────────────────
+const DEFAULT_STATS = {
+  totalOrders: 0,
+  totalRevenue: 0,
+  pendingOrders: 0,
+  deliveredOrders: 0,
+  totalCustomers: 0,
+  revenueGrowthPercentage: 0,
+  topProducts: [],
+  ordersChange: { value: 0, percentage: 0 },
+  pendingChange: { value: 0, percentage: 0 },
+  deliveredChange: { value: 0, percentage: 0 },
+  customersChange: { value: 0, percentage: 0 },
+  lowStock: [],
+  confirmedOrders: 0,
+  shippedOrders: 0,
+};
 
+export default function AdminDashboard() {
+  const dispatch = useDispatch();
+
+  // Redux state
+  const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
+  const {
+    salesOverview = [],
+    orderStats = null,
+    orderList = [],
+    isLoading = false,
+  } = useSelector((state) => state.adminOrder || {});
+
+  // Local state
   const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Auto-refresh every 30 seconds
+  // ──────────────────────────────────────────────────────────────
+  // Auto-refresh every 30s
+  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleRefresh();
-    }, 30000);
+    const interval = setInterval(() => handleRefresh(), 30000);
     return () => clearInterval(interval);
   }, []);
 
+  // ──────────────────────────────────────────────────────────────
+  // Safe refresh handler
+  // ──────────────────────────────────────────────────────────────
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    Promise.all([
+    Promise.allSettled([
       dispatch(fetchSalesOverview()),
       dispatch(fetchOrderStats()),
       dispatch(fetchOrdersForAdmin({ page: 1, limit: 10 })),
@@ -78,8 +106,11 @@ function AdminDashboard() {
     handleRefresh();
   }, [handleRefresh]);
 
+  // ──────────────────────────────────────────────────────────────
+  // Feature images
+  // ──────────────────────────────────────────────────────────────
   const handleUploadFeatureImages = () => {
-    if (uploadedFeatureImages.length === 0) return;
+    if (!uploadedFeatureImages.length) return;
     Promise.all(
       uploadedFeatureImages.map((url) => dispatch(addFeatureImage(url)))
     ).then(() => {
@@ -92,16 +123,30 @@ function AdminDashboard() {
     dispatch(deleteFeatureImage(id)).then(() => dispatch(getFeatureImages()));
   };
 
-  const sparkline7d = (data, key) =>
-    data.slice(-7).map((d) => ({ value: d[key] || 0 }));
+  // ──────────────────────────────────────────────────────────────
+  // Safe sparkline data
+  // ──────────────────────────────────────────────────────────────
+  const getSparkline = (data, key) =>
+    Array.isArray(data) ? data.slice(-7).map((d) => ({ value: d[key] ?? 0 })) : [];
 
+  // ──────────────────────────────────────────────────────────────
+  // Safe change formatter
+  // ──────────────────────────────────────────────────────────────
   const formatChange = (change) => {
-    if (!change) return "N/A";
+    if (!change || typeof change !== "object") return "N/A";
     const { value = 0, percentage = 0 } = change;
     const sign = value > 0 ? "+" : "";
     return `${sign}${value} (${sign}${percentage}%)`;
   };
 
+  // ──────────────────────────────────────────────────────────────
+  // Safe stats (never null)
+  // ──────────────────────────────────────────────────────────────
+  const stats = orderStats ? { ...DEFAULT_STATS, ...orderStats } : DEFAULT_STATS;
+
+  // ──────────────────────────────────────────────────────────────
+  // Loading state
+  // ──────────────────────────────────────────────────────────────
   if (isLoading && !refreshing) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -111,6 +156,9 @@ function AdminDashboard() {
     );
   }
 
+  // ──────────────────────────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────────────────────────
   return (
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
@@ -127,11 +175,21 @@ function AdminDashboard() {
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
           <CSVLink
-            data={orderList || []}
+            data={orderList}
+            headers={[
+              { label: "Order ID", key: "_id" },
+              { label: "Customer", key: "userId.userName" },
+              { label: "Amount", key: "totalAmount" },
+              { label: "Status", key: "orderStatus" },
+              { label: "Payment", key: "paymentStatus" },
+              { label: "Date", key: "createdAt" },
+            ]}
             filename={`orders-${format(new Date(), "yyyy-MM-dd")}.csv`}
             className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
           >
@@ -145,36 +203,36 @@ function AdminDashboard() {
         <DashboardCard
           title="Total Orders"
           icon={<ShoppingCart className="text-blue-500" size={28} />}
-          value={orderStats?.totalOrders || 0}
-          change={formatChange(orderStats?.ordersChange)}
-          sparklineData={sparkline7d(salesOverview, "orders")}
+          value={stats.totalOrders}
+          change={formatChange(stats.ordersChange)}
+          sparklineData={getSparkline(salesOverview, "orders")}
           sparklineColor="#3b82f6"
         />
         <DashboardCard
           title="Revenue"
           icon={<DollarSign className="text-green-500" size={28} />}
-          value={`₹${(orderStats?.totalRevenue || 0).toLocaleString()}`}
-          change={`${orderStats?.revenueGrowthPercentage > 0 ? "+" : ""}${orderStats?.revenueGrowthPercentage || 0}% vs last month`}
-          sparklineData={sparkline7d(salesOverview, "revenue")}
+          value={`₹${stats.totalRevenue.toLocaleString()}`}
+          change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs last month`}
+          sparklineData={getSparkline(salesOverview, "revenue")}
           sparklineColor="#10b981"
         />
         <DashboardCard
           title="Pending"
           icon={<Package className="text-yellow-500" size={28} />}
-          value={orderStats?.pendingOrders ?? 0}
-          change={formatChange(orderStats?.pendingChange)}
+          value={stats.pendingOrders}
+          change={formatChange(stats.pendingChange)}
         />
         <DashboardCard
           title="Delivered"
           icon={<Truck className="text-indigo-500" size={28} />}
-          value={orderStats?.deliveredOrders || 0}
-          change={formatChange(orderStats?.deliveredChange)}
+          value={stats.deliveredOrders}
+          change={formatChange(stats.deliveredChange)}
         />
         <DashboardCard
           title="Customers"
           icon={<Users className="text-purple-500" size={28} />}
-          value={orderStats?.totalCustomers || 0}
-          change={formatChange(orderStats?.customersChange)}
+          value={stats.totalCustomers}
+          change={formatChange(stats.customersChange)}
         />
       </div>
 
@@ -188,7 +246,13 @@ function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <SalesOverviewChart data={salesOverview} />
+            {salesOverview.length > 0 ? (
+              <SalesOverviewChart data={salesOverview} />
+            ) : (
+              <div className="h-[280px] flex items-center justify-center text-gray-400">
+                No sales data
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -200,7 +264,7 @@ function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <OrderStatusChart data={orderStats} />
+            <OrderStatusChart data={stats} />
           </CardContent>
         </Card>
       </div>
@@ -214,12 +278,18 @@ function AdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <TopProductsChart data={orderStats?.topProducts || []} />
+          {stats.topProducts.length > 0 ? (
+            <TopProductsChart data={stats.topProducts} />
+          ) : (
+            <div className="h-[280px] flex items-center justify-center text-gray-400">
+              No product data
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* LOW STOCK ALERT */}
-      {orderStats?.lowStock?.length > 0 && (
+      {/* LOW STOCK */}
+      {stats.lowStock?.length > 0 && (
         <Card className="shadow-sm border-red-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
@@ -229,7 +299,7 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {orderStats.lowStock.map((p) => (
+              {stats.lowStock.map((p) => (
                 <div
                   key={p._id}
                   className="flex justify-between items-center p-2 bg-red-50 rounded"
@@ -252,9 +322,7 @@ function AdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <RecentOrdersTable
-            onOrderStatusChange={handleRefresh}
-          />
+          <RecentOrdersTable onOrderStatusChange={handleRefresh} />
         </CardContent>
       </Card>
 
@@ -276,21 +344,22 @@ function AdminDashboard() {
             className="mt-4 w-full"
             disabled={uploadedFeatureImages.length === 0 || imageLoadingState}
           >
-            {imageLoadingState ? (
-              <>Uploading...</>
-            ) : (
-              "Upload to Features"
-            )}
+            {imageLoadingState ? "Uploading..." : "Upload to Features"}
           </Button>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-            {featureImageList?.length > 0 ? (
+            {featureImageList.length > 0 ? (
               featureImageList.map((img) => (
                 <div key={img._id} className="relative group">
                   <img
                     src={getImageUrl(img.image)}
                     alt="Feature"
                     className="w-full h-48 object-cover rounded-lg"
+                    crossOrigin="anonymous"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.src = "/placeholder-image.png"; // fallback
+                    }}
                   />
                   <Button
                     variant="destructive"
@@ -314,6 +383,9 @@ function AdminDashboard() {
   );
 }
 
+// ──────────────────────────────────────────────────────────────
+// Reusable Dashboard Card
+// ──────────────────────────────────────────────────────────────
 const DashboardCard = ({
   title,
   value,
@@ -329,10 +401,14 @@ const DashboardCard = ({
         <div className="flex-1">
           <p className="text-gray-500 text-sm">{title}</p>
           <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
-          <p className={`text-sm mt-1 ${isPositive ? "text-green-600" : "text-red-600"}`}>
+          <p
+            className={`text-sm mt-1 ${
+              isPositive ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {change}
           </p>
-          {sparklineData && (
+          {sparklineData && sparklineData.length > 0 && (
             <div className="mt-3 w-24">
               <Sparkline data={sparklineData} color={sparklineColor} />
             </div>
@@ -343,5 +419,3 @@ const DashboardCard = ({
     </Card>
   );
 };
-
-export default AdminDashboard;
