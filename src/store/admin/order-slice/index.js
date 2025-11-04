@@ -26,96 +26,84 @@ const initialState = {
   pagination: null,
 };
 
+// THUNKS
 export const fetchOrdersForAdmin = createAsyncThunk(
-  'adminOrder/fetchOrdersForAdmin',
+  "adminOrder/fetchOrdersForAdmin",
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
       const response = await api.get(`/admin/orders/get?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data);
     }
   }
 );
 
 export const getAllOrdersForAdmin = createAsyncThunk(
-  "/order/getAllOrdersForAdmin",
+  "adminOrder/getAllOrdersForAdmin",
   async ({ sortBy, page }) => {
-    const response = await api.get(
-      `/admin/orders/get?sortBy=${sortBy}&page=${page}`
-    );
-
+    const response = await api.get(`/admin/orders/get?sortBy=${sortBy}&page=${page}`);
     return response.data;
   }
 );
 
 export const getOrderDetailsForAdmin = createAsyncThunk(
-  "/order/getOrderDetailsForAdmin",
+  "adminOrder/getOrderDetailsForAdmin",
   async (id) => {
-    const response = await api.get(
-      `/admin/orders/details/${id}`
-    );
-
+    const response = await api.get(`/admin/orders/details/${id}`);
     return response.data;
   }
 );
 
 export const updateOrderStatus = createAsyncThunk(
-  "/order/updateOrderStatus",
+  "adminOrder/updateOrderStatus",
   async ({ id, orderStatus }) => {
-    const response = await api.put(
-      `/admin/orders/update/${id}`,
-      {
-        orderStatus,
-      }
-    );
-
+    const response = await api.put(`/admin/orders/update/${id}`, { orderStatus });
     return response.data;
   }
 );
 
-// ✅ NEW: Add the async thunk for updating payment status
 export const updatePaymentStatus = createAsyncThunk(
-  'adminOrder/updatePaymentStatus',
+  "adminOrder/updatePaymentStatus",
   async ({ orderId, status }, { rejectWithValue }) => {
     try {
       const response = await api.put(`/admin/orders/${orderId}/payment-status`, {
         paymentStatus: status,
       });
-      return response.data; // This will be { success: true, data: updatedOrder }
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data);
     }
   }
 );
-// ✅ NEW: Fetch Sales Overview for LineChart
+
 export const fetchSalesOverview = createAsyncThunk(
-  'adminOrder/fetchSalesOverview',
+  "adminOrder/fetchSalesOverview",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/admin/orders/sales-overview');
-      return response.data.data; // Array of { date: "4/11", revenue: 2450, orders: 1 }
+      const response = await api.get("/admin/orders/sales-overview");
+      return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Failed to fetch sales overview');
+      return rejectWithValue(error.response?.data || "Failed to fetch sales overview");
     }
   }
 );
 
-// ✅ NEW: Fetch Order Stats (includes topProducts for BarChart)
 export const fetchOrderStats = createAsyncThunk(
-  'adminOrder/fetchOrderStats',
+  "adminOrder/fetchOrderStats",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/admin/orders/stats');
-      return response.data.data; // { totalOrders, topProducts: [...], ... }
+      const response = await api.get("/admin/orders/stats");
+      return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Failed to fetch stats');
+      return rejectWithValue(error.response?.data || "Failed to fetch stats");
     }
   }
 );
 
+// SLICE
 const adminOrderSlice = createSlice({
-  name: "adminOrderSlice",
+  name: "adminOrder",
   initialState,
   reducers: {
     resetOrderDetails: (state) => {
@@ -124,102 +112,102 @@ const adminOrderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // fetchOrdersForAdmin
       .addCase(fetchOrdersForAdmin.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchOrdersForAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orderList = action.payload.data;
-        state.pagination = action.payload.pagination; // Save pagination info
+        state.orderList = action.payload.data || [];
+        state.pagination = action.payload.pagination || null;
       })
       .addCase(fetchOrdersForAdmin.rejected, (state) => {
         state.isLoading = false;
-        // Don't clear the list on error, just stop loading
       })
+
+      // getAllOrdersForAdmin
       .addCase(getAllOrdersForAdmin.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(getAllOrdersForAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orderList = action.payload.data;
-        state.pagination = action.payload.pagination;
+        state.orderList = action.payload.data || [];
+        state.pagination = action.payload.pagination || null;
       })
       .addCase(getAllOrdersForAdmin.rejected, (state) => {
         state.isLoading = false;
         state.orderList = [];
         state.pagination = null;
       })
+
+      // getOrderDetailsForAdmin
       .addCase(getOrderDetailsForAdmin.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(getOrderDetailsForAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orderDetails = action.payload.data;
+        state.orderDetails = action.payload.data || null;
       })
       .addCase(getOrderDetailsForAdmin.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
       })
+
+      // updateOrderStatus
       .addCase(updateOrderStatus.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(updateOrderStatus.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Update the order in the list if it exists
-        if (state.orderList && state.orderList.length > 0) {
-          const index = state.orderList.findIndex(
-            (order) => order._id === action.payload.data._id
-          );
-          if (index !== -1) {
-            state.orderList[index] = action.payload.data;
-          }
+        if (action.payload?.data && state.orderList) {
+          const index = state.orderList.findIndex((o) => o._id === action.payload.data._id);
+          if (index !== -1) state.orderList[index] = action.payload.data;
         }
       })
       .addCase(updateOrderStatus.rejected, (state) => {
         state.isLoading = false;
       })
-      // Add these to builder
-.addCase(fetchSalesOverview.pending, (state) => {
-  state.isLoading = true;
-})
-.addCase(fetchSalesOverview.fulfilled, (state, action) => {
-  state.isLoading = false;
-  state.salesOverview = action.payload; // New state field
-})
-.addCase(fetchSalesOverview.rejected, (state) => {
-  state.isLoading = false;
-})
-.addCase(fetchOrderStats.pending, (state) => {
-  state.isLoading = true;
-})
-.addCase(fetchOrderStats.fulfilled, (state, action) => {
-  state.isLoading = false;
-  state.orderStats = action.payload; // New state field: { topProducts, totalRevenue, ... }
-})
-.addCase(fetchOrderStats.rejected, (state) => {
-  state.isLoading = false;
-})
-      .addCase(fetchOrderStats.fulfilled, (state, action) => {
-  state.isLoading = false;
-  state.orderStats = action.payload || initialState.orderStats;
-})
-      // ✅ NEW: Add extraReducers for the new updatePaymentStatus thunk
-      .addCase(updatePaymentStatus.pending, (state) => {
-        // You could add a specific loading state here if needed
+
+      // fetchSalesOverview
+      .addCase(fetchSalesOverview.pending, (state) => {
+        state.isLoading = true;
       })
+      .addCase(fetchSalesOverview.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.salesOverview = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(fetchSalesOverview.rejected, (state) => {
+        state.isLoading = false;
+        state.salesOverview = [];
+      })
+
+      // fetchOrderStats (FIXED)
+      .addCase(fetchOrderStats.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchOrderStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.orderStats = {
+          ...initialState.orderStats,
+          ...action.payload,
+        };
+      })
+      .addCase(fetchOrderStats.rejected, (state) => {
+        state.isLoading = false;
+        state.orderStats = initialState.orderStats;
+      })
+
+      // updatePaymentStatus
+      .addCase(updatePaymentStatus.pending, () => {})
       .addCase(updatePaymentStatus.fulfilled, (state, action) => {
-        if (action.payload.success) {
-          const updatedOrder = action.payload.data;
-          // Find the order in the list and update it
-          const index = state.orderList.findIndex(order => order._id === updatedOrder._id);
-          if (index !== -1) {
-            state.orderList[index] = updatedOrder;
-          }
+        if (action.payload?.success && state.orderList) {
+          const updated = action.payload.data;
+          const idx = state.orderList.findIndex((o) => o._id === updated._id);
+          if (idx !== -1) state.orderList[idx] = updated;
         }
       })
       .addCase(updatePaymentStatus.rejected, (state, action) => {
-        // Handle error, maybe show a toast notification
-        console.error("Failed to update payment status:", action.payload);
+        console.error("Payment update failed:", action.payload);
       });
   },
 });
