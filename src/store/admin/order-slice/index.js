@@ -5,6 +5,8 @@ import api from "@/api";
 const initialState = {
   orderList: [],
   orderDetails: null,
+  salesOverview: [], // ✅ NEW
+  orderStats: null, // ✅ NEW
   isLoading: false,
   pagination: null,
 };
@@ -68,6 +70,31 @@ export const updatePaymentStatus = createAsyncThunk(
       return response.data; // This will be { success: true, data: updatedOrder }
     } catch (error) {
       return rejectWithValue(error.response.data);
+    }
+  }
+);
+// ✅ NEW: Fetch Sales Overview for LineChart
+export const fetchSalesOverview = createAsyncThunk(
+  'adminOrder/fetchSalesOverview',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/admin/orders/sales-overview');
+      return response.data.data; // Array of { date: "4/11", revenue: 2450, orders: 1 }
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to fetch sales overview');
+    }
+  }
+);
+
+// ✅ NEW: Fetch Order Stats (includes topProducts for BarChart)
+export const fetchOrderStats = createAsyncThunk(
+  'adminOrder/fetchOrderStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/admin/orders/stats');
+      return response.data.data; // { totalOrders, topProducts: [...], ... }
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to fetch stats');
     }
   }
 );
@@ -136,6 +163,27 @@ const adminOrderSlice = createSlice({
       .addCase(updateOrderStatus.rejected, (state) => {
         state.isLoading = false;
       })
+      // Add these to builder
+.addCase(fetchSalesOverview.pending, (state) => {
+  state.isLoading = true;
+})
+.addCase(fetchSalesOverview.fulfilled, (state, action) => {
+  state.isLoading = false;
+  state.salesOverview = action.payload; // New state field
+})
+.addCase(fetchSalesOverview.rejected, (state) => {
+  state.isLoading = false;
+})
+.addCase(fetchOrderStats.pending, (state) => {
+  state.isLoading = true;
+})
+.addCase(fetchOrderStats.fulfilled, (state, action) => {
+  state.isLoading = false;
+  state.orderStats = action.payload; // New state field: { topProducts, totalRevenue, ... }
+})
+.addCase(fetchOrderStats.rejected, (state) => {
+  state.isLoading = false;
+})
       // ✅ NEW: Add extraReducers for the new updatePaymentStatus thunk
       .addCase(updatePaymentStatus.pending, (state) => {
         // You could add a specific loading state here if needed
