@@ -5,8 +5,23 @@ import api from "@/api";
 const initialState = {
   orderList: [],
   orderDetails: null,
-  salesOverview: [], // ✅ NEW
-  orderStats: null, // ✅ NEW
+  salesOverview: [],
+  orderStats: {
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    deliveredOrders: 0,
+    totalCustomers: 0,
+    revenueGrowthPercentage: 0,
+    topProducts: [],
+    ordersChange: { value: 0, percentage: 0 },
+    pendingChange: { value: 0, percentage: 0 },
+    deliveredChange: { value: 0, percentage: 0 },
+    customersChange: { value: 0, percentage: 0 },
+    lowStock: [],
+    confirmedOrders: 0,
+    shippedOrders: 0,
+  },
   isLoading: false,
   pagination: null,
 };
@@ -183,6 +198,10 @@ const adminOrderSlice = createSlice({
 })
 .addCase(fetchOrderStats.rejected, (state) => {
   state.isLoading = false;
+})
+      .addCase(fetchOrderStats.fulfilled, (state, action) => {
+  state.isLoading = false;
+  state.orderStats = action.payload || initialState.orderStats;
 })
       // ✅ NEW: Add extraReducers for the new updatePaymentStatus thunk
       .addCase(updatePaymentStatus.pending, (state) => {
