@@ -11,6 +11,7 @@ import {
   Loader2,
   TrendingUp,
   BarChart3,
+  RefreshCw,
 } from "lucide-react";
 
 import { fetchOrdersForAdmin } from "@/store/admin/order-slice";
@@ -39,28 +40,42 @@ function AdminDashboard() {
 
   const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
-
   const [stats, setStats] = useState(null);
   const [salesOverview, setSalesOverview] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // ✅ NEW: Function to fetch dashboard data
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, salesRes] = await Promise.all([
+        api.get("/admin/orders/stats"),
+        api.get("/admin/orders/sales-overview"),
+      ]);
+
+      console.log("Stats response:", statsRes.data); // Debug log
+      setStats(statsRes.data?.data);
+      setSalesOverview(salesRes.data?.data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error("Dashboard fetch error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // ✅ NEW: Function to manually refresh data
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+    dispatch(getFeatureImages());
+    dispatch(fetchOrdersForAdmin({ page: 1, limit: 10 }));
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const [statsRes, salesRes] = await Promise.all([
-          api.get("/admin/orders/stats"),
-          api.get("/admin/orders/sales-overview"),
-        ]);
-
-        setStats(statsRes.data?.data);
-        setSalesOverview(salesRes.data?.data);
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
     dispatch(getFeatureImages());
     // ✅ FIX: Dispatch the new thunk to fetch the first page of orders
@@ -109,8 +124,24 @@ function AdminDashboard() {
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-        <Button variant="outline">View Store</Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button variant="outline">View Store</Button>
+        </div>
       </div>
 
       {/* DASHBOARD STATS */}
@@ -190,7 +221,8 @@ function AdminDashboard() {
           {/* ✅ FIX: Pass only the list and loading state. The table now handles its own pagination. */}
           <RecentOrdersTable 
             orders={orderList || []} 
-            isLoading={ordersLoading} 
+            isLoading={ordersLoading}
+            onOrderStatusChange={handleRefresh} // ✅ NEW: Refresh data when order status changes
           />
         </CardContent>
       </Card>
