@@ -47,25 +47,30 @@ function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // ✅ NEW: Function to fetch dashboard data
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [statsRes, salesRes] = await Promise.all([
-        api.get("/admin/orders/stats"),
-        api.get("/admin/orders/sales-overview"),
-      ]);
+  // In your AdminDashboard component, update the fetchDashboardData function:
 
-      console.log("Stats response:", statsRes.data); // Debug log
-      setStats(statsRes.data?.data);
-      setSalesOverview(salesRes.data?.data);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+const fetchDashboardData = async () => {
+  try {
+    setLoading(true);
+    const [statsRes, salesRes] = await Promise.all([
+      api.get("/admin/orders/stats"),
+      api.get("/admin/orders/sales-overview"),
+    ]);
+
+    console.log("Stats response:", statsRes.data); // Debug log
+    console.log("Stats data:", statsRes.data.data); // Debug log
+    
+    // Make sure we're accessing the data correctly
+    setStats(statsRes.data?.data || {});
+    setSalesOverview(salesRes.data?.data || []);
+    setLastUpdated(new Date());
+  } catch (error) {
+    console.error("Dashboard fetch error:", error);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   // ✅ NEW: Function to manually refresh data
   const handleRefresh = () => {
