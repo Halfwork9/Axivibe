@@ -58,31 +58,31 @@ export default function RecentOrdersTable({ initialOrders, initialLoading, onOrd
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
-    setUpdatingOrderId(orderId);
-    try {
-      const result = await dispatch(updateOrderStatus({ orderId, orderStatus: newStatus }));
-      if (result.error) {
-        throw new Error(result.payload.message || "Failed to update status");
-      }
-      toast({
-        title: "Success",
-        description: `Order marked as ${newStatus}.`,
-      });
-      // ✅ NEW: Trigger refresh callback if provided
-      if (onOrderStatusChange) {
-        onOrderStatusChange();
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUpdatingOrderId(null);
+ const handleUpdateOrderStatus = async (orderId, newStatus) => {
+  setUpdatingOrderId(orderId);
+  try {
+    const result = await dispatch(updateOrderStatus({ id: orderId, orderStatus: newStatus }));
+    if (result.error) {
+      throw new Error(result.payload.message || "Failed to update status");
     }
-  };
+    toast({
+      title: "Success",
+      description: `Order marked as ${newStatus}.`,
+    });
+    // ✅ NEW: Trigger refresh callback if provided
+    if (onOrderStatusChange) {
+      onOrderStatusChange();
+    }
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  } finally {
+    setUpdatingOrderId(null);
+  }
+};
 
   const handleViewOrder = (orderId) => {
     navigate(`/admin/orders/${orderId}`);
