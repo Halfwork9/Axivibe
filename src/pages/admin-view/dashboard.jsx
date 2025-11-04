@@ -161,7 +161,7 @@ function AdminDashboard() {
         <DashboardCard
           title="Pending"
           icon={<Package className="text-yellow-500" size={28} />}
-          value={orderStats?.pendingOrders || 0}
+          value={orderStats?.pendingOrders ?? 0}
           change={formatChange(orderStats?.pendingChange)}
         />
         <DashboardCard
