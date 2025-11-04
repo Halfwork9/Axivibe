@@ -16,7 +16,7 @@ import {
 
 import { fetchOrdersForAdmin } from "@/store/admin/order-slice";
 import api from "@/api";
-
+import { fetchSalesOverview, fetchOrderStats } from "@/store/admin/order-slice";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import SalesOverviewChart from "@/components/admin-view/charts/SalesOverviewChart";
 import TopProductsChart from "@/components/admin-view/charts/TopProductsChart";
@@ -34,7 +34,6 @@ function AdminDashboard() {
   const { featureImageList } = useSelector((state) => state.commonFeature);
   const { salesOverview, orderStats, isLoading } = useSelector((state) => state.adminOrder);
 
-  // ✅ FETCH DATA ON MOUNT
   useEffect(() => {
     dispatch(fetchSalesOverview());
     dispatch(fetchOrderStats());
