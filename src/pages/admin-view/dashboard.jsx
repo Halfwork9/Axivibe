@@ -32,7 +32,13 @@ import Sparkline from "@/components/admin-view/charts/Sparkline";
 function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  
+  const { salesOverview, orderStats, isLoading } = useSelector((state) => state.adminOrder);
+
+  // ✅ FETCH DATA ON MOUNT
+  useEffect(() => {
+    dispatch(fetchSalesOverview());
+    dispatch(fetchOrderStats());
+  }, [dispatch]);
   // ✅ FIX: Select only the necessary state from the adminOrder slice
   const { orderList, isLoading: ordersLoading } = useSelector(
     (state) => state.adminOrder
@@ -209,7 +215,7 @@ const fetchDashboardData = async () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <TopProductsChart data={stats?.topProducts || []} />
+           <TopProductsChart data={orderStats.topProducts} />
           </CardContent>
         </Card>
       </div>
