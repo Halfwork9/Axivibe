@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
+// src/pages/admin-view/dashboard.jsx
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   ShoppingCart,
@@ -12,121 +18,98 @@ import {
   TrendingUp,
   BarChart3,
   RefreshCw,
+  AlertCircle,
+  Download,
 } from "lucide-react";
-
-import { fetchOrdersForAdmin } from "@/store/admin/order-slice";
-import api from "@/api";
-import { fetchSalesOverview, fetchOrderStats } from "@/store/admin/order-slice";
-import ProductImageUpload from "@/components/admin-view/image-upload";
-import SalesOverviewChart from "@/components/admin-view/charts/SalesOverviewChart";
-import TopProductsChart from "@/components/admin-view/charts/TopProductsChart";
-import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable";
-import { getImageUrl } from "@/utils/imageUtils";
+import { format } from "date-fns";
+import { CSVLink } from "react-csv";
+import {
+  fetchOrdersForAdmin,
+  fetchSalesOverview,
+  fetchOrderStats,
+} from "@/store/admin/order-slice";
 import {
   addFeatureImage,
   getFeatureImages,
   deleteFeatureImage,
 } from "@/store/common-slice";
+import ProductImageUpload from "@/components/admin-view/image-upload";
+import SalesOverviewChart from "@/components/admin-view/charts/SalesOverviewChart";
+import TopProductsChart from "@/components/admin-view/charts/TopProductsChart";
+import OrderStatusChart from "@/components/admin-view/charts/OrderStatusChart";
+import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable";
 import Sparkline from "@/components/admin-view/charts/Sparkline";
+import { getImageUrl } from "@/utils/imageUtils";
 
 function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
-  const { salesOverview, orderStats, isLoading } = useSelector((state) => state.adminOrder);
-
-  useEffect(() => {
-    dispatch(fetchSalesOverview());
-    dispatch(fetchOrderStats());
-  }, [dispatch]);
-  // ✅ FIX: Select only the necessary state from the adminOrder slice
-  const { orderList, isLoading: ordersLoading } = useSelector(
+  const { salesOverview, orderStats, orderList, isLoading } = useSelector(
     (state) => state.adminOrder
   );
 
   const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // ✅ NEW: Function to fetch dashboard data
-  // In your AdminDashboard component, update the fetchDashboardData function:
-
-const fetchDashboardData = async () => {
-  try {
-    setLoading(true);
-    const [statsRes, salesRes] = await Promise.all([
-      api.get("/admin/orders/stats"),
-      api.get("/admin/orders/sales-overview"),
-    ]);
-
-    console.log("Stats response:", statsRes.data); // Debug log
-    console.log("Stats data:", statsRes.data.data); // Debug log
-    
-    // Make sure we're accessing the data correctly
-    setStats(statsRes.data?.data || {});
-    setLastUpdated(new Date());
-  } catch (error) {
-    console.error("Dashboard fetch error:", error);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
-  // ✅ NEW: Function to manually refresh data
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchDashboardData();
-    dispatch(getFeatureImages());
-    dispatch(fetchOrdersForAdmin({ page: 1, limit: 10 }));
-  };
-
+  // Auto-refresh every 30 seconds
   useEffect(() => {
-    fetchDashboardData();
-    dispatch(getFeatureImages());
-    // ✅ FIX: Dispatch the new thunk to fetch the first page of orders
-    dispatch(fetchOrdersForAdmin({ page: 1, limit: 10 }));
+    const interval = setInterval(() => {
+      handleRefresh();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    Promise.all([
+      dispatch(fetchSalesOverview()),
+      dispatch(fetchOrderStats()),
+      dispatch(fetchOrdersForAdmin({ page: 1, limit: 10 })),
+      dispatch(getFeatureImages()),
+    ]).finally(() => {
+      setRefreshing(false);
+      setLastUpdated(new Date());
+    });
   }, [dispatch]);
 
-  function handleUploadFeatureImages() {
+  useEffect(() => {
+    handleRefresh();
+  }, [handleRefresh]);
+
+  const handleUploadFeatureImages = () => {
     if (uploadedFeatureImages.length === 0) return;
-    const uploadPromises = uploadedFeatureImages.map((imageUrl) =>
-      dispatch(addFeatureImage(imageUrl))
-    );
-    Promise.all(uploadPromises).then(() => {
+    Promise.all(
+      uploadedFeatureImages.map((url) => dispatch(addFeatureImage(url)))
+    ).then(() => {
       dispatch(getFeatureImages());
       setUploadedFeatureImages([]);
     });
-  }
+  };
 
-  function handleDeleteFeatureImage(id) {
-    dispatch(deleteFeatureImage(id)).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(getFeatureImages());
-      }
-    });
-  }
+  const handleDeleteFeatureImage = (id) => {
+    dispatch(deleteFeatureImage(id)).then(() => dispatch(getFeatureImages()));
+  };
 
-  if (loading) {
+  const sparkline7d = (data, key) =>
+    data.slice(-7).map((d) => ({ value: d[key] || 0 }));
+
+  const formatChange = (change) => {
+    if (!change) return "N/A";
+    const { value = 0, percentage = 0 } = change;
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value} (${sign}${percentage}%)`;
+  };
+
+  if (isLoading && !refreshing) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
-        <span className="ml-3 text-gray-600">Loading dashboard...</span>
+        <Loader2 className="h-8 w-8 animate-spin text-gray-600 mr-3" />
+        <span>Loading dashboard...</span>
       </div>
     );
   }
-
-  // Prepare data for sparklines and dynamic changes
-  const orderSparklineData = salesOverview.slice(-7).map(d => ({ value: d.orders }));
-  const revenueSparklineData = salesOverview.slice(-7).map(d => ({ value: d.revenue }));
-  
-  const formatChange = (change) => {
-    const { value, percentage } = change || {};
-    const sign = value > 0 ? "+" : "";
-    return `${sign}${value} (${sign}${percentage}%) this week`;
-  };
 
   return (
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
@@ -134,69 +117,74 @@ const fetchDashboardData = async () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button variant="outline">View Store</Button>
+          <CSVLink
+            data={orderList || []}
+            filename={`orders-${format(new Date(), "yyyy-MM-dd")}.csv`}
+            className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
+          >
+            <Download className="h-4 w-4" /> Export
+          </CSVLink>
         </div>
       </div>
 
-      {/* DASHBOARD STATS */}
+      {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
         <DashboardCard
           title="Total Orders"
           icon={<ShoppingCart className="text-blue-500" size={28} />}
-          value={stats?.totalOrders || 0}
-          change={formatChange(stats?.ordersChange)}
-          sparklineData={orderSparklineData}
+          value={orderStats?.totalOrders || 0}
+          change={formatChange(orderStats?.ordersChange)}
+          sparklineData={sparkline7d(salesOverview, "orders")}
           sparklineColor="#3b82f6"
         />
         <DashboardCard
           title="Revenue"
           icon={<DollarSign className="text-green-500" size={28} />}
-          value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
-          change={`${stats?.revenueGrowthPercentage > 0 ? '+' : ''}${stats?.revenueGrowthPercentage || 0}% vs last month`}
-          sparklineData={revenueSparklineData}
+          value={`₹${(orderStats?.totalRevenue || 0).toLocaleString()}`}
+          change={`${orderStats?.revenueGrowthPercentage > 0 ? "+" : ""}${orderStats?.revenueGrowthPercentage || 0}% vs last month`}
+          sparklineData={sparkline7d(salesOverview, "revenue")}
           sparklineColor="#10b981"
         />
         <DashboardCard
-          title="Pending Orders"
+          title="Pending"
           icon={<Package className="text-yellow-500" size={28} />}
-          value={stats?.pendingOrders || 0}
-          change={formatChange(stats?.pendingChange)}
+          value={orderStats?.pendingOrders || 0}
+          change={formatChange(orderStats?.pendingChange)}
         />
         <DashboardCard
           title="Delivered"
           icon={<Truck className="text-indigo-500" size={28} />}
-          value={stats?.deliveredOrders || 0}
-          change={formatChange(stats?.deliveredChange)}
+          value={orderStats?.deliveredOrders || 0}
+          change={formatChange(orderStats?.deliveredChange)}
         />
         <DashboardCard
           title="Customers"
           icon={<Users className="text-purple-500" size={28} />}
-          value={stats?.totalCustomers || 0}
-          change={formatChange(stats?.customersChange)}
+          value={orderStats?.totalCustomers || 0}
+          change={formatChange(orderStats?.customersChange)}
         />
       </div>
 
-      {/* CHARTS SECTION WITH TITLES */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+      {/* CHARTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-500" />
-              Sales Overview (Last 30 Days)
+              Sales Overview (30 Days)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -205,42 +193,75 @@ const fetchDashboardData = async () => {
         </Card>
 
         <Card className="shadow-sm">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-blue-500" />
-              Top 5 Selling Products
+              Order Status
             </CardTitle>
           </CardHeader>
           <CardContent>
-           <TopProductsChart data={orderStats.topProducts} />
+            <OrderStatusChart data={orderStats} />
           </CardContent>
         </Card>
       </div>
 
+      {/* TOP PRODUCTS */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-blue-500" />
+            Top 5 Products
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TopProductsChart data={orderStats?.topProducts || []} />
+        </CardContent>
+      </Card>
+
+      {/* LOW STOCK ALERT */}
+      {orderStats?.lowStock?.length > 0 && (
+        <Card className="shadow-sm border-red-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              Low Stock Alert
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {orderStats.lowStock.map((p) => (
+                <div
+                  key={p._id}
+                  className="flex justify-between items-center p-2 bg-red-50 rounded"
+                >
+                  <span className="font-medium">{p.title}</span>
+                  <span className="text-red-600">Only {p.totalStock} left</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* RECENT ORDERS */}
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5 text-blue-500" />
             Recent Orders
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* ✅ FIX: Pass only the list and loading state. The table now handles its own pagination. */}
-          <RecentOrdersTable 
-            orders={orderList || []} 
-            isLoading={ordersLoading}
-            onOrderStatusChange={handleRefresh} // ✅ NEW: Refresh data when order status changes
+          <RecentOrdersTable
+            onOrderStatusChange={handleRefresh}
           />
         </CardContent>
       </Card>
 
-      {/* FEATURE IMAGES MANAGEMENT */}
-      <Card className="shadow-sm mt-8">
+      {/* FEATURE IMAGES */}
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-700">
-            Homepage Feature Images
-          </CardTitle>
+          <CardTitle>Homepage Feature Images</CardTitle>
         </CardHeader>
         <CardContent>
           <ProductImageUpload
@@ -256,31 +277,25 @@ const fetchDashboardData = async () => {
             disabled={uploadedFeatureImages.length === 0 || imageLoadingState}
           >
             {imageLoadingState ? (
-              <>
-                <Loader2 className="animate-spin mr-2 h-4 w-4" /> Uploading...
-              </>
+              <>Uploading...</>
             ) : (
               "Upload to Features"
             )}
           </Button>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-            {Array.isArray(featureImageList) && featureImageList.length > 0 ? (
+            {featureImageList?.length > 0 ? (
               featureImageList.map((img) => (
-                <div
-                  key={img._id}
-                  className="relative border rounded-lg overflow-hidden shadow-sm"
-                >
+                <div key={img._id} className="relative group">
                   <img
                     src={getImageUrl(img.image)}
                     alt="Feature"
-                    className="w-full h-48 object-cover rounded-md"
-                    crossOrigin="anonymous"
+                    className="w-full h-48 object-cover rounded-lg"
                   />
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
                     onClick={() => handleDeleteFeatureImage(img._id)}
                   >
                     Delete
@@ -288,8 +303,8 @@ const fetchDashboardData = async () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 text-center col-span-full">
-                No feature images found.
+              <p className="col-span-full text-center text-gray-500">
+                No feature images
               </p>
             )}
           </div>
@@ -299,26 +314,31 @@ const fetchDashboardData = async () => {
   );
 }
 
-/* 🔸 Enhanced Reusable Dashboard Card */
-const DashboardCard = ({ title, value, icon, change, sparklineData, sparklineColor }) => {
-  const isPositive = change && (change.includes('+') || !change.startsWith('-'));
-
+const DashboardCard = ({
+  title,
+  value,
+  icon,
+  change,
+  sparklineData,
+  sparklineColor,
+}) => {
+  const isPositive = change && (change.includes("+") || !change.startsWith("-"));
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm hover:shadow-md transition">
       <CardContent className="p-5 flex items-center justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-sm">{title}</p>
           <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
-          <p className={`text-sm mt-1 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+          <p className={`text-sm mt-1 ${isPositive ? "text-green-600" : "text-red-600"}`}>
             {change}
           </p>
           {sparklineData && (
-            <div className="mt-2 w-24">
+            <div className="mt-3 w-24">
               <Sparkline data={sparklineData} color={sparklineColor} />
             </div>
           )}
         </div>
-        <div className="p-3 rounded-full bg-gray-100 ml-4">{icon}</div>
+        <div className="p-3 rounded-full bg-gray-100">{icon}</div>
       </CardContent>
     </Card>
   );
