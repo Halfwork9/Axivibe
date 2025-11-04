@@ -46,7 +46,6 @@ function AdminDashboard() {
   const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [stats, setStats] = useState(null);
-  const [salesOverview, setSalesOverview] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -67,7 +66,6 @@ const fetchDashboardData = async () => {
     
     // Make sure we're accessing the data correctly
     setStats(statsRes.data?.data || {});
-    setSalesOverview(salesRes.data?.data || []);
     setLastUpdated(new Date());
   } catch (error) {
     console.error("Dashboard fetch error:", error);
