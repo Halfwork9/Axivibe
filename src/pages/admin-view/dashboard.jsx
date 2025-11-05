@@ -1,3 +1,4 @@
+// src/components/admin-view/AdminDashboard.jsx
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -19,9 +20,14 @@ import {
   RefreshCw,
   AlertCircle,
   Download,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { format } from "date-fns";
 import { CSVLink } from "react-csv";
+import { io } from "socket.io-client";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   fetchOrdersForAdmin,
   fetchSalesOverview,
@@ -62,7 +68,6 @@ const DEFAULT_STATS = {
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
-
   // Redux state
   const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
   const {
@@ -77,6 +82,38 @@ export default function AdminDashboard() {
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [darkMode, setDarkMode] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  // ──────────────────────────────────────────────────────────────
+  // Dark Mode
+  // ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
+  // ──────────────────────────────────────────────────────────────
+  // Real-Time WebSocket
+  // ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const socket = io(import.meta.env.VITE_API_URL || "https://api.nikhilmamdekar.site", {
+      path: "/socket.io",
+    });
+
+    socket.on("connect", () => setSocketConnected(true));
+    socket.on("disconnect", () => setSocketConnected(false));
+    socket.emit("joinDashboard");
+    socket.on("orderUpdated", () => {
+      console.log("Real-time update");
+      handleRefresh();
+    });
+
+    return () => socket.disconnect();
+  }, []);
 
   // ──────────────────────────────────────────────────────────────
   // Auto-refresh every 30s
@@ -145,13 +182,37 @@ export default function AdminDashboard() {
   const stats = orderStats ? { ...DEFAULT_STATS, ...orderStats } : DEFAULT_STATS;
 
   // ──────────────────────────────────────────────────────────────
+  // PDF Export
+  // ──────────────────────────────────────────────────────────────
+  const exportPDF = async () => {
+    const element = document.getElementById("dashboard-content");
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: darkMode ? "#1a1a1a" : "#f9fafb",
+      });
+      const img = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(img, "PNG", 0, 0, width, height);
+      pdf.save(`admin-report-${format(new Date(), "yyyy-MM-dd_HH-mm")}.pdf`);
+    } catch (err) {
+      console.error("PDF export failed:", err);
+    }
+  };
+
+  // ──────────────────────────────────────────────────────────────
   // Loading state
   // ──────────────────────────────────────────────────────────────
   if (isLoading && !refreshing) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-600 mr-3" />
-        <span>Loading dashboard...</span>
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-600 dark:text-gray-300 mr-3" />
+        <span className="text-gray-600 dark:text-gray-300">Loading dashboard...</span>
       </div>
     );
   }
@@ -160,225 +221,253 @@ export default function AdminDashboard() {
   // Render
   // ──────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-          <CSVLink
-            data={orderList}
-            headers={[
-              { label: "Order ID", key: "_id" },
-              { label: "Customer", key: "userId.userName" },
-              { label: "Amount", key: "totalAmount" },
-              { label: "Status", key: "orderStatus" },
-              { label: "Payment", key: "paymentStatus" },
-              { label: "Date", key: "createdAt" },
-            ]}
-            filename={`orders-${format(new Date(), "yyyy-MM-dd")}.csv`}
-            className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
-          >
-            <Download className="h-4 w-4" /> Export
-          </CSVLink>
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Admin Dashboard</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+                {socketConnected && (
+                  <span className="flex items-center gap-1 text-green-600">
+                    <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Live
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+              >
+                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportPDF}
+              >
+                <Download className="h-4 w-4 mr-1" /> PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-1 ${refreshing ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+              <CSVLink
+                data={orderList}
+                headers={[
+                  { label: "Order ID", key: "_id" },
+                  { label: "Customer", key: "userId.userName" },
+                  { label: "Amount", key: "totalAmount" },
+                  { label: "Status", key: "orderStatus" },
+                  { label: "Payment", key: "paymentStatus" },
+                  { label: "Date", key: "createdAt" },
+                ]}
+                filename={`orders-${format(new Date(), "yyyy-MM-dd")}.csv`}
+                className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600"
+              >
+                <Download className="h-4 w-4" /> Export
+              </CSVLink>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
-        <DashboardCard
-          title="Total Orders"
-          icon={<ShoppingCart className="text-blue-500" size={28} />}
-          value={stats.totalOrders}
-          change={formatChange(stats.ordersChange)}
-          sparklineData={getSparkline(salesOverview, "orders")}
-          sparklineColor="#3b82f6"
-        />
-        <DashboardCard
-          title="Revenue"
-          icon={<DollarSign className="text-green-500" size={28} />}
-          value={`₹${stats.totalRevenue.toLocaleString()}`}
-          change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs last month`}
-          sparklineData={getSparkline(salesOverview, "revenue")}
-          sparklineColor="#10b981"
-        />
-        <DashboardCard
-          title="Pending"
-          icon={<Package className="text-yellow-500" size={28} />}
-          value={stats.pendingOrders}
-          change={formatChange(stats.pendingChange)}
-        />
-        <DashboardCard
-          title="Delivered"
-          icon={<Truck className="text-indigo-500" size={28} />}
-          value={stats.deliveredOrders}
-          change={formatChange(stats.deliveredChange)}
-        />
-        <DashboardCard
-          title="Customers"
-          icon={<Users className="text-purple-500" size={28} />}
-          value={stats.totalCustomers}
-          change={formatChange(stats.customersChange)}
-        />
-      </div>
+      {/* MAIN CONTENT */}
+      <div id="dashboard-content" className="p-6 space-y-8 max-w-7xl mx-auto">
+        {/* KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
+          <DashboardCard
+            title="Total Orders"
+            icon={<ShoppingCart className="text-blue-500" size={28} />}
+            value={stats.totalOrders}
+            change={formatChange(stats.ordersChange)}
+            sparklineData={getSparkline(salesOverview, "orders")}
+            sparklineColor="#3b82f6"
+          />
+          <DashboardCard
+            title="Revenue"
+            icon={<DollarSign className="text-green-500" size={28} />}
+            value={`₹${stats.totalRevenue.toLocaleString()}`}
+            change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs last month`}
+            sparklineData={getSparkline(salesOverview, "revenue")}
+            sparklineColor="#10b981"
+          />
+          <DashboardCard
+            title="Pending"
+            icon={<Package className="text-yellow-500" size={28} />}
+            value={stats.pendingOrders}
+            change={formatChange(stats.pendingChange)}
+          />
+          <DashboardCard
+            title="Delivered"
+            icon={<Truck className="text-indigo-500" size={28} />}
+            value={stats.deliveredOrders}
+            change={formatChange(stats.deliveredChange)}
+          />
+          <DashboardCard
+            title="Customers"
+            icon={<Users className="text-purple-500" size={28} />}
+            value={stats.totalCustomers}
+            change={formatChange(stats.customersChange)}
+          />
+        </div>
 
-      {/* CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 shadow-sm">
+        {/* CHARTS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 shadow-sm bg-white dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                <TrendingUp className="h-5 w-5 text-green-500" />
+                Sales Overview (30 Days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {salesOverview.length > 0 ? (
+                <SalesOverviewChart data={salesOverview} />
+              ) : (
+                <div className="h-[280px] flex items-center justify-center text-gray-400">
+                  No sales data
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm bg-white dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                <BarChart3 className="h-5 w-5 text-blue-500" />
+                Order Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OrderStatusChart data={stats} />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* TOP PRODUCTS */}
+        <Card className="shadow-sm bg-white dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              Sales Overview (30 Days)
+            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+              <BarChart3 className="h-5 w-5 text-blue-500" />
+              Top 5 Products
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {salesOverview.length > 0 ? (
-              <SalesOverviewChart data={salesOverview} />
+            {stats.topProducts.length > 0 ? (
+              <TopProductsChart data={stats.topProducts} />
             ) : (
               <div className="h-[280px] flex items-center justify-center text-gray-400">
-                No sales data
+                No product data
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        {/* LOW STOCK */}
+        {stats.lowStock?.length > 0 && (
+          <Card className="shadow-sm border-red-200 bg-red-50 dark:bg-red-900/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-5 w-5" />
+                Low Stock Alert
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {stats.lowStock.map((p) => (
+                  <div
+                    key={p._id}
+                    className="flex justify-between items-center p-2 bg-red-100 dark:bg-red-800/30 rounded"
+                  >
+                    <span className="font-medium">{p.title}</span>
+                    <span className="text-red-600 dark:text-red-400 font-semibold">
+                      Only {p.totalStock} left
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* RECENT ORDERS */}
+        <Card className="shadow-sm bg-white dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-blue-500" />
-              Order Status
+            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+              <Package className="h-5 w-5 text-blue-500" />
+              Recent Orders
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <OrderStatusChart data={stats} />
+            <RecentOrdersTable onOrderStatusChange={handleRefresh} />
+          </CardContent>
+        </Card>
+
+        {/* FEATURE IMAGES */}
+        <Card className="shadow-sm bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle className="text-gray-800 dark:text-white">Homepage Feature Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductImageUpload
+              uploadedImageUrls={uploadedFeatureImages}
+              setUploadedImageUrls={setUploadedFeatureImages}
+              setImageLoadingState={setImageLoadingState}
+              imageLoadingState={imageLoadingState}
+              isCustomStyling={true}
+            />
+            <Button
+              onClick={handleUploadFeatureImages}
+              className="mt-4 w-full"
+              disabled={uploadedFeatureImages.length === 0 || imageLoadingState}
+            >
+              {imageLoadingState ? "Uploading..." : "Upload to Features"}
+            </Button>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+              {featureImageList.length > 0 ? (
+                featureImageList.map((img) => (
+                  <div key={img._id} className="relative group">
+                    <img
+                      src={getImageUrl(img.image)}
+                      alt="Feature"
+                      className="w-full h-48 object-cover rounded-lg"
+                      crossOrigin="anonymous"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = "/placeholder-image.png";
+                      }}
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
+                      onClick={() => handleDeleteFeatureImage(img._id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
+                  No feature images
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* TOP PRODUCTS */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-blue-500" />
-            Top 5 Products
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.topProducts.length > 0 ? (
-            <TopProductsChart data={stats.topProducts} />
-          ) : (
-            <div className="h-[280px] flex items-center justify-center text-gray-400">
-              No product data
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* LOW STOCK */}
-      {stats.lowStock?.length > 0 && (
-        <Card className="shadow-sm border-red-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              Low Stock Alert
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {stats.lowStock.map((p) => (
-                <div
-                  key={p._id}
-                  className="flex justify-between items-center p-2 bg-red-50 rounded"
-                >
-                  <span className="font-medium">{p.title}</span>
-                  <span className="text-red-600">Only {p.totalStock} left</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* RECENT ORDERS */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-blue-500" />
-            Recent Orders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RecentOrdersTable onOrderStatusChange={handleRefresh} />
-        </CardContent>
-      </Card>
-
-      {/* FEATURE IMAGES */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Homepage Feature Images</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProductImageUpload
-            uploadedImageUrls={uploadedFeatureImages}
-            setUploadedImageUrls={setUploadedFeatureImages}
-            setImageLoadingState={setImageLoadingState}
-            imageLoadingState={imageLoadingState}
-            isCustomStyling={true}
-          />
-          <Button
-            onClick={handleUploadFeatureImages}
-            className="mt-4 w-full"
-            disabled={uploadedFeatureImages.length === 0 || imageLoadingState}
-          >
-            {imageLoadingState ? "Uploading..." : "Upload to Features"}
-          </Button>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-            {featureImageList.length > 0 ? (
-              featureImageList.map((img) => (
-                <div key={img._id} className="relative group">
-                  <img
-                    src={getImageUrl(img.image)}
-                    alt="Feature"
-                    className="w-full h-48 object-cover rounded-lg"
-                    crossOrigin="anonymous"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.target.src = "/placeholder-image.png"; // fallback
-                    }}
-                  />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
-                    onClick={() => handleDeleteFeatureImage(img._id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              ))
-            ) : (
-              <p className="col-span-full text-center text-gray-500">
-                No feature images
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -396,11 +485,11 @@ const DashboardCard = ({
 }) => {
   const isPositive = change && (change.includes("+") || !change.startsWith("-"));
   return (
-    <Card className="shadow-sm hover:shadow-md transition">
+    <Card className="shadow-sm hover:shadow-md transition bg-white dark:bg-gray-800">
       <CardContent className="p-5 flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 text-sm">{title}</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
+          <h3 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{value}</h3>
           <p
             className={`text-sm mt-1 ${
               isPositive ? "text-green-600" : "text-red-600"
@@ -414,7 +503,7 @@ const DashboardCard = ({
             </div>
           )}
         </div>
-        <div className="p-3 rounded-full bg-gray-100">{icon}</div>
+        <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-700">{icon}</div>
       </CardContent>
     </Card>
   );
