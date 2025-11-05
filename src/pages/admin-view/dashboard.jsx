@@ -24,7 +24,7 @@ import { format } from "date-fns";
 import { CSVLink } from "react-csv";
 import { fetchOrdersForAdmin, fetchSalesOverview, fetchOrderStats } from "@/store/admin/order-slice";
 import { getFeatureImages } from "@/store/common-slice";
-
+import ProductImageUpload from "@/components/admin-view/image-upload";
 import SalesOverviewChart from "@/components/admin-view/charts/SalesOverviewChart";
 import TopProductsChart from "@/components/admin-view/charts/TopProductsChart";
 import OrderStatusChart from "@/components/admin-view/charts/OrderStatusChart";
