@@ -81,6 +81,13 @@ export default function AdminDashboard() {
   const getSparkline = (data, key) =>
     Array.isArray(data) ? data.slice(-7).map((d) => ({ value: d[key] ?? 0 })) : [];
 
+ const formatChange = (change) => {
+    if (!change || typeof change !== "object") return "N/A";
+    const { value = 0, percentage = 0 } = change;
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value} (${sign}${percentage}%)`;
+  };
+
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
