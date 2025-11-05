@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { CSVLink } from "react-csv";
-import { io } from "socket.io-client";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import {
@@ -47,8 +46,6 @@ import Sparkline from "@/components/admin-view/charts/Sparkline";
 import { getImageUrl } from "@/utils/imageUtils";
 
 // ──────────────────────────────────────────────────────────────
-// DEFAULT STATS (prevents null crash)
-// ──────────────────────────────────────────────────────────────
 const DEFAULT_STATS = {
   totalOrders: 0,
   totalRevenue: 0,
@@ -68,7 +65,6 @@ const DEFAULT_STATS = {
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
-  // Redux state
   const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
   const {
     salesOverview = [],
@@ -77,17 +73,14 @@ export default function AdminDashboard() {
     isLoading = false,
   } = useSelector((state) => state.adminOrder || {});
 
-  // Local state
   const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
-  const [socketConnected, setSocketConnected] = useState(false);
 
   // ──────────────────────────────────────────────────────────────
   // Dark Mode
-  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -97,27 +90,7 @@ export default function AdminDashboard() {
   }, [darkMode]);
 
   // ──────────────────────────────────────────────────────────────
-  // Real-Time WebSocket
-  // ──────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL || "https://api.nikhilmamdekar.site", {
-      path: "/socket.io",
-    });
-
-    socket.on("connect", () => setSocketConnected(true));
-    socket.on("disconnect", () => setSocketConnected(false));
-    socket.emit("joinDashboard");
-    socket.on("orderUpdated", () => {
-      console.log("Real-time update");
-      handleRefresh();
-    });
-
-    return () => socket.disconnect();
-  }, []);
-
-  // ──────────────────────────────────────────────────────────────
   // Auto-refresh every 30s
-  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => handleRefresh(), 30000);
     return () => clearInterval(interval);
@@ -125,7 +98,6 @@ export default function AdminDashboard() {
 
   // ──────────────────────────────────────────────────────────────
   // Safe refresh handler
-  // ──────────────────────────────────────────────────────────────
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.allSettled([
@@ -145,7 +117,6 @@ export default function AdminDashboard() {
 
   // ──────────────────────────────────────────────────────────────
   // Feature images
-  // ──────────────────────────────────────────────────────────────
   const handleUploadFeatureImages = () => {
     if (!uploadedFeatureImages.length) return;
     Promise.all(
@@ -162,13 +133,11 @@ export default function AdminDashboard() {
 
   // ──────────────────────────────────────────────────────────────
   // Safe sparkline data
-  // ──────────────────────────────────────────────────────────────
   const getSparkline = (data, key) =>
     Array.isArray(data) ? data.slice(-7).map((d) => ({ value: d[key] ?? 0 })) : [];
 
   // ──────────────────────────────────────────────────────────────
   // Safe change formatter
-  // ──────────────────────────────────────────────────────────────
   const formatChange = (change) => {
     if (!change || typeof change !== "object") return "N/A";
     const { value = 0, percentage = 0 } = change;
@@ -178,12 +147,10 @@ export default function AdminDashboard() {
 
   // ──────────────────────────────────────────────────────────────
   // Safe stats (never null)
-  // ──────────────────────────────────────────────────────────────
   const stats = orderStats ? { ...DEFAULT_STATS, ...orderStats } : DEFAULT_STATS;
 
   // ──────────────────────────────────────────────────────────────
   // PDF Export
-  // ──────────────────────────────────────────────────────────────
   const exportPDF = async () => {
     const element = document.getElementById("dashboard-content");
     if (!element) return;
@@ -192,7 +159,7 @@ export default function AdminDashboard() {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        backgroundColor: darkMode ? "#1a1a1a" : "#f9fafb",
+        backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
       });
       const img = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
@@ -207,19 +174,17 @@ export default function AdminDashboard() {
 
   // ──────────────────────────────────────────────────────────────
   // Loading state
-  // ──────────────────────────────────────────────────────────────
   if (isLoading && !refreshing) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-600 dark:text-gray-300 mr-3" />
-        <span className="text-gray-600 dark:text-gray-300">Loading dashboard...</span>
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-600 mr-3" />
+        <span>Loading dashboard...</span>
       </div>
     );
   }
 
   // ──────────────────────────────────────────────────────────────
   // Render
-  // ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* HEADER */}
@@ -228,14 +193,8 @@ export default function AdminDashboard() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Admin Dashboard</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Last updated: {lastUpdated.toLocaleTimeString()}
-                {socketConnected && (
-                  <span className="flex items-center gap-1 text-green-600">
-                    <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Live
-                  </span>
-                )}
               </p>
             </div>
             <div className="flex gap-2">
@@ -246,11 +205,7 @@ export default function AdminDashboard() {
               >
                 {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportPDF}
-              >
+              <Button variant="outline" size="sm" onClick={exportPDF}>
                 <Download className="h-4 w-4 mr-1" /> PDF
               </Button>
               <Button
@@ -275,7 +230,7 @@ export default function AdminDashboard() {
                   { label: "Date", key: "createdAt" },
                 ]}
                 filename={`orders-${format(new Date(), "yyyy-MM-dd")}.csv`}
-                className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600"
+                className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
               >
                 <Download className="h-4 w-4" /> Export
               </CSVLink>
@@ -326,9 +281,9 @@ export default function AdminDashboard() {
 
         {/* CHARTS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 shadow-sm bg-white dark:bg-gray-800">
+          <Card className="lg:col-span-2 shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+              <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-500" />
                 Sales Overview (30 Days)
               </CardTitle>
@@ -343,9 +298,9 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
-          <Card className="shadow-sm bg-white dark:bg-gray-800">
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+              <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-blue-500" />
                 Order Status
               </CardTitle>
@@ -357,9 +312,9 @@ export default function AdminDashboard() {
         </div>
 
         {/* TOP PRODUCTS */}
-        <Card className="shadow-sm bg-white dark:bg-gray-800">
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+            <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-blue-500" />
               Top 5 Products
             </CardTitle>
@@ -377,9 +332,9 @@ export default function AdminDashboard() {
 
         {/* LOW STOCK */}
         {stats.lowStock?.length > 0 && (
-          <Card className="shadow-sm border-red-200 bg-red-50 dark:bg-red-900/20">
+          <Card className="shadow-sm border-red-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <CardTitle className="flex items-center gap-2 text-red-600">
                 <AlertCircle className="h-5 w-5" />
                 Low Stock Alert
               </CardTitle>
@@ -389,12 +344,10 @@ export default function AdminDashboard() {
                 {stats.lowStock.map((p) => (
                   <div
                     key={p._id}
-                    className="flex justify-between items-center p-2 bg-red-100 dark:bg-red-800/30 rounded"
+                    className="flex justify-between items-center p-2 bg-red-50 rounded"
                   >
                     <span className="font-medium">{p.title}</span>
-                    <span className="text-red-600 dark:text-red-400 font-semibold">
-                      Only {p.totalStock} left
-                    </span>
+                    <span className="text-red-600">Only {p.totalStock} left</span>
                   </div>
                 ))}
               </div>
@@ -403,9 +356,9 @@ export default function AdminDashboard() {
         )}
 
         {/* RECENT ORDERS */}
-        <Card className="shadow-sm bg-white dark:bg-gray-800">
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+            <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-blue-500" />
               Recent Orders
             </CardTitle>
@@ -416,9 +369,9 @@ export default function AdminDashboard() {
         </Card>
 
         {/* FEATURE IMAGES */}
-        <Card className="shadow-sm bg-white dark:bg-gray-800">
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle className="text-gray-800 dark:text-white">Homepage Feature Images</CardTitle>
+            <CardTitle>Homepage Feature Images</CardTitle>
           </CardHeader>
           <CardContent>
             <ProductImageUpload
@@ -446,7 +399,7 @@ export default function AdminDashboard() {
                       crossOrigin="anonymous"
                       loading="lazy"
                       onError={(e) => {
-                        e.target.src = "/placeholder-image.png";
+                        e.target.src = "/placeholder-image.png"; // fallback
                       }}
                     />
                     <Button
@@ -460,7 +413,7 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
+                <p className="col-span-full text-center text-gray-500">
                   No feature images
                 </p>
               )}
@@ -485,11 +438,11 @@ const DashboardCard = ({
 }) => {
   const isPositive = change && (change.includes("+") || !change.startsWith("-"));
   return (
-    <Card className="shadow-sm hover:shadow-md transition bg-white dark:bg-gray-800">
+    <Card className="shadow-sm hover:shadow-md transition">
       <CardContent className="p-5 flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
-          <h3 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{value}</h3>
+          <p className="text-gray-500 text-sm">{title}</p>
+          <h3 className="text-2xl font-bold text-gray-800 mt-1">{value}</h3>
           <p
             className={`text-sm mt-1 ${
               isPositive ? "text-green-600" : "text-red-600"
@@ -503,7 +456,7 @@ const DashboardCard = ({
             </div>
           )}
         </div>
-        <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-700">{icon}</div>
+        <div className="p-3 rounded-full bg-gray-100">{icon}</div>
       </CardContent>
     </Card>
   );
