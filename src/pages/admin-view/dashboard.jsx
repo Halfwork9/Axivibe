@@ -14,25 +14,35 @@ import {
   Truck,
   Users,
   Loader2,
-  RefreshCw,
-  BarChart3,
   TrendingUp,
+  BarChart3,
+  RefreshCw,
+  AlertCircle,
   Download,
-  Filter,
 } from "lucide-react";
 import { format } from "date-fns";
 import { CSVLink } from "react-csv";
-import { fetchOrdersForAdmin, fetchSalesOverview, fetchOrderStats } from "@/store/admin/order-slice";
-import { getFeatureImages } from "@/store/common-slice";
+import {
+  fetchOrdersForAdmin,
+  fetchSalesOverview,
+  fetchOrderStats,
+} from "@/store/admin/order-slice";
+import {
+  addFeatureImage,
+  getFeatureImages,
+  deleteFeatureImage,
+} from "@/store/common-slice";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import SalesOverviewChart from "@/components/admin-view/charts/SalesOverviewChart";
 import TopProductsChart from "@/components/admin-view/charts/TopProductsChart";
 import OrderStatusChart from "@/components/admin-view/charts/OrderStatusChart";
-import CategorySalesChart from "@/components/admin-view/charts/CategorySalesChart";
-import CustomerInsights from "@/components/admin-view/sections/CustomerInsights";
 import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable";
 import Sparkline from "@/components/admin-view/charts/Sparkline";
+import { getImageUrl } from "@/utils/imageUtils";
 
+// ──────────────────────────────────────────────────────────────
+// DEFAULT STATS (prevents null crash)
+// ──────────────────────────────────────────────────────────────
 const DEFAULT_STATS = {
   totalOrders: 0,
   totalRevenue: 0,
@@ -48,35 +58,12 @@ const DEFAULT_STATS = {
   lowStock: [],
   confirmedOrders: 0,
   shippedOrders: 0,
-  categorySales: [],
 };
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
-  const { salesOverview = [], orderStats = null, orderList = [], isLoading = false } =
-    useSelector((state) => state.adminOrder || {});
 
-  const [refreshing, setRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [filters, setFilters] = useState({ status: "all", dateRange: "30d" });
-
-  const stats = orderStats ? { ...DEFAULT_STATS, ...orderStats } : DEFAULT_STATS;
-   // Feature images
-  // ──────────────────────────────────────────────────────────────
-  const handleUploadFeatureImages = () => {
-    if (!uploadedFeatureImages.length) return;
-    Promise.all(
-      uploadedFeatureImages.map((url) => dispatch(addFeatureImage(url)))
-    ).then(() => {
-      dispatch(getFeatureImages());
-      setUploadedFeatureImages([]);
-    });
-  };
-
-  const handleDeleteFeatureImage = (id) => {
-    dispatch(deleteFeatureImage(id)).then(() => dispatch(getFeatureImages()));
-  };
-// Redux state
+  // Redux state
   const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
   const {
     salesOverview = [],
@@ -99,18 +86,9 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Safe sparkline data
-  const getSparkline = (data, key) =>
-    Array.isArray(data) ? data.slice(-7).map((d) => ({ value: d[key] ?? 0 })) : [];
-
- const formatChange = (change) => {
-    if (!change || typeof change !== "object") return "N/A";
-    const { value = 0, percentage = 0 } = change;
-    const sign = value > 0 ? "+" : "";
-    return `${sign}${value} (${sign}${percentage}%)`;
-  };
-
-
+  // ──────────────────────────────────────────────────────────────
+  // Safe refresh handler
+  // ──────────────────────────────────────────────────────────────
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.allSettled([
@@ -128,6 +106,47 @@ export default function AdminDashboard() {
     handleRefresh();
   }, [handleRefresh]);
 
+  // ──────────────────────────────────────────────────────────────
+  // Feature images
+  // ──────────────────────────────────────────────────────────────
+  const handleUploadFeatureImages = () => {
+    if (!uploadedFeatureImages.length) return;
+    Promise.all(
+      uploadedFeatureImages.map((url) => dispatch(addFeatureImage(url)))
+    ).then(() => {
+      dispatch(getFeatureImages());
+      setUploadedFeatureImages([]);
+    });
+  };
+
+  const handleDeleteFeatureImage = (id) => {
+    dispatch(deleteFeatureImage(id)).then(() => dispatch(getFeatureImages()));
+  };
+
+  // ──────────────────────────────────────────────────────────────
+  // Safe sparkline data
+  // ──────────────────────────────────────────────────────────────
+  const getSparkline = (data, key) =>
+    Array.isArray(data) ? data.slice(-7).map((d) => ({ value: d[key] ?? 0 })) : [];
+
+  // ──────────────────────────────────────────────────────────────
+  // Safe change formatter
+  // ──────────────────────────────────────────────────────────────
+  const formatChange = (change) => {
+    if (!change || typeof change !== "object") return "N/A";
+    const { value = 0, percentage = 0 } = change;
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value} (${sign}${percentage}%)`;
+  };
+
+  // ──────────────────────────────────────────────────────────────
+  // Safe stats (never null)
+  // ──────────────────────────────────────────────────────────────
+  const stats = orderStats ? { ...DEFAULT_STATS, ...orderStats } : DEFAULT_STATS;
+
+  // ──────────────────────────────────────────────────────────────
+  // Loading state
+  // ──────────────────────────────────────────────────────────────
   if (isLoading && !refreshing) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -137,21 +156,28 @@ export default function AdminDashboard() {
     );
   }
 
+  // ──────────────────────────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 space-y-8 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
+    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
-            Admin Dashboard
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <p className="text-sm text-gray-500">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
           <CSVLink
@@ -165,7 +191,7 @@ export default function AdminDashboard() {
               { label: "Date", key: "createdAt" },
             ]}
             filename={`orders-${format(new Date(), "yyyy-MM-dd")}.csv`}
-            className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+            className="flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
           >
             <Download className="h-4 w-4" /> Export
           </CSVLink>
@@ -210,39 +236,7 @@ export default function AdminDashboard() {
         />
       </div>
 
-
-
-      {/* FILTER BAR */}
-      <Card className="shadow-sm">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-700 dark:text-gray-300 font-medium">Filters:</span>
-            <select
-              className="border rounded-md px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-700"
-              value={filters.status}
-              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            >
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <select
-              className="border rounded-md px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-700"
-              value={filters.dateRange}
-              onChange={(e) => setFilters((f) => ({ ...f, dateRange: e.target.value }))}
-            >
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="90d">Last 90 Days</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* CHART ROW: SALES OVERVIEW + CATEGORY SALES */}
+      {/* CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 shadow-sm">
           <CardHeader>
@@ -252,7 +246,13 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <SalesOverviewChart data={salesOverview} />
+            {salesOverview.length > 0 ? (
+              <SalesOverviewChart data={salesOverview} />
+            ) : (
+              <div className="h-[280px] flex items-center justify-center text-gray-400">
+                No sales data
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -260,59 +260,73 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-blue-500" />
-              Sales by Category
+              Order Status
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <CategorySalesChart data={stats.categorySales || []} />
+            <OrderStatusChart data={stats} />
           </CardContent>
         </Card>
       </div>
 
-      {/* TOP PRODUCTS + CUSTOMER INSIGHTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm">
+      {/* TOP PRODUCTS */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-blue-500" />
+            Top 5 Products
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats.topProducts.length > 0 ? (
+            <TopProductsChart data={stats.topProducts} />
+          ) : (
+            <div className="h-[280px] flex items-center justify-center text-gray-400">
+              No product data
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* LOW STOCK */}
+      {stats.lowStock?.length > 0 && (
+        <Card className="shadow-sm border-red-200">
           <CardHeader>
-            <CardTitle>Top 5 Products (by Quantity)</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              Low Stock Alert
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <TopProductsChart data={stats.topProducts} />
-          </CardContent>
-        </Card>
-
-        <CustomerInsights />
-      </div>
-
-      {/* LOW STOCK + RECENT ORDERS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {stats.lowStock?.length > 0 && (
-          <Card className="shadow-sm border-red-200 dark:border-red-800">
-            <CardHeader>
-              <CardTitle className="text-red-600 flex items-center gap-2">
-                ⚠️ Low Stock Alert
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+            <div className="space-y-2">
               {stats.lowStock.map((p) => (
-                <div key={p._id} className="flex justify-between p-2 bg-red-50 dark:bg-red-900 rounded mb-1">
-                  <span>{p.title}</span>
+                <div
+                  key={p._id}
+                  className="flex justify-between items-center p-2 bg-red-50 rounded"
+                >
+                  <span className="font-medium">{p.title}</span>
                   <span className="text-red-600">Only {p.totalStock} left</span>
                 </div>
               ))}
-            </CardContent>
-          </Card>
-        )}
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RecentOrdersTable filters={filters} onOrderStatusChange={handleRefresh} />
+            </div>
           </CardContent>
         </Card>
-      </div>
-       {/* FEATURE IMAGES */}
+      )}
+
+      {/* RECENT ORDERS */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-blue-500" />
+            Recent Orders
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RecentOrdersTable onOrderStatusChange={handleRefresh} />
+        </CardContent>
+      </Card>
+
+      {/* FEATURE IMAGES */}
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Homepage Feature Images</CardTitle>
