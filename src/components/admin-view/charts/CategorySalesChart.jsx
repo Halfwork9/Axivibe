@@ -1,29 +1,15 @@
-// src/components/admin-view/charts/CategorySalesChart.jsx
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+// In your CategorySalesChart component, make sure it's handling the data correctly:
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6"];
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
-export default function CategorySalesChart({ data = [] }) {
-  // Normalize data: expect { category, revenue } OR { categoryName, totalRevenue }
-  const chartData = Array.isArray(data)
-    ? data
-        .filter((cat) => {
-          const revenue = cat.revenue ?? cat.totalRevenue;
-          return revenue > 0;
-        })
-        .map((cat) => ({
-          name: (cat.category ?? cat.categoryName ?? "Uncategorized").trim(),
-          value: cat.revenue ?? cat.totalRevenue ?? 0,
-        }))
-    : [];
+const CategorySalesChart = ({ data }) => {
+  // Format the data for the chart
+  const chartData = data.map(item => ({
+    name: item.category || 'Unknown Category',
+    value: item.revenue || 0,
+  }));
 
-  if (chartData.length === 0) {
-    return (
-      <div className="h-[280px] flex items-center justify-center text-gray-400">
-        No category sales data available
-      </div>
-    );
-  }
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -33,25 +19,19 @@ export default function CategorySalesChart({ data = [] }) {
           cx="50%"
           cy="50%"
           labelLine={false}
-          outerRadius={100}
+          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+          outerRadius={80}
           fill="#8884d8"
           dataKey="value"
-          nameKey="name"
         >
-          {chartData.map((_, index) => (
+          {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip
-          formatter={(value) => `₹${Number(value).toLocaleString()}`}
-          contentStyle={{
-            backgroundColor: "#fff",
-            borderRadius: 8,
-            border: "1px solid #ddd",
-          }}
-        />
-        <Legend verticalAlign="bottom" height={36} />
+        <Tooltip formatter={(value) => [`₹${value}`, 'Revenue']} />
       </PieChart>
     </ResponsiveContainer>
   );
-}
+};
+
+export default CategorySalesChart;
