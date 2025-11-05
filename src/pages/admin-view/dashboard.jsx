@@ -40,6 +40,7 @@ import {
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import SalesOverviewChart from "@/components/admin-view/charts/SalesOverviewChart";
 import TopProductsChart from "@/components/admin-view/charts/TopProductsChart";
+import CategorySalesChart from "@/components/admin-view/charts/CategorySalesChart";
 import OrderStatusChart from "@/components/admin-view/charts/OrderStatusChart";
 import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable";
 import Sparkline from "@/components/admin-view/charts/Sparkline";
@@ -342,7 +343,7 @@ export default function AdminDashboard() {
     </CardHeader>
     <CardContent>
       {stats.categorySales?.length > 0 ? (
-        <SalesByCategoryChart data={stats.categorySales} />
+        <CategorySalesChart data={stats.categorySales} />
       ) : (
         <div className="h-[300px] flex items-center justify-center text-gray-400">
           No category data
