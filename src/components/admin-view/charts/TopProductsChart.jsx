@@ -30,12 +30,17 @@ export default function TopProductsChart({ data = [] }) {
         <XAxis dataKey="title" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 12 }} />
         <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
         <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+        
+        {/* CUSTOM TOOLTIP */}
         <Tooltip
-          contentStyle={{ backgroundColor: "#fff", borderRadius: 8 }}
-          formatter={(value, name) =>
-            name === "totalQty" ? [`${value} units`, "Units Sold"] : [`₹${value.toLocaleString()}`, "Revenue"]
-          }
+          contentStyle={{ backgroundColor: "#fff", borderRadius: 8, border: "1px solid #ddd" }}
+          formatter={(value, name) => {
+            if (name === "totalQty") return [`${value} units`, "Units Sold"];
+            if (name === "revenue") return [`₹${value.toLocaleString()}`, "Revenue"];
+            return [value, name];
+          }}
         />
+        
         <Legend />
         <Bar yAxisId="left" dataKey="totalQty" name="Units Sold" fill="#3b82f6">
           {chartData.map((_, i) => (
