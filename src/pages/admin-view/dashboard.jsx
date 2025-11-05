@@ -311,24 +311,46 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* TOP PRODUCTS */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-blue-500" />
-              Top 5 Products
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.topProducts.length > 0 ? (
-              <TopProductsChart data={stats.topProducts} />
-            ) : (
-              <div className="h-[280px] flex items-center justify-center text-gray-400">
-                No product data
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* TOP PRODUCTS + SALES BY CATEGORY */}
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  {/* Top 5 Products */}
+  <Card className="shadow-sm">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <BarChart3 className="h-5 w-5 text-blue-500" />
+        Top 5 Products
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {stats.topProducts.length > 0 ? (
+        <TopProductsChart data={stats.topProducts} />
+      ) : (
+        <div className="h-[300px] flex items-center justify-center text-gray-400">
+          No product data
+        </div>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* Sales by Category */}
+  <Card className="shadow-sm">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Package className="h-5 w-5 text-green-500" />
+        Sales by Category
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {stats.categorySales?.length > 0 ? (
+        <SalesByCategoryChart data={stats.categorySales} />
+      ) : (
+        <div className="h-[300px] flex items-center justify-center text-gray-400">
+          No category data
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</div>
 
         {/* LOW STOCK */}
         {stats.lowStock?.length > 0 && (
