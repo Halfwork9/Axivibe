@@ -1,13 +1,20 @@
+// src/components/admin-view/charts/CategorySalesChart.jsx
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6"];
 
 export default function CategorySalesChart({ data = [] }) {
+  // Normalize data: expect { category, revenue } OR { categoryName, totalRevenue }
   const chartData = Array.isArray(data)
-    ? data.map((cat) => ({
-        name: cat.categoryName || "Uncategorized",
-        value: cat.totalRevenue || 0,
-      }))
+    ? data
+        .filter((cat) => {
+          const revenue = cat.revenue ?? cat.totalRevenue;
+          return revenue > 0;
+        })
+        .map((cat) => ({
+          name: (cat.category ?? cat.categoryName ?? "Uncategorized").trim(),
+          value: cat.revenue ?? cat.totalRevenue ?? 0,
+        }))
     : [];
 
   if (chartData.length === 0) {
@@ -31,12 +38,12 @@ export default function CategorySalesChart({ data = [] }) {
           dataKey="value"
           nameKey="name"
         >
-          {chartData.map((entry, index) => (
+          {chartData.map((_, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
         <Tooltip
-          formatter={(value) => [`₹${value.toLocaleString()}`, "Revenue"]}
+          formatter={(value) => `₹${Number(value).toLocaleString()}`}
           contentStyle={{
             backgroundColor: "#fff",
             borderRadius: 8,
