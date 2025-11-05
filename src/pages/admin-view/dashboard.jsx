@@ -76,6 +76,28 @@ export default function AdminDashboard() {
   const handleDeleteFeatureImage = (id) => {
     dispatch(deleteFeatureImage(id)).then(() => dispatch(getFeatureImages()));
   };
+// Redux state
+  const { featureImageList = [] } = useSelector((state) => state.commonFeature || {});
+  const {
+    salesOverview = [],
+    orderStats = null,
+    orderList = [],
+    isLoading = false,
+  } = useSelector((state) => state.adminOrder || {});
+
+  // Local state
+  const [uploadedFeatureImages, setUploadedFeatureImages] = useState([]);
+  const [imageLoadingState, setImageLoadingState] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // ──────────────────────────────────────────────────────────────
+  // Auto-refresh every 30s
+  // ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const interval = setInterval(() => handleRefresh(), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Safe sparkline data
   const getSparkline = (data, key) =>
