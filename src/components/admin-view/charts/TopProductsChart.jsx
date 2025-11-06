@@ -1,7 +1,7 @@
 // src/components/admin-view/charts/TopProductsChart.jsx
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Package } from 'lucide-react'; // Make sure this import is at the top
+import { Package } from 'lucide-react';
 
 const TopProductsChart = ({ data }) => {
   // Ensure data is an array
@@ -36,6 +36,7 @@ const TopProductsChart = ({ data }) => {
           angle={-45}
           textAnchor="end"
           height={100}
+          interval={0} // Show all labels
         />
         <YAxis />
         <Tooltip 
@@ -44,7 +45,11 @@ const TopProductsChart = ({ data }) => {
             name === 'quantity' ? 'Quantity' : 'Revenue'
           ]}
         />
-        <Bar dataKey="revenue" fill="#8884d8" />
+        <Bar 
+          dataKey="revenue" 
+          fill="#8884d8" 
+          radius={[8, 8, 0, 0]} // Add rounded corners
+        />
       </BarChart>
     </ResponsiveContainer>
   );
