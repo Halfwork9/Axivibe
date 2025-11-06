@@ -13,7 +13,7 @@ const TopProductsChart = ({ data }) => {
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <Package className="h-12 w-12 mb-2" />
         <p>No product data available</p>
-        <p className="text-xs mt-1">Orders may not have products</p>
+        <p className="text-xs mt-1">Check console for details</p>
       </div>
     );
   }
