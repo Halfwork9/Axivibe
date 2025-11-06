@@ -7,6 +7,8 @@ const TopProductsChart = ({ data }) => {
   // Ensure data is an array
   const chartData = Array.isArray(data) ? data : [];
   
+  console.log("TopProductsChart received data:", chartData);
+  
   // If no data, show a message
   if (chartData.length === 0) {
     return (
@@ -24,6 +26,8 @@ const TopProductsChart = ({ data }) => {
     quantity: item.totalQty || 0,
     revenue: item.revenue || 0,
   }));
+  
+  console.log("Formatted data for chart:", formattedData);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
