@@ -312,7 +312,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* TOP PRODUCTS + SALES BY CATEGORY */}
+      {/* TOP PRODUCTS + SALES BY CATEGORY */}
 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
   {/* Top 5 Products */}
   <Card className="shadow-sm">
@@ -323,17 +323,11 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {stats.topProducts.length > 0 ? (
-        <TopProductsChart data={stats.topProducts} />
-      ) : (
-        <div className="h-[300px] flex items-center justify-center text-gray-400">
-          No product data
-        </div>
-      )}
+      <TopProductsChart data={stats.topProducts} />
     </CardContent>
   </Card>
 
-   {/* Sales by Category */}
+  {/* Sales by Category */}
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -342,15 +336,7 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {stats.categorySales && stats.categorySales.length > 0 ? (
-        <CategorySalesChart data={stats.categorySales} />
-      ) : (
-        <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
-          <BarChart3 className="h-12 w-12 mb-2" />
-          <p>No category data</p>
-          <p className="text-xs mt-1">Check console for details</p>
-        </div>
-      )}
+      <CategorySalesChart data={stats.categorySales} />
     </CardContent>
   </Card>
 </div>
