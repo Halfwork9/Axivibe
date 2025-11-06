@@ -1,6 +1,7 @@
 // src/components/admin-view/charts/OrderStatusChart.jsx
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { Package } from 'lucide-react'; // Make sure this import is at the top
 
 const OrderStatusChart = ({ data }) => {
   // Format the data for the chart
