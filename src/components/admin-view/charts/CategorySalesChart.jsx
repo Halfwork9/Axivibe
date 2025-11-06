@@ -1,7 +1,7 @@
 // src/components/admin-view/charts/CategorySalesChart.jsx
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Package } from 'lucide-react'; // Add this import
+import { Package } from 'lucide-react'; // Make sure this import is at the top
 
 const CategorySalesChart = ({ data }) => {
   // Ensure data is an array and has items with value > 0
@@ -13,7 +13,7 @@ const CategorySalesChart = ({ data }) => {
   if (validData.length === 0) {
     return (
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
-        <Package className="h-12 w-12 mb-2" /> {/* Changed from BarChart3 to Package */}
+        <Package className="h-12 w-12 mb-2" />
         <p>No sales data available</p>
         <p className="text-xs mt-1">Products may not have categories assigned</p>
       </div>
