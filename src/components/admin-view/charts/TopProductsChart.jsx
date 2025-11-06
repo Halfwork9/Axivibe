@@ -8,6 +8,7 @@ const TopProductsChart = ({ data }) => {
   const chartData = Array.isArray(data) ? data : [];
   
   console.log("TopProductsChart received data:", chartData);
+  console.log("Data length:", chartData.length);
   
   // If no data, show a message
   if (chartData.length === 0) {
