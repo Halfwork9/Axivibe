@@ -312,7 +312,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-      {/* TOP PRODUCTS + SALES BY CATEGORY */}
+{/* TOP PRODUCTS + SALES BY CATEGORY */}
 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
   {/* Top 5 Products */}
   <Card className="shadow-sm">
@@ -327,16 +327,23 @@ export default function AdminDashboard() {
     </CardContent>
   </Card>
 
-  {/* Sales by Category */}
+  {/* Sales by Category - Choose one of the options */}
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
         <Package className="h-5 w-5 text-green-500" />
-        Sales by Category
+        Top 5 Categories by Revenue
       </CardTitle>
     </CardHeader>
     <CardContent>
+      {/* Option A: Pie Chart with Top 5 Categories */}
       <CategorySalesChart data={stats.categorySales} />
+      
+      {/* Option B: Horizontal Bar Chart */}
+      {/* <CategorySalesBarChart data={stats.categorySales} /> */}
+      
+      {/* Option C: Sortable Table */}
+      {/* <CategorySalesTable data={stats.categorySales} /> */}
     </CardContent>
   </Card>
 </div>
