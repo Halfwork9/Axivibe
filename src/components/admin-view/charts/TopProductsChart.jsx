@@ -8,7 +8,6 @@ const TopProductsChart = ({ data }) => {
   const chartData = Array.isArray(data) ? data : [];
   
   console.log("TopProductsChart received data:", chartData);
-  console.log("Data length:", chartData.length);
   
   // If no data, show a message
   if (chartData.length === 0) {
@@ -43,8 +42,11 @@ const TopProductsChart = ({ data }) => {
           textAnchor="end"
           height={100}
           interval={0}
+          tick={{ fontSize: 12 }}
         />
-        <YAxis />
+        <YAxis 
+          tick={{ fontSize: 12 }}
+        />
         <Tooltip 
           formatter={(value, name) => [
             name === 'quantity' ? `${value} units` : `₹${value.toLocaleString()}`,
@@ -55,6 +57,7 @@ const TopProductsChart = ({ data }) => {
           dataKey="revenue" 
           fill="#8884d8" 
           radius={[8, 8, 0, 0]}
+          maxBarSize={60}
         />
       </BarChart>
     </ResponsiveContainer>
