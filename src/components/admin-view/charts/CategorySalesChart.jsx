@@ -5,7 +5,7 @@ import { Package } from 'lucide-react';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const CategorySalesChart = ({ data = [] }) => {
-  const validData = data.filter(d => d.value > 0);
+  const validData = Array.isArray(data) ? data.filter(d => d.value > 0) : [];
 
   if (validData.length === 0) {
     return (
