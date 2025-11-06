@@ -1,7 +1,7 @@
 // src/components/admin-view/charts/CategorySalesChart.jsx
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Package } from 'lucide-react'; // Make sure this import is at the top
+import { Package } from 'lucide-react';
 
 const CategorySalesChart = ({ data }) => {
   // Ensure data is an array and has items with value > 0
