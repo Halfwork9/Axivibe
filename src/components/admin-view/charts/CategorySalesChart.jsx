@@ -15,14 +15,14 @@ const CategorySalesChart = ({ data }) => {
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <Package className="h-12 w-12 mb-2" />
         <p>No sales data available</p>
-        <p className="text-xs mt-1">Products may not have categories assigned</p>
+        <p className="text-xs mt-1">Check console for details</p>
       </div>
     );
   }
   
   console.log("CategorySalesChart rendering with data:", validData);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   const renderCustomizedLabel = ({
     cx, cy, midAngle, innerRadius, outerRadius, percent
