@@ -3,15 +3,26 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const CategorySalesChart = ({ data }) => {
-  // Ensure data is an array and has items
-  const chartData = Array.isArray(data) && data.length > 0 ? data : [{ name: "No Data", value: 0 }];
+  // Ensure data is an array and has items with value > 0
+  const validData = Array.isArray(data) 
+    ? data.filter(item => item.value > 0) 
+    : [];
   
-  // Log the data for debugging
-  console.log("CategorySalesChart received data:", chartData);
+  // If no valid data, show a message
+  if (validData.length === 0) {
+    return (
+      <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
+        <BarChart3 className="h-12 w-12 mb-2" />
+        <p>No sales data available</p>
+        <p className="text-xs mt-1">Products may not have categories assigned</p>
+      </div>
+    );
+  }
+  
+  console.log("CategorySalesChart rendering with data:", validData);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
 
-  // Custom label to show category name and percentage
   const renderCustomizedLabel = ({
     cx, cy, midAngle, innerRadius, outerRadius, percent
   }) => {
@@ -20,7 +31,7 @@ const CategorySalesChart = ({ data }) => {
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    if (percent < 0.05) return null; // Don't show label for very small slices
+    if (percent < 0.05) return null;
 
     return (
       <text 
@@ -40,7 +51,7 @@ const CategorySalesChart = ({ data }) => {
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
-          data={chartData}
+          data={validData}
           cx="50%"
           cy="50%"
           labelLine={false}
@@ -49,7 +60,7 @@ const CategorySalesChart = ({ data }) => {
           fill="#8884d8"
           dataKey="value"
         >
-          {chartData.map((entry, index) => (
+          {validData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
