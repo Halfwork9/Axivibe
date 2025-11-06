@@ -13,6 +13,7 @@ const TopProductsChart = ({ data }) => {
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <Package className="h-12 w-12 mb-2" />
         <p>No product data available</p>
+        <p className="text-xs mt-1">Orders may not have products</p>
       </div>
     );
   }
@@ -36,7 +37,7 @@ const TopProductsChart = ({ data }) => {
           angle={-45}
           textAnchor="end"
           height={100}
-          interval={0} // Show all labels
+          interval={0}
         />
         <YAxis />
         <Tooltip 
@@ -48,7 +49,7 @@ const TopProductsChart = ({ data }) => {
         <Bar 
           dataKey="revenue" 
           fill="#8884d8" 
-          radius={[8, 8, 0, 0]} // Add rounded corners
+          radius={[8, 8, 0, 0]}
         />
       </BarChart>
     </ResponsiveContainer>
