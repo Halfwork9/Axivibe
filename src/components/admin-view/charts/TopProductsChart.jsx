@@ -1,58 +1,53 @@
 // src/components/admin-view/charts/TopProductsChart.jsx
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Package } from 'lucide-react'; // Make sure this import is at the top
 
-export default function TopProductsChart({ data = [] }) {
-  const chartData = Array.isArray(data)
-    ? data
-        .filter((item) => item && item.title && (item.totalQty > 0 || item.revenue > 0))
-        .map((item) => ({
-          title: (item.title || "Unknown").slice(0, 18),
-          totalQty: item.totalQty || 0,
-          revenue: item.revenue || 0,
-        }))
-        .slice(0, 5)
-    : [];
-
+const TopProductsChart = ({ data }) => {
+  // Ensure data is an array
+  const chartData = Array.isArray(data) ? data : [];
+  
+  // If no data, show a message
   if (chartData.length === 0) {
     return (
-      <div className="h-[300px] flex items-center justify-center text-gray-400">
-        <p>No top products data available.</p>
+      <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
+        <Package className="h-12 w-12 mb-2" />
+        <p>No product data available</p>
       </div>
     );
   }
+  
+  // Format the data for the chart
+  const formattedData = chartData.map(item => ({
+    name: item.title || 'Unknown Product',
+    quantity: item.totalQty || 0,
+    revenue: item.revenue || 0,
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-        <XAxis dataKey="title" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 12 }} />
-        <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
-        
-        {/* CUSTOM TOOLTIP */}
-        <Tooltip
-          contentStyle={{ backgroundColor: "#fff", borderRadius: 8, border: "1px solid #ddd" }}
-          formatter={(value, name) => {
-            if (name === "totalQty") return [`${value} units`, "Units Sold"];
-            if (name === "revenue") return [`₹${value.toLocaleString()}`, "Revenue"];
-            return [value, name];
-          }}
+      <BarChart 
+        data={formattedData}
+        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="name" 
+          angle={-45}
+          textAnchor="end"
+          height={100}
         />
-        
-        <Legend />
-        <Bar yAxisId="left" dataKey="totalQty" name="Units Sold" fill="#3b82f6">
-          {chartData.map((_, i) => (
-            <Cell key={`qty-${i}`} fill={COLORS[i % COLORS.length]} />
-          ))}
-        </Bar>
-        <Bar yAxisId="right" dataKey="revenue" name="Revenue" fill="#10b981">
-          {chartData.map((_, i) => (
-            <Cell key={`rev-${i}`} fill={COLORS[(i + 1) % COLORS.length]} />
-          ))}
-        </Bar>
+        <YAxis />
+        <Tooltip 
+          formatter={(value, name) => [
+            name === 'quantity' ? `${value} units` : `₹${value.toLocaleString()}`,
+            name === 'quantity' ? 'Quantity' : 'Revenue'
+          ]}
+        />
+        <Bar dataKey="revenue" fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
   );
-}
+};
+
+export default TopProductsChart;
