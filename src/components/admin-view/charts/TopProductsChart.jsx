@@ -3,7 +3,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Package } from 'lucide-react';
 
 const TopProductsChart = ({ data = [] }) => {
-  const chartData = Array.isArray(data) ? data.filter(d => d.revenue > 0) : [];
+ const chartData = data.map(item => ({
+  name: (item.title || "Unknown").slice(0, 15),
+  revenue: item.revenue || 0,
+}));
 
   console.log("TopProductsChart data:", chartData); // DEBUG
 
