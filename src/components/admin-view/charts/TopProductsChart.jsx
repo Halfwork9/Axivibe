@@ -4,23 +4,19 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Package } from 'lucide-react';
 
 const TopProductsChart = ({ data }) => {
-  // Ensure data is an array
   const chartData = Array.isArray(data) ? data : [];
   
   console.log("TopProductsChart received data:", chartData);
   
-  // If no data, show a message
   if (chartData.length === 0) {
     return (
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <Package className="h-12 w-12 mb-2" />
         <p>No product data available</p>
-        <p className="text-xs mt-1">Check console for details</p>
       </div>
     );
   }
   
-  // Format the data for the chart
   const formattedData = chartData.map(item => ({
     name: item.title || 'Unknown Product',
     quantity: item.totalQty || 0,
