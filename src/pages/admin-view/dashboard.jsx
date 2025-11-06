@@ -333,7 +333,7 @@ export default function AdminDashboard() {
     </CardContent>
   </Card>
 
-  {/* Sales by Category */}
+   {/* Sales by Category */}
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -342,11 +342,13 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {stats.categorySales?.length > 0 ? (
+      {stats.categorySales && stats.categorySales.length > 0 ? (
         <CategorySalesChart data={stats.categorySales} />
       ) : (
-        <div className="h-[300px] flex items-center justify-center text-gray-400">
-          No category data
+        <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
+          <BarChart3 className="h-12 w-12 mb-2" />
+          <p>No category data</p>
+          <p className="text-xs mt-1">Check console for details</p>
         </div>
       )}
     </CardContent>
