@@ -9,6 +9,9 @@ const CategorySalesChart = ({ data }) => {
     ? data.filter(item => item.value > 0) 
     : [];
   
+  console.log("CategorySalesChart received data:", data);
+  console.log("Valid data after filtering:", validData);
+  
   // If no valid data, show a message
   if (validData.length === 0) {
     return (
@@ -19,8 +22,6 @@ const CategorySalesChart = ({ data }) => {
       </div>
     );
   }
-  
-  console.log("CategorySalesChart rendering with data:", validData);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
