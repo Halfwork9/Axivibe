@@ -4,10 +4,10 @@ import { Package } from 'lucide-react';
 
 const TopProductsChart = ({ data = [] }) => {
   const chartData = data.map(item => ({
-    name: (item.title || "Unknown").slice(0, 18),
-    quantity: item.totalQty || 0,
-    revenue: item.revenue || 0,
-  }));
+  name: (item.title || "Unknown").slice(0, 15),
+  quantity: item.totalQty || 0,
+  revenue: item.revenue || 0,
+}));
 
   if (chartData.length === 0) {
     return (
