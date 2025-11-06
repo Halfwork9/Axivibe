@@ -327,7 +327,7 @@ export default function AdminDashboard() {
     </CardContent>
   </Card>
 
-  {/* Sales by Category - Choose one of the options */}
+  {/* Sales by Category */}
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -336,14 +336,7 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {/* Option A: Pie Chart with Top 5 Categories */}
       <CategorySalesChart data={stats.categorySales} />
-      
-      {/* Option B: Horizontal Bar Chart */}
-      {/* <CategorySalesBarChart data={stats.categorySales} /> */}
-      
-      {/* Option C: Sortable Table */}
-      {/* <CategorySalesTable data={stats.categorySales} /> */}
     </CardContent>
   </Card>
 </div>
