@@ -17,6 +17,7 @@ const BrandPerformanceTable = ({ data }) => {
       <thead>
         <tr>
           <th>Brand</th>
+          <th>Orders</th>
           <th>Qty</th>
           <th>Revenue</th>
         </tr>
@@ -25,8 +26,9 @@ const BrandPerformanceTable = ({ data }) => {
         {brandData.map((b) => (
           <tr key={b._id}>
             <td>{b.brand}</td>
-            <td>{b.qty}</td>
-            <td>₹{b.revenue.toLocaleString()}</td>
+            <td>{b.orderCount ?? 0}</td>
+            <td>{b.qty ?? 0}</td>
+            <td>₹{Number(b.revenue || 0).toLocaleString()}</td>
           </tr>
         ))}
       </tbody>
