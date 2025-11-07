@@ -49,7 +49,6 @@ import Sparkline from "@/components/admin-view/charts/Sparkline";
 import BrandSalesBarChart from "@/components/admin-view/charts/BrandSalesBarChart";
 import PaymentMethodDonutChart from "@/components/admin-view/charts/PaymentMethodDonutChart";
 import TopCustomersTable from "@/components/admin-view/tables/TopCustomersTable";
-import { Percent } from "lucide-react";
 import { getImageUrl } from "@/utils/imageUtils";
 
 // ──────────────────────────────────────────────────────────────
