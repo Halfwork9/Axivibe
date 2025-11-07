@@ -366,7 +366,8 @@ export default function AdminDashboard() {
        </CardTitle>
      </CardHeader>
      <CardContent>
-       <BrandSalesBarChart data={stats.brandSales} />
+       <BrandPerformanceTable data={stats.brandSalesPerformance} />
+
      </CardContent>
    </Card>
  </div>
