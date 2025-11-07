@@ -13,14 +13,17 @@ const initialState = {
     deliveredOrders: 0,
     totalCustomers: 0,
     revenueGrowthPercentage: 0,
-    topProducts: [],
-    ordersChange: { value: 0, percentage: 0 },
-    pendingChange: { value: 0, percentage: 0 },
-    deliveredChange: { value: 0, percentage: 0 },
-    customersChange: { value: 0, percentage: 0 },
-    lowStock: [],
-    confirmedOrders: 0,
-    shippedOrders: 0,
+   confirmedOrders: 0,
+   shippedOrders: 0,
+   lowStock: [],
+   topCustomers: [],                  // [{userId, userName, orders, totalSpent}]
+   brandSales: [],                    // [{brand, revenue}]
+   paymentMethodBreakdown: [],        // [{method, count}]
+   cancelRate: 0,                     // %
+   returnRate: 0,                     // %
+   avgOrderValue: 0,                  // number
+   repeatCustomers: 0,
+   repeatCustomerRate: 0,             // %
   },
   isLoading: false,
   pagination: null,
