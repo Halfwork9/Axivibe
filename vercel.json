@@ -8,9 +8,7 @@
       "source": "/((?!api/|_next/|static/|assets/|favicon.ico).*)",
       "destination": "/index.html"
     }
-  ]
-}
-{
+  ],
   "headers": [
     {
       "source": "/(.*)",
