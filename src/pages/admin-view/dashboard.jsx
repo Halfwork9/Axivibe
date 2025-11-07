@@ -46,7 +46,7 @@ import CategorySalesChart from "@/components/admin-view/charts/CategorySalesChar
 import OrderStatusChart from "@/components/admin-view/charts/OrderStatusChart";
 import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable";
 import Sparkline from "@/components/admin-view/charts/Sparkline";
-import BrandSalesBarChart from "@/components/admin-view/charts/BrandSalesBarChart";
+import BrandPerformanceTable from "@/components/admin-view/tables/BrandPerformanceTable";
 import PaymentMethodDonutChart from "@/components/admin-view/charts/PaymentMethodDonutChart";
 import TopCustomersTable from "@/components/admin-view/tables/TopCustomersTable";
 import { getImageUrl } from "@/utils/imageUtils";
@@ -367,7 +367,6 @@ export default function AdminDashboard() {
      </CardHeader>
      <CardContent>
        <BrandPerformanceTable data={stats.brandSalesPerformance} />
-
      </CardContent>
    </Card>
  </div>
