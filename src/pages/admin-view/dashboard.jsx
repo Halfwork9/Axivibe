@@ -44,6 +44,10 @@ import CategorySalesChart from "@/components/admin-view/charts/CategorySalesChar
 import OrderStatusChart from "@/components/admin-view/charts/OrderStatusChart";
 import RecentOrdersTable from "@/components/admin-view/tables/RecentOrdersTable";
 import Sparkline from "@/components/admin-view/charts/Sparkline";
+import BrandSalesBarChart from "@/components/admin-view/charts/BrandSalesBarChart";
+import PaymentMethodDonutChart from "@/components/admin-view/charts/PaymentMethodDonutChart";
+import TopCustomersTable from "@/components/admin-view/tables/TopCustomersTable";
+import { Percent } from "lucide-react";
 import { getImageUrl } from "@/utils/imageUtils";
 
 // ──────────────────────────────────────────────────────────────
@@ -79,6 +83,7 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
+  const currency = (n) => `₹${Number(n || 0).toLocaleString()}`;
 
   // ──────────────────────────────────────────────────────────────
   // Dark Mode
@@ -278,6 +283,30 @@ export default function AdminDashboard() {
             value={stats.totalCustomers}
             change={formatChange(stats.customersChange)}
           />
+          <DashboardCard
+           title="Avg Order Value"
+           icon={<DollarSign className="text-emerald-500" size={28} />}
+           value={currency(stats.avgOrderValue)}
+           change="lifetime"
+         />
+         <DashboardCard
+           title="Repeat Customers"
+           icon={<Users className="text-pink-500" size={28} />}
+           value={`${stats.repeatCustomers} (${stats.repeatCustomerRate}% )`}
+           change="lifetime"
+         />
+         <DashboardCard
+           title="Cancel Rate"
+           icon={<Percent className="text-red-500" size={28} />}
+           value={`${stats.cancelRate}%`}
+           change="lifetime"
+         />
+         <DashboardCard
+           title="Return Rate"
+           icon={<Percent className="text-orange-500" size={28} />}
+           value={`${stats.returnRate}%`}
+           change="lifetime"
+         />
         </div>
 
         {/* CHARTS */}
@@ -312,34 +341,62 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-{/* TOP PRODUCTS + SALES BY CATEGORY */}
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  {/* Top 5 Products */}
-  <Card className="shadow-sm">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <BarChart3 className="h-5 w-5 text-blue-500" />
-        Top 5 Products
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <TopProductsChart data={stats.topProducts} />
-    </CardContent>
-  </Card>
+{/* NEW ANALYTICS ROW */}
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   {/* Top Customers */}
+   <Card className="shadow-sm">
+     <CardHeader>
+       <CardTitle className="flex items-center gap-2">
+         <Users className="h-5 w-5 text-blue-500" />
+         Top Customers
+       </CardTitle>
+     </CardHeader>
+     <CardContent>
+       <TopCustomersTable data={stats.topCustomers} />
+     </CardContent>
+   </Card>
 
-  {/* Sales by Category */}
-  <Card className="shadow-sm">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Package className="h-5 w-5 text-green-500" />
-        Top 5 Categories by Revenue
+   {/* Brand Sales */}
+   <Card className="shadow-sm">
+     <CardHeader>
+       <CardTitle className="flex items-center gap-2">
+         <Package className="h-5 w-5 text-green-500" />
+         Brand Sales Performance
+       </CardTitle>
+     </CardHeader>
+     <CardContent>
+       <BrandSalesBarChart data={stats.brandSales} />
+     </CardContent>
+   </Card>
+ </div>
+
+ {/* Payment Distribution */}
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   <Card className="shadow-sm">
+     <CardHeader>
+       <CardTitle className="flex items-center gap-2">
+         <CreditCard className="h-5 w-5 text-violet-500" />
+         Payment Method Distribution
       </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <CategorySalesChart data={stats.categorySales} />
-    </CardContent>
-  </Card>
-</div>
+     </CardHeader>
+     <CardContent>
+       <PaymentMethodDonutChart data={stats.paymentMethodBreakdown} />
+     </CardContent>
+   </Card>
+
+   {/* Keep Order Status or any other panel here */}
+   <Card className="shadow-sm">
+     <CardHeader>
+       <CardTitle className="flex items-center gap-2">
+         <BarChart3 className="h-5 w-5 text-blue-500" />
+         Order Status
+       </CardTitle>
+     </CardHeader>
+     <CardContent>
+       <OrderStatusChart data={stats} />
+     </CardContent>
+   </Card>
+ </div>
 
         {/* LOW STOCK */}
         {stats.lowStock?.length > 0 && (
@@ -447,7 +504,9 @@ const DashboardCard = ({
   sparklineData,
   sparklineColor,
 }) => {
-  const isPositive = change && (change.includes("+") || !change.startsWith("-"));
+ const isPositive = change && typeof change === "string"
+   ? (change.includes("+") || !change.startsWith("-"))
+   : true; // default positive styling
   return (
     <Card className="shadow-sm hover:shadow-md transition">
       <CardContent className="p-5 flex items-center justify-between">
