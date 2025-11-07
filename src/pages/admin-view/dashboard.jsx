@@ -22,6 +22,8 @@ import {
   Download,
   Moon,
   Sun,
+  Percent,
+ CreditCard,
 } from "lucide-react";
 import { format } from "date-fns";
 import { CSVLink } from "react-csv";
