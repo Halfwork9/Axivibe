@@ -1,14 +1,39 @@
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Badge } from "../ui/badge";
 import { DialogContent } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
-import PropTypes from "prop-types"; 
+import PropTypes from "prop-types";
+import { Button } from "../ui/button";
+import { cancelOrder, returnOrder, getOrderDetails } from "@/store/shop/order-slice";
+import { useState } from "react";
 
 function ShoppingOrderDetailsView({ orderDetails }) {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  if (!orderDetails) return null; // Don't render if no details
+  const [actionLoading, setActionLoading] = useState(false);
+
+  if (!orderDetails) return null;
+
+  const handleCancel = async () => {
+    setActionLoading(true);
+    await dispatch(cancelOrder(orderDetails._id));
+    await dispatch(getOrderDetails(orderDetails._id));
+    setActionLoading(false);
+  };
+
+  const handleReturn = async () => {
+    setActionLoading(true);
+    await dispatch(returnOrder(orderDetails._id));
+    await dispatch(getOrderDetails(orderDetails._id));
+    setActionLoading(false);
+  };
+
+  const canCancel =
+    !["cancelled", "returned", "delivered"].includes(orderDetails.orderStatus);
+
+  const canReturn = orderDetails.orderStatus === "delivered";
 
   return (
     <DialogContent className="sm:max-w-[600px]">
@@ -49,18 +74,43 @@ function ShoppingOrderDetailsView({ orderDetails }) {
             </Label>
           </div>
         </div>
+
+        {/* ✅ Action buttons */}
+        <div className="flex gap-3">
+          {canCancel && (
+            <Button
+              className="bg-red-600 text-white"
+              disabled={actionLoading}
+              onClick={handleCancel}
+            >
+              {actionLoading ? "Processing..." : "Cancel Order"}
+            </Button>
+          )}
+
+          {canReturn && (
+            <Button
+              className="bg-yellow-600 text-white"
+              disabled={actionLoading}
+              onClick={handleReturn}
+            >
+              {actionLoading ? "Processing..." : "Return Order"}
+            </Button>
+          )}
+        </div>
+
         <Separator />
+
         <div className="grid gap-4">
           <div className="grid gap-2">
             <div className="font-medium">Order Items</div>
             <ul className="grid gap-3">
               {orderDetails?.cartItems?.map((item) => (
-                  <li key={item._id} className="flex items-center justify-between">
-                    <span>{item.title}</span>
-                    <span>Qty: {item.quantity}</span>
-                    <span>Price: ₹{item.price}</span>
-                  </li>
-                ))}
+                <li key={item._id} className="flex items-center justify-between">
+                  <span>{item.title}</span>
+                  <span>Qty: {item.quantity}</span>
+                  <span>Price: ₹{item.price}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
