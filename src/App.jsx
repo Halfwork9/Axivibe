@@ -45,6 +45,7 @@ import DistributorPage from './components/shopping-view/distributor';
 import UnauthPage from './pages/unauth-page';
 import NotFound from './pages/not-found';
 import OrderDetailsPage from "@/components/admin-view/OrderDetailsPage";
+import OrderDetailsPage from "@/components/shopping-view/order-details";
 
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component {
