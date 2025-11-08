@@ -1,138 +1,163 @@
-import { useSelector, useDispatch } from "react-redux";
-import { Badge } from "../ui/badge";
-import { DialogContent } from "../ui/dialog";
-import { Label } from "../ui/label";
-import { Separator } from "../ui/separator";
-import PropTypes from "prop-types";
-import { Button } from "../ui/button";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { cancelOrder, returnOrder, getOrderDetails } from "@/store/shop/order-slice";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import api from "@/api";
 
-function ShoppingOrderDetailsView({ orderDetails }) {
+const RETURN_DAYS = 7; // ✅ Return window days
+
+export default function OrderDetailsPage() {
+  const { orderId } = useParams();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
-  const [actionLoading, setActionLoading] = useState(false);
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
-  if (!orderDetails) return null;
+  const fetchOrder = async () => {
+    try {
+      const res = await api.get(`/shop/order/details/${orderId}`);
+      setOrder(res.data.data);
+    } catch {
+      setOrder(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrder();
+  }, [orderId]);
+
+  const canCancel =
+    order &&
+    !["cancelled", "returned", "delivered"].includes(order.orderStatus);
+
+  // ✅ Return Available?
+  const canReturn = (() => {
+    if (!order) return false;
+    if (order.orderStatus !== "delivered") return false;
+
+    const orderDate = new Date(order.orderDate);
+    const today = new Date();
+    const diffDays = (today - orderDate) / (1000 * 60 * 60 * 24);
+
+    return diffDays <= RETURN_DAYS;
+  })();
 
   const handleCancel = async () => {
-    setActionLoading(true);
-    await dispatch(cancelOrder(orderDetails._id));
-    await dispatch(getOrderDetails(orderDetails._id));
-    setActionLoading(false);
+    setProcessing(true);
+    await dispatch(cancelOrder(order._id));
+    await fetchOrder();
+    setProcessing(false);
   };
 
   const handleReturn = async () => {
-    setActionLoading(true);
-    await dispatch(returnOrder(orderDetails._id));
-    await dispatch(getOrderDetails(orderDetails._id));
-    setActionLoading(false);
+    setProcessing(true);
+    await dispatch(returnOrder(order._id));
+    await fetchOrder();
+    setProcessing(false);
   };
 
-  const canCancel =
-    !["cancelled", "returned", "delivered"].includes(orderDetails.orderStatus);
+  if (loading) return <div className="p-8">Loading…</div>;
 
-  const canReturn = orderDetails.orderStatus === "delivered";
+  if (!order)
+    return (
+      <div className="p-8 text-center">
+        Order Not Found
+        <Button className="mt-4" onClick={() => navigate("/shop/account")}>
+          Back
+        </Button>
+      </div>
+    );
 
   return (
-    <DialogContent className="sm:max-w-[600px]">
-      <div className="grid gap-6">
-        <div className="grid gap-2">
-          <div className="flex mt-6 items-center justify-between">
-            <p className="font-medium">Order ID</p>
-            <Label>{orderDetails?._id}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Order Date</p>
-            <Label>{new Date(orderDetails?.orderDate).toLocaleDateString()}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Order Price</p>
-            <Label>₹{orderDetails?.totalAmount.toFixed(2)}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Payment method</p>
-            <Label>{orderDetails?.paymentMethod}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Payment Status</p>
-            <Label>{orderDetails?.paymentStatus}</Label>
-          </div>
-          <div className="flex mt-2 items-center justify-between">
-            <p className="font-medium">Order Status</p>
-            <Label>
-              <Badge
-                className={`py-1 px-3 ${
-                  orderDetails?.orderStatus === "confirmed"
-                    ? "bg-green-500"
-                    : "bg-black"
-                }`}
+    <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-3xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>Order Details</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+
+          <p>
+            Order ID: <span className="font-mono">{order._id}</span>
+          </p>
+          <p>Date: {new Date(order.orderDate).toLocaleDateString()}</p>
+
+          <p>
+            Payment: <b>{order.paymentMethod}</b> ({order.paymentStatus})
+          </p>
+
+          <p>
+            Status:{" "}
+            <Badge>{order.orderStatus}</Badge>
+          </p>
+
+          <p>
+            Total: <b>₹{order.totalAmount}</b>
+          </p>
+
+          {/* ✅ Cancel + Return */}
+          <div className="flex gap-4 mt-4">
+
+            {canCancel && (
+              <Button
+                className="bg-red-600"
+                disabled={processing}
+                onClick={handleCancel}
               >
-                {orderDetails?.orderStatus}
-              </Badge>
-            </Label>
+                {processing ? "Processing…" : "Cancel Order"}
+              </Button>
+            )}
+
+            {order.orderStatus === "delivered" && (
+              <Button
+                className="bg-yellow-600"
+                disabled={processing || !canReturn}
+                onClick={handleReturn}
+              >
+                {!canReturn
+                  ? "Return Period Expired"
+                  : processing
+                  ? "Processing…"
+                  : "Return Order"}
+              </Button>
+            )}
           </div>
-        </div>
 
-        {/* ✅ Action buttons */}
-        <div className="flex gap-3">
-          {canCancel && (
-            <Button
-              className="bg-red-600 text-white"
-              disabled={actionLoading}
-              onClick={handleCancel}
-            >
-              {actionLoading ? "Processing..." : "Cancel Order"}
-            </Button>
-          )}
+          <hr />
 
-          {canReturn && (
-            <Button
-              className="bg-yellow-600 text-white"
-              disabled={actionLoading}
-              onClick={handleReturn}
-            >
-              {actionLoading ? "Processing..." : "Return Order"}
-            </Button>
-          )}
-        </div>
+          <h3 className="text-lg font-semibold mt-2">Items</h3>
+          <ul className="space-y-2">
+            {order.cartItems?.map((i) => (
+              <li key={i._id} className="flex justify-between">
+                <span>{i.title}</span>
+                <span>Qty: {i.quantity}</span>
+                <span>₹{i.price}</span>
+              </li>
+            ))}
+          </ul>
 
-        <Separator />
+          <hr />
 
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <div className="font-medium">Order Items</div>
-            <ul className="grid gap-3">
-              {orderDetails?.cartItems?.map((item) => (
-                <li key={item._id} className="flex items-center justify-between">
-                  <span>{item.title}</span>
-                  <span>Qty: {item.quantity}</span>
-                  <span>Price: ₹{item.price}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <div className="font-medium">Shipping Info</div>
-            <div className="grid gap-0.5 text-muted-foreground">
-              <span>{user?.userName}</span>
-              <span>{orderDetails?.addressInfo?.address}</span>
-              <span>{orderDetails?.addressInfo?.city}</span>
-              <span>{orderDetails?.addressInfo?.pincode}</span>
-              <span>{orderDetails?.addressInfo?.phone}</span>
-            </div>
-          </div>
-        </div>
+          <h3 className="text-lg font-semibold mt-2">Shipping Address</h3>
+          <p>{order.addressInfo.address}</p>
+          <p>{order.addressInfo.city}</p>
+          <p>{order.addressInfo.pincode}</p>
+          <p>{order.addressInfo.phone}</p>
+        </CardContent>
+      </Card>
+
+      <div className="mt-4 text-right">
+        <Button variant="outline" onClick={() => navigate("/shop/account")}>
+          Back
+        </Button>
       </div>
-    </DialogContent>
+    </div>
   );
 }
-
-ShoppingOrderDetailsView.propTypes = {
-  orderDetails: PropTypes.object,
-};
-
-export default ShoppingOrderDetailsView;
