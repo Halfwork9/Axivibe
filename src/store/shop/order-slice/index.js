@@ -45,7 +45,21 @@ export const getOrderDetails = createAsyncThunk(
     return response.data;
   }
 );
+export const cancelOrder = createAsyncThunk(
+  "/order/cancelOrder",
+  async (orderId) => {
+    const res = await api.put(`/shop/order/cancel/${orderId}`);
+    return res.data;
+  }
+);
 
+export const returnOrder = createAsyncThunk(
+  "/order/returnOrder",
+  async (orderId) => {
+    const res = await api.put(`/shop/order/return/${orderId}`);
+    return res.data;
+  }
+);
 const shoppingOrderSlice = createSlice({
   name: "shoppingOrderSlice",
   initialState,
@@ -101,7 +115,13 @@ const shoppingOrderSlice = createSlice({
       .addCase(getOrderDetails.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
-      });
+      })
+    .addCase(cancelOrder.fulfilled, (state, action) => {
+    state.orderDetails = action.payload.data;
+})
+.addCase(returnOrder.fulfilled, (state, action) => {
+    state.orderDetails = action.payload.data;
+});
   },
 });
 
