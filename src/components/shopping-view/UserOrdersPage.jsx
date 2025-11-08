@@ -68,8 +68,8 @@ function UserOrdersPage() {
   }, [orderDetails]);
 
   function handleFetchOrderDetails(orderId) {
-    dispatch(getOrderDetails(orderId));
-  }
+  navigate(`/shop/order/${orderId}`);
+}
 
   function handleCloseDialog() {
     setOpenDetailsDialog(false);
