@@ -45,7 +45,7 @@ import DistributorPage from './components/shopping-view/distributor';
 import UnauthPage from './pages/unauth-page';
 import NotFound from './pages/not-found';
 import OrderDetailsPage from "@/components/admin-view/OrderDetailsPage";
-import OrderDetailsPage from "@/components/shopping-view/order-details";
+import OrderDetailPage from "@/components/shopping-view/order-details";
 
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component {
@@ -153,7 +153,7 @@ function AppRoutes() {
         <Route path="home" element={<ShoppingHome />} />
         <Route path="listing" element={<ShoppingListing />} />
         <Route path="product/:id" element={<ProductDetailsPage />} />
-        <Route path="/shop/order/:orderId" element={<OrderDetailsPage />} />
+        <Route path="order/:orderId" element={<OrderDetailPage />} />
         <Route path="checkout" element={<ShoppingCheckout />} />
         <Route path="account" element={
           isAuthenticated ? <ShoppingAccount /> : <Navigate to="/auth/login" state={{ from: location }} replace />
