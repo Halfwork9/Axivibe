@@ -152,6 +152,7 @@ function AppRoutes() {
         <Route path="home" element={<ShoppingHome />} />
         <Route path="listing" element={<ShoppingListing />} />
         <Route path="product/:id" element={<ProductDetailsPage />} />
+        <Route path="/shop/order/:orderId" element={<OrderDetailsPage />} />
         <Route path="checkout" element={<ShoppingCheckout />} />
         <Route path="account" element={
           isAuthenticated ? <ShoppingAccount /> : <Navigate to="/auth/login" state={{ from: location }} replace />
