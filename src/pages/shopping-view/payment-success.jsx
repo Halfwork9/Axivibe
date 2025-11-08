@@ -20,7 +20,6 @@ function PaymentSuccessPage() {
 
   useEffect(() => {
     if (!orderId) {
-      console.error("Order ID not found in URL parameters.");
       setLoading(false);
       return;
     }
@@ -30,89 +29,67 @@ function PaymentSuccessPage() {
     const fetchOrderDetails = async () => {
       try {
         const res = await api.get(`/shop/order/details/${orderId}`);
-        if (!res.data?.success) throw new Error("Failed to fetch order details.");
-
         const orderData = res.data.data;
         setOrder(orderData);
 
-        // 🧠 If order is COD, no need to poll
-        if (orderData.paymentMethod === "Cash on Delivery") {
-          console.log("✅ COD order detected — skipping Stripe verification.");
-          if (cartItems.length > 0) dispatch(clearCart());
+        // ✅ COD orders → success instantly
+        if (orderData.paymentMethod === "cod") {
+          dispatch(clearCart());
           setLoading(false);
-          setIsVerifying(false);
           return;
         }
 
-        // 🧠 For Stripe: poll until paid
-        const pollForStripePayment = async () => {
+        // ✅ Stripe → show confirmed while checking
+        setIsVerifying(true);
+
+        const pollForStripe = async () => {
           try {
-            const res = await api.get(`/shop/order/details/${orderId}`);
-            if (res.data?.success) {
-              const updatedOrder = res.data.data;
-              setOrder(updatedOrder);
-              if (updatedOrder.paymentStatus === "paid") {
-                console.log("✅ Stripe payment confirmed.");
-                setLoading(false);
-                setIsVerifying(false);
-                if (cartItems.length > 0) dispatch(clearCart());
-                return;
-              }
+            const res2 = await api.get(`/shop/order/details/${orderId}`);
+            const updatedOrder = res2.data.data;
+            setOrder(updatedOrder);
+
+            if (updatedOrder.paymentStatus === "paid") {
+              dispatch(clearCart());
+              setLoading(false);
+              setIsVerifying(false);
+              return;
             }
-            if (!isCancelled) setTimeout(pollForStripePayment, 3000);
-          } catch (err) {
-            console.error("Error polling for Stripe payment:", err);
-            setVerificationError("Could not verify payment. Please refresh.");
-            setLoading(false);
+
+            if (!isCancelled) setTimeout(pollForStripe, 3000);
+          } catch {
+            setVerificationError("Could not verify payment.");
             setIsVerifying(false);
+            setLoading(false);
           }
         };
 
-        // Begin polling if Stripe
-        if (orderData.paymentMethod === "stripe") {
-          setIsVerifying(true);
-          pollForStripePayment();
-        }
-
-      } catch (err) {
-        console.error("Error fetching order:", err);
-        setVerificationError("Could not load order details.");
+        pollForStripe();
+      } catch {
+        setVerificationError("Failed load order.");
         setLoading(false);
       }
     };
 
     fetchOrderDetails();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [orderId, dispatch, cartItems.length]);
+    return () => (isCancelled = true);
+  }, [orderId, dispatch]);
 
   if (loading) {
     return (
-      <Card className="p-10 max-w-md mx-auto mt-10">
-        <CardHeader className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <CardTitle>Loading your order...</CardTitle>
-        </CardHeader>
+      <Card className="p-10 max-w-md mx-auto mt-10 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        <p>Loading your order…</p>
       </Card>
     );
   }
 
   if (!order) {
     return (
-      <Card className="p-10 max-w-md mx-auto mt-10">
-        <CardHeader>
-          <CardTitle>Order not found!</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-gray-500 mb-4">
-            We couldn't find details for this order. Please check your email or contact support.
-          </p>
-          <Button className="mt-5" onClick={() => navigate("/shop/home")}>
-            Continue Shopping
-          </Button>
-        </CardContent>
+      <Card className="p-10 max-w-md mx-auto mt-10 text-center">
+        <CardTitle>Order Not Found</CardTitle>
+        <Button className="mt-4" onClick={() => navigate("/shop/home")}>
+          Continue Shopping
+        </Button>
       </Card>
     );
   }
@@ -131,37 +108,26 @@ function PaymentSuccessPage() {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <p>
-          Order ID: <span className="font-mono text-xs">{order._id}</span>
-        </p>
-        <p>
-          Total Amount: <span className="font-semibold">₹{order.totalAmount?.toLocaleString()}</span>
-        </p>
-        <p>
-          Payment Method:{" "}
-          <span className="font-semibold capitalize">{order.paymentMethod}</span>
-        </p>
-        <p>
-          Payment Status:{" "}
-          <span
-            className={`font-semibold ml-2 capitalize ${
-              order.paymentStatus === "paid" ? "text-green-600" : "text-yellow-600"
-            }`}
-          >
-            {order.paymentStatus}
-          </span>
-        </p>
+        <p>Order ID: {order._id}</p>
+        <p>Total: ₹{order.totalAmount?.toLocaleString()}</p>
+        <p>Payment Method: {order.paymentMethod}</p>
+
+        {order.paymentMethod === "stripe" && order.paymentStatus !== "paid" && (
+          <p className="text-yellow-600">
+            ✅ Order placed — waiting for Stripe payment confirmation…
+          </p>
+        )}
 
         {isVerifying && (
-          <div className="flex items-center justify-center p-4 bg-blue-50 rounded-lg">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            <span>Waiting for Stripe confirmation...</span>
+          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-md">
+            <Loader2 className="animate-spin" />
+            <span>Verifying payment…</span>
           </div>
         )}
 
         {verificationError && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{verificationError}</p>
+          <div className="p-3 bg-red-100 border border-red-300 rounded-md">
+            {verificationError}
           </div>
         )}
 
