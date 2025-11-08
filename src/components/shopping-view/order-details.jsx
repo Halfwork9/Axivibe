@@ -9,7 +9,7 @@ import api from "@/api";
 
 const RETURN_DAYS = 7; // ✅ Return window days
 
-export default function OrderDetailsPage() {
+export default function OrderDetailPage() {
   const { orderId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
