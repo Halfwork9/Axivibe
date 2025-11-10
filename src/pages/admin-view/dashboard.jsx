@@ -405,7 +405,7 @@ export default function AdminDashboard() {
             </p>
 
             <p className="text-xs text-gray-500">
-              Buyers: <span className="font-bold">{product.userCount}</span>
+           Buyers: <span className="font-bold">{product.userCount ?? 0}</span>
             </p>
 
             <p className="text-xs text-gray-500">
