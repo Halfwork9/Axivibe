@@ -1,3 +1,4 @@
+// ✅ pages/shopping-view/payment-success.jsx
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,91 +12,67 @@ function PaymentSuccessPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
+
   const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationError, setVerificationError] = useState(null);
+
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.shopCart.cartItems);
 
   useEffect(() => {
-    if (!orderId) {
-      setLoading(false);
-      return;
-    }
+    if (!orderId) return;
 
-    let isCancelled = false;
+    let cancelled = false;
 
-    const fetchOrderDetails = async () => {
+    const loadOrder = async () => {
       try {
         const res = await api.get(`/shop/order/details/${orderId}`);
-        const orderData = res.data.data;
-        setOrder(orderData);
+        const data = res.data?.data;
 
-        // ✅ COD orders → success instantly
-        if (orderData.paymentMethod === "cod") {
-          dispatch(clearCart());
-          setLoading(false);
-          return;
-        }
+        setOrder(data);
 
-        // ✅ Stripe → show confirmed while checking
-        setIsVerifying(true);
+        // ✅ Clear cart immediately for both COD + Stripe
+        if (cartItems.length > 0) dispatch(clearCart());
 
-        const pollForStripe = async () => {
-          try {
+        // ✅ If Stripe & still pending → poll
+        if (data?.paymentMethod === "stripe" && data?.paymentStatus !== "paid") {
+          setIsVerifying(true);
+
+          const check = async () => {
+            if (cancelled) return;
+
             const res2 = await api.get(`/shop/order/details/${orderId}`);
-            const updatedOrder = res2.data.data;
-            setOrder(updatedOrder);
+            const upd = res2.data?.data;
+            setOrder(upd);
 
-            if (updatedOrder.paymentStatus === "paid") {
-              dispatch(clearCart());
-              setLoading(false);
+            if (upd.paymentStatus === "paid") {
               setIsVerifying(false);
               return;
             }
 
-            if (!isCancelled) setTimeout(pollForStripe, 3000);
-          } catch {
-            setVerificationError("Could not verify payment.");
-            setIsVerifying(false);
-            setLoading(false);
-          }
-        };
+            setTimeout(check, 3000);
+          };
 
-        pollForStripe();
-      } catch {
-        setVerificationError("Failed load order.");
-        setLoading(false);
-      }
+          check();
+        }
+      } catch {}
     };
 
-    fetchOrderDetails();
-    return () => (isCancelled = true);
+    loadOrder();
+    return () => (cancelled = true);
   }, [orderId, dispatch]);
-
-  if (loading) {
-    return (
-      <Card className="p-10 max-w-md mx-auto mt-10 text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-        <p>Loading your order…</p>
-      </Card>
-    );
-  }
 
   if (!order) {
     return (
-      <Card className="p-10 max-w-md mx-auto mt-10 text-center">
-        <CardTitle>Order Not Found</CardTitle>
-        <Button className="mt-4" onClick={() => navigate("/shop/home")}>
-          Continue Shopping
-        </Button>
+      <Card className="p-10 max-w-md mx-auto mt-20 text-center">
+        <CardTitle>Order Confirmed!</CardTitle>
+        <p>Processing payment…</p>
       </Card>
     );
   }
 
   return (
-    <Card className="p-10 max-w-lg mx-auto mt-10">
+    <Card className="p-10 max-w-lg mx-auto mt-20">
       <CardHeader className="text-center">
         <CardTitle
           className={`text-3xl flex items-center justify-center gap-2 ${
@@ -103,7 +80,9 @@ function PaymentSuccessPage() {
           }`}
         >
           {order.paymentStatus === "paid" ? <CheckCircle /> : <AlertCircle />}
-          {order.paymentStatus === "paid" ? "🎉 Payment Successful!" : "Order Confirmed!"}
+          {order.paymentStatus === "paid"
+            ? "🎉 Payment Confirmed!"
+            : "Order Placed!"}
         </CardTitle>
       </CardHeader>
 
@@ -111,23 +90,12 @@ function PaymentSuccessPage() {
         <p>Order ID: {order._id}</p>
         <p>Total: ₹{order.totalAmount?.toLocaleString()}</p>
         <p>Payment Method: {order.paymentMethod}</p>
-
-        {order.paymentMethod === "stripe" && order.paymentStatus !== "paid" && (
-          <p className="text-yellow-600">
-            ✅ Order placed — waiting for Stripe payment confirmation…
-          </p>
-        )}
+        <p>Status: {order.orderStatus}</p>
 
         {isVerifying && (
-          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-md">
+          <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-md">
             <Loader2 className="animate-spin" />
-            <span>Verifying payment…</span>
-          </div>
-        )}
-
-        {verificationError && (
-          <div className="p-3 bg-red-100 border border-red-300 rounded-md">
-            {verificationError}
+            <span>Confirming payment…</span>
           </div>
         )}
 
