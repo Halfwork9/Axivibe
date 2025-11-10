@@ -405,17 +405,14 @@ export default function AdminDashboard() {
             </p>
 
             <p className="text-xs text-gray-500">
-           Buyers: <span className="font-bold">{product.userCount ?? 0}</span>
+           Buyers: <span className="font-bold">{item.buyers}</span>
             </p>
 
             <p className="text-xs text-gray-500">
-              Qty Sold: <span className="font-bold">{product.totalQty}</span>
+              Qty Sold: <span className="font-bold">{item.totalQty}</span>
             </p>
 
-            <p className="text-xs text-gray-500">
-              Revenue:{" "}
-              <span className="font-bold">₹{product.revenue?.toLocaleString()}</span>
-            </p>
+            
           </div>
         ))}
       </div>
