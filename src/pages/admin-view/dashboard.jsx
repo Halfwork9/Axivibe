@@ -254,7 +254,7 @@ export default function AdminDashboard() {
 
       {/* MAIN CONTENT */}
       <div id="dashboard-content" className="p-6 space-y-8 max-w-7xl mx-auto">
-       {/* KPI CARDS */}
+      {/* ✅ KPI CARDS ROW-1 */}
 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
   <DashboardCard
     title="Total Orders"
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
     title="Revenue"
     icon={<IndianRupee className="text-green-500" size={28} />}
     value={`₹${stats.totalRevenue.toLocaleString()}`}
-    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs Lifetime}
+    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs Lifetime`}
     sparklineData={getSparkline(salesOverview, "revenue")}
     sparklineColor="#10b981"
   />
@@ -294,7 +294,11 @@ export default function AdminDashboard() {
     value={stats.totalCustomers}
     change={formatChange(stats.customersChange)}
   />
+</div>
 
+
+{/* ✅ KPI CARDS ROW-2 */}
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
   <DashboardCard
     title="Avg Order Value"
     icon={<IndianRupee className="text-emerald-500" size={28} />}
@@ -329,7 +333,11 @@ export default function AdminDashboard() {
     value={currency(stats.monthlyRevenue)}
     change="vs last month"
   />
+</div>
 
+
+{/* ✅ KPI CARDS ROW-3 */}
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
   <DashboardCard
     title="Weekly Revenue"
     icon={<IndianRupee className="text-orange-500" size={28} />}
@@ -338,10 +346,10 @@ export default function AdminDashboard() {
   />
 
   <DashboardCard
-    title="Today's Revenue"
+    title="Today’s Revenue"
     icon={<IndianRupee className="text-blue-500" size={28} />}
     value={currency(stats.todayRevenue)}
-    change="today"
+    change="Today"
   />
 
   <DashboardCard
@@ -358,6 +366,7 @@ export default function AdminDashboard() {
     change="Best performer"
   />
 </div>
+
 
         {/* CHARTS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -379,16 +388,26 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-blue-500" />
-                Order Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <OrderStatusChart data={stats} />
-            </CardContent>
-          </Card>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <Package className="h-5 w-5 text-green-500" />
+      Top Product
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    {stats.topProducts?.length ? (
+      <div>
+        <p className="font-semibold">{stats.topProducts[0].title}</p>
+        <p className="text-sm text-gray-500">
+          Revenue: ₹{stats.topProducts[0].revenue?.toLocaleString()}
+        </p>
+      </div>
+    ) : (
+      <p className="text-gray-400">No product data</p>
+    )}
+  </CardContent>
+</Card>
+
         </div>
 
 {/* NEW ANALYTICS ROW */}
