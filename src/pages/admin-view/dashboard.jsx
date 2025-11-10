@@ -404,12 +404,8 @@ export default function AdminDashboard() {
             className="rounded-md border p-3 hover:bg-gray-50 transition"
           >
             <p className="font-semibold">{idx + 1}. {p.title}</p>
-
-            <p className="text-sm text-gray-500">Buyers: {p.buyers ?? 0}</p>
-
-            <p className="text-sm text-gray-500">
-              Qty Sold: {Number(p.totalQty || 0)}
-            </p>
+           <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
+           <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
           </li>
         ))}
       </ol>
