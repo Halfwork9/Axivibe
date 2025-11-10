@@ -387,7 +387,7 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
-         <Card className="shadow-sm">
+  <Card className="shadow-sm">
   <CardHeader>
     <CardTitle className="flex items-center gap-2">
       <Package className="h-5 w-5 text-green-500" />
@@ -399,33 +399,23 @@ export default function AdminDashboard() {
     {stats.topProducts?.length > 0 ? (
       <div className="space-y-3">
         {stats.topProducts.map((product, index) => (
-          <div
-            key={product._id}
-            className="p-3 rounded border bg-white flex justify-between items-center hover:bg-gray-50"
-          >
-            <div>
-              <p className="font-semibold">
-                {index + 1}. {product.title}
-              </p>
+          <div key={product._id} className="p-3 border rounded bg-white hover:bg-gray-50">
+            <p className="font-semibold">
+              {index + 1}. {product.title}
+            </p>
 
-              <p className="text-xs text-gray-500">
-                Qty Sold: <span className="font-semibold text-gray-700">{product.totalQty}</span>
-              </p>
+            <p className="text-xs text-gray-500">
+              Buyers: <span className="font-bold">{product.userCount}</span>
+            </p>
 
-              {/* If you have repeat order count stored */}
-              {product.orderCount !== undefined && (
-                <p className="text-xs text-gray-500">
-                  Orders: <span className="font-semibold text-gray-700">{product.orderCount}</span>
-                </p>
-              )}
+            <p className="text-xs text-gray-500">
+              Qty Sold: <span className="font-bold">{product.totalQty}</span>
+            </p>
 
-              <p className="text-xs text-gray-500">
-                Revenue:{" "}
-                <span className="font-semibold text-gray-700">
-                  ₹{product.revenue?.toLocaleString()}
-                </span>
-              </p>
-            </div>
+            <p className="text-xs text-gray-500">
+              Revenue:{" "}
+              <span className="font-bold">₹{product.revenue?.toLocaleString()}</span>
+            </p>
           </div>
         ))}
       </div>
@@ -434,8 +424,6 @@ export default function AdminDashboard() {
     )}
   </CardContent>
 </Card>
-
-
         </div>
 
 {/* NEW ANALYTICS ROW */}
