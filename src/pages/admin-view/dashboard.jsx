@@ -405,9 +405,7 @@ export default function AdminDashboard() {
           >
             <p className="font-semibold">{idx + 1}. {p.title}</p>
 
-            <p className="text-sm text-gray-500">
-              Buyers: {Number(p.buyers || 0)}
-            </p>
+            <p className="text-sm text-gray-500">Buyers: {p.buyers ?? 0}</p>
 
             <p className="text-sm text-gray-500">
               Qty Sold: {Number(p.totalQty || 0)}
