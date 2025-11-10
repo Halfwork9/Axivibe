@@ -269,7 +269,7 @@ export default function AdminDashboard() {
     title="Revenue"
     icon={<IndianRupee className="text-green-500" size={28} />}
     value={`₹${stats.totalRevenue.toLocaleString()}`}
-    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs last month`}
+    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs Lifetime}
     sparklineData={getSparkline(salesOverview, "revenue")}
     sparklineColor="#10b981"
   />
@@ -299,28 +299,28 @@ export default function AdminDashboard() {
     title="Avg Order Value"
     icon={<IndianRupee className="text-emerald-500" size={28} />}
     value={currency(stats.avgOrderValue)}
-    change="lifetime"
+    change="Lifetime"
   />
 
   <DashboardCard
     title="Repeat Customers"
     icon={<Users className="text-pink-500" size={28} />}
     value={`${stats.repeatCustomers} (${stats.repeatCustomerRate}% )`}
-    change="lifetime"
+    change="Lifetime"
   />
 
   <DashboardCard
     title="Cancel Rate"
     icon={<Percent className="text-red-500" size={28} />}
     value={`${stats.cancelRate}%`}
-    change="lifetime"
+    change="Lifetime"
   />
 
   <DashboardCard
     title="Return Rate"
     icon={<Percent className="text-orange-500" size={28} />}
     value={`${stats.returnRate}%`}
-    change="lifetime"
+    change="Lifetime"
   />
 
   <DashboardCard
