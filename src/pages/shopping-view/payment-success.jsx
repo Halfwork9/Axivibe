@@ -1,4 +1,3 @@
-// ✅ pages/shopping-view/payment-success.jsx
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,77 +11,85 @@ function PaymentSuccessPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
-
+  const session_id = searchParams.get("session_id");
   const [order, setOrder] = useState(null);
-  const [isVerifying, setIsVerifying] = useState(false);
-
+  const [loading, setLoading] = useState(true);
+  const [verifying, setVerifying] = useState(false);
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.shopCart.cartItems);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
 
-    let cancelled = false;
+    const verifyPayment = async () => {
+      setVerifying(true);
 
-    const loadOrder = async () => {
       try {
+        // ✅ Ask backend to verify immediately
+        await api.post("/shop/order/verify-payment", {
+          orderId,
+          session_id,
+        });
+
+        // ✅ Fetch the updated order
         const res = await api.get(`/shop/order/details/${orderId}`);
-        const data = res.data?.data;
+        setOrder(res.data?.data);
 
-        setOrder(data);
-
-        // ✅ Clear cart immediately for both COD + Stripe
-        if (cartItems.length > 0) dispatch(clearCart());
-
-        // ✅ If Stripe & still pending → poll
-        if (data?.paymentMethod === "stripe" && data?.paymentStatus !== "paid") {
-          setIsVerifying(true);
-
-          const check = async () => {
-            if (cancelled) return;
-
-            const res2 = await api.get(`/shop/order/details/${orderId}`);
-            const upd = res2.data?.data;
-            setOrder(upd);
-
-            if (upd.paymentStatus === "paid") {
-              setIsVerifying(false);
-              return;
-            }
-
-            setTimeout(check, 3000);
-          };
-
-          check();
+        // ✅ Clear cart immediately
+        if (cartItems.length > 0) {
+          dispatch(clearCart());
         }
-      } catch {}
+      } catch (err) {
+        console.error("verify-payment failed → fallback", err);
+
+        const res = await api.get(`/shop/order/details/${orderId}`);
+        setOrder(res.data?.data);
+      }
+
+      setVerifying(false);
+      setLoading(false);
     };
 
-    loadOrder();
-    return () => (cancelled = true);
+    verifyPayment();
   }, [orderId, dispatch]);
+
+  if (loading) {
+    return (
+      <Card className="p-10 max-w-md mx-auto mt-10 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        <p className="mt-2">Verifying payment…</p>
+      </Card>
+    );
+  }
 
   if (!order) {
     return (
-      <Card className="p-10 max-w-md mx-auto mt-20 text-center">
-        <CardTitle>Order Confirmed!</CardTitle>
-        <p>Processing payment…</p>
+      <Card className="p-10 max-w-md mx-auto mt-10 text-center">
+        <CardTitle>Order Not Found</CardTitle>
+        <Button className="mt-4" onClick={() => navigate("/shop/home")}>
+          Continue Shopping
+        </Button>
       </Card>
     );
   }
 
   return (
-    <Card className="p-10 max-w-lg mx-auto mt-20">
+    <Card className="p-10 max-w-lg mx-auto mt-10">
       <CardHeader className="text-center">
         <CardTitle
           className={`text-3xl flex items-center justify-center gap-2 ${
-            order.paymentStatus === "paid" ? "text-green-600" : "text-yellow-600"
+            order.paymentStatus === "paid"
+              ? "text-green-600"
+              : "text-yellow-600"
           }`}
         >
           {order.paymentStatus === "paid" ? <CheckCircle /> : <AlertCircle />}
           {order.paymentStatus === "paid"
-            ? "🎉 Payment Confirmed!"
-            : "Order Placed!"}
+            ? "🎉 Payment Successful!"
+            : "Order Received!"}
         </CardTitle>
       </CardHeader>
 
@@ -92,8 +99,8 @@ function PaymentSuccessPage() {
         <p>Payment Method: {order.paymentMethod}</p>
         <p>Status: {order.orderStatus}</p>
 
-        {isVerifying && (
-          <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-md">
+        {verifying && (
+          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-md">
             <Loader2 className="animate-spin" />
             <span>Confirming payment…</span>
           </div>
@@ -103,7 +110,11 @@ function PaymentSuccessPage() {
           <Button onClick={() => navigate("/shop/account")} className="flex-1">
             View Orders
           </Button>
-          <Button variant="outline" onClick={() => navigate("/shop/home")} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/shop/home")}
+            className="flex-1"
+          >
             Continue Shopping
           </Button>
         </div>
