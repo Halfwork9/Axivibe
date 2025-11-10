@@ -67,6 +67,11 @@ const DEFAULT_STATS = {
   lowStock: [],
   confirmedOrders: 0,
   shippedOrders: 0,
+  monthlyRevenue: 0,
+weeklyRevenue: 0,
+todayRevenue: 0,
+bestSellingBrand: null,
+bestSellingCategory: null,
 };
 
 export default function AdminDashboard() {
@@ -308,6 +313,41 @@ export default function AdminDashboard() {
            value={`${stats.returnRate}%`}
            change="lifetime"
          />
+          <DashboardCard
+  title="Monthly Revenue"
+  icon={<DollarSign className="text-green-600" size={28} />}
+  value={currency(stats.monthlyRevenue)}
+  change="vs last month"
+/>
+
+<DashboardCard
+  title="Weekly Revenue"
+  icon={<TrendingUp className="text-orange-500" size={28} />}
+  value={currency(stats.weeklyRevenue)}
+  change="vs last week"
+/>
+
+<DashboardCard
+  title="Today's Revenue"
+  icon={<DollarSign className="text-blue-500" size={28} />}
+  value={currency(stats.todayRevenue)}
+  change="today"
+/>
+
+<DashboardCard
+  title="Top Brand"
+  icon={<Package className="text-purple-500" size={28} />}
+  value={stats.bestSellingBrand ?? "—"}
+  change="Best performer"
+/>
+
+<DashboardCard
+  title="Top Category"
+  icon={<Package className="text-rose-500" size={28} />}
+  value={stats.bestSellingCategory ?? "—"}
+  change="Best performer"
+/>
+
         </div>
 
         {/* CHARTS */}
