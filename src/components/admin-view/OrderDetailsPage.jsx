@@ -103,23 +103,39 @@ function OrderDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Method:</span>
-                  <span className="font-semibold">{paymentMethod}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Payment Status:</span>
-                  <span className={`font-semibold capitalize ${paymentStatus === 'paid' ? 'text-green-600' : 'text-red-600'}`}>{paymentStatus}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Order Status:</span>
-                  <span className="font-semibold capitalize">{orderStatus}</span>
-                </div>
-                {paymentId && <div className="flex justify-between">
-                  <span>Payment ID:</span>
-                  <span className="font-mono text-xs">{paymentId}</span>
-                </div>}
-              </CardContent>
+  <div className="flex justify-between">
+    <span>Method:</span>
+    <span className="font-semibold">{paymentMethod}</span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>Payment Status:</span>
+    <span
+      className={`font-semibold capitalize ${
+        paymentStatus === "paid" ? "text-green-600" : "text-red-600"
+      }`}
+    >
+      {paymentStatus}
+    </span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>Order Status:</span>
+    <span className="font-semibold capitalize">{orderStatus}</span>
+  </div>
+
+  {paymentId && (
+    <div className="flex flex-col gap-1">
+      <span>Payment ID:</span>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs break-all bg-gray-100 p-1 rounded flex-1">
+          {paymentId}
+        </span>
+      </div>
+    </div>
+  )}
+</CardContent>
+
             </Card>
 
             <Card>
