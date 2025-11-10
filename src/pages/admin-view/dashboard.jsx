@@ -387,7 +387,7 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
-  <Card className="shadow-sm">
+<Card className="shadow-sm">
   <CardHeader>
     <CardTitle className="flex items-center gap-2">
       <Package className="h-5 w-5 text-green-500" />
@@ -397,20 +397,27 @@ export default function AdminDashboard() {
 
   <CardContent>
     {stats.topProducts?.length > 0 ? (
-      <div className="space-y-3">
-       {stats.topProducts?.length ? (
-  <ol className="space-y-3">
-    {stats.topProducts.map((p, idx) => (
-      <li key={p._id || idx}>
-        <p className="font-semibold">{idx + 1}. {p.title}</p>
-        <p className="text-sm text-gray-500">Buyers: {Number(p.buyers || 0)}</p>
-        <p className="text-sm text-gray-500">Qty Sold: {Number(p.totalQty || 0)}</p>
-      </li>
-    ))}
-  </ol>
-) : (
-  <p className="text-gray-400">No product data</p>
-)}
+      <ol className="space-y-3">
+        {stats.topProducts.map((p, idx) => (
+          <li
+            key={p._id || idx}
+            className="rounded-md border p-3 hover:bg-gray-50 transition"
+          >
+            <p className="font-semibold">{idx + 1}. {p.title}</p>
+
+            <p className="text-sm text-gray-500">
+              Buyers: {Number(p.buyers || 0)}
+            </p>
+
+            <p className="text-sm text-gray-500">
+              Qty Sold: {Number(p.totalQty || 0)}
+            </p>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p className="text-gray-400">No product data</p>
+    )}
   </CardContent>
 </Card>
         </div>
