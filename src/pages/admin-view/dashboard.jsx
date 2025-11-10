@@ -305,7 +305,7 @@ export default function AdminDashboard() {
   <DashboardCard
     title="Repeat Customers"
     icon={<Users className="text-pink-500" size={28} />}
-    value={`${stats.repeatCustomers} (${stats.repeatCustomerRate}% )`}
+    value={`${stats.repeatCustomers} (${stats.repeatCustomerRate}%)`}
     change="Lifetime"
   />
 
