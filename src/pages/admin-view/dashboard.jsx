@@ -254,102 +254,110 @@ export default function AdminDashboard() {
 
       {/* MAIN CONTENT */}
       <div id="dashboard-content" className="p-6 space-y-8 max-w-7xl mx-auto">
-        {/* KPI CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
-          <DashboardCard
-            title="Total Orders"
-            icon={<ShoppingCart className="text-blue-500" size={28} />}
-            value={stats.totalOrders}
-            change={formatChange(stats.ordersChange)}
-            sparklineData={getSparkline(salesOverview, "orders")}
-            sparklineColor="#3b82f6"
-          />
-          <DashboardCard
-            title="Revenue"
-            icon={<DollarSign className="text-green-500" size={28} />}
-            value={`₹${stats.totalRevenue.toLocaleString()}`}
-            change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs last month`}
-            sparklineData={getSparkline(salesOverview, "revenue")}
-            sparklineColor="#10b981"
-          />
-          <DashboardCard
-            title="Pending"
-            icon={<Package className="text-yellow-500" size={28} />}
-            value={stats.pendingOrders}
-            change={formatChange(stats.pendingChange)}
-          />
-          <DashboardCard
-            title="Delivered"
-            icon={<Truck className="text-indigo-500" size={28} />}
-            value={stats.deliveredOrders}
-            change={formatChange(stats.deliveredChange)}
-          />
-          <DashboardCard
-            title="Customers"
-            icon={<Users className="text-purple-500" size={28} />}
-            value={stats.totalCustomers}
-            change={formatChange(stats.customersChange)}
-          />
-          <DashboardCard
-           title="Avg Order Value"
-           icon={<DollarSign className="text-emerald-500" size={28} />}
-           value={currency(stats.avgOrderValue)}
-           change="lifetime"
-         />
-         <DashboardCard
-           title="Repeat Customers"
-           icon={<Users className="text-pink-500" size={28} />}
-           value={`${stats.repeatCustomers} (${stats.repeatCustomerRate}% )`}
-           change="lifetime"
-         />
-         <DashboardCard
-           title="Cancel Rate"
-           icon={<Percent className="text-red-500" size={28} />}
-           value={`${stats.cancelRate}%`}
-           change="lifetime"
-         />
-         <DashboardCard
-           title="Return Rate"
-           icon={<Percent className="text-orange-500" size={28} />}
-           value={`${stats.returnRate}%`}
-           change="lifetime"
-         />
-          <DashboardCard
-  title="Monthly Revenue"
-  icon={<DollarSign className="text-green-600" size={28} />}
-  value={currency(stats.monthlyRevenue)}
-  change="vs last month"
-/>
+       {/* KPI CARDS */}
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
+  <DashboardCard
+    title="Total Orders"
+    icon={<ShoppingCart className="text-blue-500" size={28} />}
+    value={stats.totalOrders}
+    change={formatChange(stats.ordersChange)}
+    sparklineData={getSparkline(salesOverview, "orders")}
+    sparklineColor="#3b82f6"
+  />
 
-<DashboardCard
-  title="Weekly Revenue"
-  icon={<TrendingUp className="text-orange-500" size={28} />}
-  value={currency(stats.weeklyRevenue)}
-  change="vs last week"
-/>
+  <DashboardCard
+    title="Revenue"
+    icon={<IndianRupee className="text-green-500" size={28} />}
+    value={`₹${stats.totalRevenue.toLocaleString()}`}
+    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs last month`}
+    sparklineData={getSparkline(salesOverview, "revenue")}
+    sparklineColor="#10b981"
+  />
 
-<DashboardCard
-  title="Today's Revenue"
-  icon={<IndianRupee className="text-blue-500" size={28} />}
-  value={formatINR(stats.todayRevenue)}
-  change="today"
-/>
-<DashboardCard
-  title="Top Brand"
-  icon={<Award className="text-indigo-500" size={28} />}
-  value={stats.bestSellingBrand || "—"}
-  change="Best performer"
-/>
+  <DashboardCard
+    title="Pending"
+    icon={<Package className="text-yellow-500" size={28} />}
+    value={stats.pendingOrders}
+    change={formatChange(stats.pendingChange)}
+  />
 
-<DashboardCard
-  title="Top Category"
-  icon={<Tag className="text-rose-500" size={28} />}
-  value={stats.bestSellingCategory || "—"}
-  change="Best performer"
-/>
+  <DashboardCard
+    title="Delivered"
+    icon={<Truck className="text-indigo-500" size={28} />}
+    value={stats.deliveredOrders}
+    change={formatChange(stats.deliveredChange)}
+  />
 
+  <DashboardCard
+    title="Customers"
+    icon={<Users className="text-purple-500" size={28} />}
+    value={stats.totalCustomers}
+    change={formatChange(stats.customersChange)}
+  />
 
-        </div>
+  <DashboardCard
+    title="Avg Order Value"
+    icon={<IndianRupee className="text-emerald-500" size={28} />}
+    value={currency(stats.avgOrderValue)}
+    change="lifetime"
+  />
+
+  <DashboardCard
+    title="Repeat Customers"
+    icon={<Users className="text-pink-500" size={28} />}
+    value={`${stats.repeatCustomers} (${stats.repeatCustomerRate}% )`}
+    change="lifetime"
+  />
+
+  <DashboardCard
+    title="Cancel Rate"
+    icon={<Percent className="text-red-500" size={28} />}
+    value={`${stats.cancelRate}%`}
+    change="lifetime"
+  />
+
+  <DashboardCard
+    title="Return Rate"
+    icon={<Percent className="text-orange-500" size={28} />}
+    value={`${stats.returnRate}%`}
+    change="lifetime"
+  />
+
+  <DashboardCard
+    title="Monthly Revenue"
+    icon={<IndianRupee className="text-green-600" size={28} />}
+    value={currency(stats.monthlyRevenue)}
+    change="vs last month"
+  />
+
+  <DashboardCard
+    title="Weekly Revenue"
+    icon={<IndianRupee className="text-orange-500" size={28} />}
+    value={currency(stats.weeklyRevenue)}
+    change="vs last week"
+  />
+
+  <DashboardCard
+    title="Today's Revenue"
+    icon={<IndianRupee className="text-blue-500" size={28} />}
+    value={currency(stats.todayRevenue)}
+    change="today"
+  />
+
+  <DashboardCard
+    title="Top Brand"
+    icon={<Award className="text-indigo-500" size={28} />}
+    value={stats.bestSellingBrand || "—"}
+    change="Best performer"
+  />
+
+  <DashboardCard
+    title="Top Category"
+    icon={<Tag className="text-rose-500" size={28} />}
+    value={stats.bestSellingCategory || "—"}
+    change="Best performer"
+  />
+</div>
 
         {/* CHARTS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
