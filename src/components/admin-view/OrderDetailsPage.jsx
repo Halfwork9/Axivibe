@@ -102,7 +102,8 @@ function OrderDetailsPage() {
                   Payment & Order Status
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+             <CardContent className="space-y-3">
+
   <div className="flex justify-between">
     <span>Method:</span>
     <span className="font-semibold">{paymentMethod}</span>
@@ -127,14 +128,17 @@ function OrderDetailsPage() {
   {paymentId && (
     <div className="flex flex-col gap-1">
       <span>Payment ID:</span>
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-xs break-all bg-gray-100 p-1 rounded flex-1">
-          {paymentId}
-        </span>
+
+      <div
+        className="font-mono text-xs break-all bg-gray-100 p-2 rounded border 
+        max-w-full"
+      >
+        {paymentId}
       </div>
     </div>
   )}
 </CardContent>
+
 
             </Card>
 
