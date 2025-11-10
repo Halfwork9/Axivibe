@@ -377,7 +377,7 @@ export default function AdminDashboard() {
                 Sales Overview (30 Days)
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="!p-4">
               {salesOverview.length > 0 ? (
                 <SalesOverviewChart data={salesOverview} />
               ) : (
@@ -398,27 +398,19 @@ export default function AdminDashboard() {
   <CardContent>
     {stats.topProducts?.length > 0 ? (
       <div className="space-y-3">
-        {stats.topProducts.map((product, index) => (
-          <div key={product._id} className="p-3 border rounded bg-white hover:bg-gray-50">
-            <p className="font-semibold">
-              {index + 1}. {product.title}
-            </p>
-
-            <p className="text-xs text-gray-500">
-           Buyers: <span className="font-bold">{item.buyers}</span>
-            </p>
-
-            <p className="text-xs text-gray-500">
-              Qty Sold: <span className="font-bold">{item.totalQty}</span>
-            </p>
-
-            
-          </div>
-        ))}
-      </div>
-    ) : (
-      <p className="text-gray-400">No product data</p>
-    )}
+       {stats.topProducts?.length ? (
+  <ol className="space-y-3">
+    {stats.topProducts.map((p, idx) => (
+      <li key={p._id || idx}>
+        <p className="font-semibold">{idx + 1}. {p.title}</p>
+        <p className="text-sm text-gray-500">Buyers: {Number(p.buyers || 0)}</p>
+        <p className="text-sm text-gray-500">Qty Sold: {Number(p.totalQty || 0)}</p>
+      </li>
+    ))}
+  </ol>
+) : (
+  <p className="text-gray-400">No product data</p>
+)}
   </CardContent>
 </Card>
         </div>
