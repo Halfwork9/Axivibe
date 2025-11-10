@@ -336,15 +336,15 @@ export default function AdminDashboard() {
 
 <DashboardCard
   title="Top Brand"
-  icon={<Package className="text-purple-500" size={28} />}
-  value={stats.bestSellingBrand ?? "—"}
+  icon={<Package className="text-indigo-500" size={28} />}
+  value={stats.bestSellingBrand || "—"}
   change="Best performer"
 />
 
 <DashboardCard
   title="Top Category"
   icon={<Package className="text-rose-500" size={28} />}
-  value={stats.bestSellingCategory ?? "—"}
+  value={stats.bestSellingCategory || "—"}
   change="Best performer"
 />
 
