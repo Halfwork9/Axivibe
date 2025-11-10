@@ -24,6 +24,7 @@ import {
   Sun,
   Percent,
  CreditCard,
+  Award, Tag ,IndianRupee,
 } from "lucide-react";
 import { format } from "date-fns";
 import { CSVLink } from "react-csv";
@@ -329,24 +330,24 @@ export default function AdminDashboard() {
 
 <DashboardCard
   title="Today's Revenue"
-  icon={<DollarSign className="text-blue-500" size={28} />}
-  value={currency(stats.todayRevenue)}
+  icon={<IndianRupee className="text-blue-500" size={28} />}
+  value={formatINR(stats.todayRevenue)}
   change="today"
 />
-
 <DashboardCard
   title="Top Brand"
-  icon={<Package className="text-indigo-500" size={28} />}
+  icon={<Award className="text-indigo-500" size={28} />}
   value={stats.bestSellingBrand || "—"}
   change="Best performer"
 />
 
 <DashboardCard
   title="Top Category"
-  icon={<Package className="text-rose-500" size={28} />}
+  icon={<Tag className="text-rose-500" size={28} />}
   value={stats.bestSellingCategory || "—"}
   change="Best performer"
 />
+
 
         </div>
 
