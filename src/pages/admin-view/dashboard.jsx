@@ -367,56 +367,60 @@ export default function AdminDashboard() {
   />
 </div>
 
+{/* CHARTS */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* CHARTS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 shadow-sm">
-  <CardHeader className="border-b pb-2">
-    <CardTitle className="flex items-center gap-2 text-base font-semibold">
-      <TrendingUp className="h-5 w-5 text-green-500" />
-      Sales Overview (30 Days)
-    </CardTitle>
-  </CardHeader>
+  {/* Sales Overview */}
+  <Card className="lg:col-span-2 shadow-sm">
+    <CardHeader className="border-b pb-2">
+      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+        <TrendingUp className="h-5 w-5 text-green-500" />
+        Sales Overview (30 Days)
+      </CardTitle>
+    </CardHeader>
 
-  <CardContent className="!p-4">
-    {salesOverview?.length > 0 ? (
-      <SalesOverviewChart data={salesOverview} />
-    ) : (
-      <div className="h-[300px] flex items-center justify-center text-gray-400">
-        No sales data
-      </div>
-    )}
-  </CardContent>
-</Card>
-
-<Card className="shadow-sm">
-  <CardHeader>
-    <CardTitle className="flex items-center gap-2">
-      <Package className="h-5 w-5 text-green-500" />
-      Top Products
-    </CardTitle>
-  </CardHeader>
-
-  <CardContent>
-    {stats.topProducts?.length > 0 ? (
-      <ol className="space-y-3">
-        {stats.topProducts.map((p, idx) => (
-          <li
-            key={p._id || idx}
-            className="rounded-md border p-3 hover:bg-gray-50 transition"
-          >
-            <p className="font-semibold">{idx + 1}. {p.title}</p>
-           <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
-           <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
-          </li>
-        ))}
-      </ol>
-    ) : (
-      <p className="text-gray-400">No product data</p>
-    )}
-  </CardContent>
-</Card>
+    <CardContent className="!p-4">
+      {salesOverview?.length > 0 ? (
+        <SalesOverviewChart data={salesOverview} />
+      ) : (
+        <div className="h-[300px] flex items-center justify-center text-gray-400">
+          No sales data
         </div>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* Top Products */}
+  <Card className="shadow-sm h-[330px]">
+    <CardHeader className="border-b pb-2">
+      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+        <Package className="h-5 w-5 text-green-500" />
+        Top Products
+      </CardTitle>
+    </CardHeader>
+
+    <CardContent className="!p-4 overflow-y-auto">
+      {stats.topProducts?.length > 0 ? (
+        <ol className="space-y-3">
+          {stats.topProducts.map((p, idx) => (
+            <li
+              key={p._id || idx}
+              className="rounded-md border p-3 hover:bg-gray-50 transition"
+            >
+              <p className="font-semibold">{idx + 1}. {p.title}</p>
+              <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
+              <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="text-gray-400">No product data</p>
+      )}
+    </CardContent>
+  </Card>
+
+</div>
+
 
 {/* NEW ANALYTICS ROW */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
