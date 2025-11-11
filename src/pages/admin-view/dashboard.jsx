@@ -399,28 +399,29 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
 
-    <CardContent className="!p-4 overflow-y-auto">
+    <CardContent className="!p-4">
       {stats.topProducts?.length > 0 ? (
-        <ol className="space-y-3">
-          {stats.topProducts.map((p, idx) => (
-            <li
-              key={p._id || idx}
-              className="rounded-md border p-3 hover:bg-gray-50 transition"
-            >
-              <p className="font-semibold">{idx + 1}. {p.title}</p>
-              <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
-              <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
-            </li>
-          ))}
-        </ol>
+        <div className="h-[260px] overflow-y-auto pr-1">
+          <ol className="space-y-3">
+            {stats.topProducts.map((p, idx) => (
+              <li
+                key={p._id || idx}
+                className="rounded-md border p-3 hover:bg-gray-50 transition"
+              >
+                <p className="font-semibold">{idx + 1}. {p.title}</p>
+                <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
+                <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       ) : (
         <p className="text-gray-400">No product data</p>
       )}
     </CardContent>
+
   </Card>
-
 </div>
-
 
 {/* NEW ANALYTICS ROW */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
