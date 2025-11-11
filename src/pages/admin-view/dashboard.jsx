@@ -371,7 +371,7 @@ export default function AdminDashboard() {
 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
   {/* Sales Overview */}
-  <Card className="lg:col-span-2 shadow-sm">
+  <Card className="lg:col-span-2 shadow-sm h-full">
     <CardHeader className="border-b pb-2">
       <CardTitle className="flex items-center gap-2 text-base font-semibold">
         <TrendingUp className="h-5 w-5 text-green-500" />
@@ -379,11 +379,11 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
 
-    <CardContent className="!p-4">
+    <CardContent className="!p-4 h-[350px]">
       {salesOverview?.length > 0 ? (
         <SalesOverviewChart data={salesOverview} />
       ) : (
-        <div className="h-[300px] flex items-center justify-center text-gray-400">
+        <div className="h-full flex items-center justify-center text-gray-400">
           No sales data
         </div>
       )}
@@ -391,7 +391,7 @@ export default function AdminDashboard() {
   </Card>
 
   {/* Top Products */}
-  <Card className="shadow-sm h-[330px]">
+  <Card className="shadow-sm h-full">
     <CardHeader className="border-b pb-2">
       <CardTitle className="flex items-center gap-2 text-base font-semibold">
         <Package className="h-5 w-5 text-green-500" />
@@ -399,28 +399,26 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
 
-    <CardContent className="!p-4">
+    <CardContent className="!p-4 h-[350px] overflow-y-auto">
       {stats.topProducts?.length > 0 ? (
-        <div className="h-[260px] overflow-y-auto pr-1">
-          <ol className="space-y-3">
-            {stats.topProducts.map((p, idx) => (
-              <li
-                key={p._id || idx}
-                className="rounded-md border p-3 hover:bg-gray-50 transition"
-              >
-                <p className="font-semibold">{idx + 1}. {p.title}</p>
-                <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
-                <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <ol className="space-y-3">
+          {stats.topProducts.map((p, idx) => (
+            <li
+              key={p._id || idx}
+              className="rounded-md border p-3 hover:bg-gray-50 transition"
+            >
+              <p className="font-semibold">{idx + 1}. {p.title}</p>
+              <p className="text-sm text-gray-500">Buyers: {p.buyers}</p>
+              <p className="text-sm text-gray-500">Qty Sold: {p.totalQty}</p>
+            </li>
+          ))}
+        </ol>
       ) : (
         <p className="text-gray-400">No product data</p>
       )}
     </CardContent>
-
   </Card>
+
 </div>
 
 {/* NEW ANALYTICS ROW */}
