@@ -13,26 +13,34 @@ const BrandPerformanceTable = ({ data }) => {
   }
 
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr>
-          <th>Brand</th>
-          <th>Orders</th>
-          <th>Qty</th>
-          <th>Revenue</th>
-        </tr>
-      </thead>
-      <tbody>
-        {brandData.map((b) => (
-          <tr key={b._id}>
-            <td>{b.brand}</td>
-            <td>{b.orderCount ?? 0}</td>
-            <td>{b.qty ?? 0}</td>
-            <td>₹{Number(b.revenue || 0).toLocaleString()}</td>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="bg-gray-100 text-left text-gray-700">
+            <th className="p-2 font-medium">Brand</th>
+            <th className="p-2 font-medium text-center">Orders</th>
+            <th className="p-2 font-medium text-center">Qty</th>
+            <th className="p-2 font-medium text-right">Revenue</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          {brandData.map((b) => (
+            <tr
+              key={b._id}
+              className="border-b hover:bg-gray-50 transition"
+            >
+              <td className="p-2">{b.brand}</td>
+              <td className="p-2 text-center">{b.orderCount ?? 0}</td>
+              <td className="p-2 text-center">{b.qty ?? 0}</td>
+              <td classname="p-2 text-right">
+                ₹{Number(b.revenue || 0).toLocaleString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
