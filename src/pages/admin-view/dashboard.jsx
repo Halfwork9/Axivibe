@@ -371,22 +371,24 @@ export default function AdminDashboard() {
         {/* CHARTS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-500" />
-                Sales Overview (30 Days)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="!p-4">
-              {salesOverview.length > 0 ? (
-                <SalesOverviewChart data={salesOverview} />
-              ) : (
-                <div className="h-[280px] flex items-center justify-center text-gray-400">
-                  No sales data
-                </div>
-              )}
-            </CardContent>
-          </Card>
+  <CardHeader className="border-b pb-2">
+    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+      <TrendingUp className="h-5 w-5 text-green-500" />
+      Sales Overview (30 Days)
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent className="!p-4">
+    {salesOverview?.length > 0 ? (
+      <SalesOverviewChart data={salesOverview} />
+    ) : (
+      <div className="h-[300px] flex items-center justify-center text-gray-400">
+        No sales data
+      </div>
+    )}
+  </CardContent>
+</Card>
+
 <Card className="shadow-sm">
   <CardHeader>
     <CardTitle className="flex items-center gap-2">
