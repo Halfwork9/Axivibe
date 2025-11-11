@@ -33,7 +33,7 @@ const BrandPerformanceTable = ({ data }) => {
               <td className="p-2">{b.brand}</td>
               <td className="p-2 text-center">{b.orderCount ?? 0}</td>
               <td className="p-2 text-center">{b.qty ?? 0}</td>
-              <td classname="p-2 text-center">
+              <td className="p-2 text-center">
                 ₹{Number(b.revenue || 0).toLocaleString()}
               </td>
             </tr>
