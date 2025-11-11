@@ -20,7 +20,7 @@ const BrandPerformanceTable = ({ data }) => {
             <th className="p-2 font-medium">Brand</th>
             <th className="p-2 font-medium text-center">Orders</th>
             <th className="p-2 font-medium text-center">Qty</th>
-            <th className="p-2 font-medium text-right">Revenue</th>
+            <th className="p-2 font-medium text-center">Revenue</th>
           </tr>
         </thead>
 
@@ -33,7 +33,7 @@ const BrandPerformanceTable = ({ data }) => {
               <td className="p-2">{b.brand}</td>
               <td className="p-2 text-center">{b.orderCount ?? 0}</td>
               <td className="p-2 text-center">{b.qty ?? 0}</td>
-              <td classname="p-2 text-right">
+              <td classname="p-2 text-center">
                 ₹{Number(b.revenue || 0).toLocaleString()}
               </td>
             </tr>
