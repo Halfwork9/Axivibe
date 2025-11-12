@@ -232,6 +232,25 @@ export default function AdminDashboard() {
                 />
                 Refresh
               </Button>
+              <Button
+  variant="destructive"
+  size="sm"
+  onClick={async () => {
+    if (confirm("Clear cached analytics data? This will recompute everything.")) {
+      try {
+        await dispatch(clearAnalyticsCache());
+        await handleRefresh();
+        alert("✅ Cache cleared and data refreshed");
+      } catch (err) {
+        alert("⚠ Failed to clear cache");
+      }
+    }
+  }}
+>
+  <RefreshCw className="h-4 w-4 mr-1" />
+  Clear Cache
+</Button>
+
               <CSVLink
                 data={orderList}
                 headers={[
