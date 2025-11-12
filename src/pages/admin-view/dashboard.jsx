@@ -51,6 +51,7 @@ import BrandPerformanceTable from "@/components/admin-view/tables/BrandPerforman
 import PaymentMethodDonutChart from "@/components/admin-view/charts/PaymentMethodDonutChart";
 import TopCustomersTable from "@/components/admin-view/tables/TopCustomersTable";
 import { getImageUrl } from "@/utils/imageUtils";
+import { clearAnalyticsCache } from "@/store/admin/cache-slice";
 
 // ──────────────────────────────────────────────────────────────
 const DEFAULT_STATS = {
@@ -232,13 +233,13 @@ export default function AdminDashboard() {
                 />
                 Refresh
               </Button>
-              <Button
+         <Button
   variant="destructive"
   size="sm"
   onClick={async () => {
     if (confirm("Clear cached analytics data? This will recompute everything.")) {
       try {
-        await dispatch(clearAnalyticsCache());
+        await dispatch(clearAnalyticsCache()).unwrap();
         await handleRefresh();
         alert("✅ Cache cleared and data refreshed");
       } catch (err) {
@@ -250,7 +251,6 @@ export default function AdminDashboard() {
   <RefreshCw className="h-4 w-4 mr-1" />
   Clear Cache
 </Button>
-
               <CSVLink
                 data={orderList}
                 headers={[
