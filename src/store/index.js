@@ -12,7 +12,7 @@ import shopReviewSlice from "./shop/review-slice";
 import commonFeatureSlice from "./common-slice";
 import adminCategoriesReducer from "./admin/category-slice";
 import adminDistributorsReducer from "./admin/distributor-slice";
-
+import cacheReducer from "./admin/cache-slice";
 
 const store = configureStore({
   reducer: {
@@ -30,7 +30,7 @@ const store = configureStore({
     adminCategories: adminCategoriesReducer,
     commonFeature: commonFeatureSlice,
     adminDistributors: adminDistributorsReducer,
-    
+    cache: cacheReducer,
   },
 });
 
