@@ -106,7 +106,7 @@ export default function AdminDashboard() {
   // ──────────────────────────────────────────────────────────────
   // Auto-refresh every 30s
   useEffect(() => {
-    const interval = setInterval(() => handleRefresh(), 30000);
+    const interval = setInterval(() => handleRefresh(), 60000);
     return () => clearInterval(interval);
   }, []);
 
