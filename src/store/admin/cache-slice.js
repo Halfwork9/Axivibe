@@ -7,7 +7,7 @@ export const clearAnalyticsCache = createAsyncThunk(
   "admin/clearAnalyticsCache",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.delete("/admin/analytics/cache", {
+      const res = await api.delete("/admin/orders/analytics/cache", {
         withCredentials: true,
       });
       return res.data;
