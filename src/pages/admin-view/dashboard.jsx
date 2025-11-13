@@ -391,7 +391,7 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
 
-    <CardContent className="!p-4 h-[350px]">
+    <CardContent className="!p-4 h-[300px] sm:h-[350px]">
       {salesOverview?.length > 0 ? (
         <SalesOverviewChart data={salesOverview} />
       ) : (
@@ -411,7 +411,7 @@ export default function AdminDashboard() {
       </CardTitle>
     </CardHeader>
 
-    <CardContent className="!p-4 h-[350px] overflow-y-auto">
+    <CardContent className="!p-4 h-[350px] sm:h-[350px] overflow-y-auto">
       {stats.topProducts?.length > 0 ? (
         <ol className="space-y-3">
           {stats.topProducts.map((p, idx) => (
@@ -471,7 +471,7 @@ export default function AdminDashboard() {
          Payment Method Distribution
       </CardTitle>
      </CardHeader>
-     <CardContent>
+     <CardContent className="!p-4 h-[300px] sm:h-[350px]">
        <PaymentMethodDonutChart data={stats.paymentMethodBreakdown} />
      </CardContent>
    </Card>
@@ -484,7 +484,7 @@ export default function AdminDashboard() {
          Order Status
        </CardTitle>
      </CardHeader>
-     <CardContent>
+     <CardContent className="!p-4 h-[300px] sm:h-[350px]">
        <OrderStatusChart data={stats} />
      </CardContent>
    </Card>
