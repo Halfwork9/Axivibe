@@ -24,7 +24,6 @@ export const fetchAllCategories = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get('/admin/categories');
-      console.log('fetchAllCategories: Response:', res.data);
       return res.data; // expect { success: true, data: [...] }
     } catch (error) {
       console.error('fetchAllCategories: Error:', error.response?.data || error.message);
@@ -76,3 +75,4 @@ const categorySlice = createSlice({
 });
 
 export default categorySlice.reducer;
+
