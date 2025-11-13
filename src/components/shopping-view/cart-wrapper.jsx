@@ -19,8 +19,6 @@ export default function UserCartWrapper({ isOpen, setOpenCartSheet }) {
       }, 0)
     : 0;
 
-  // Debug log to check cart items
-  console.log("UserCartWrapper cartItems:", validItems);
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpenCartSheet}>
