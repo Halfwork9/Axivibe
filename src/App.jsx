@@ -96,8 +96,7 @@ function AppRoutes() {
         const result = await dispatch(checkAuth());
         
         // If checkAuth was successful, fetch initial data
-        if (result.meta.requestStatus === 'fulfilled') {
-          console.log("User is authenticated, fetching data...");
+        if (result.meta.requestStatus === 'fulfilled') {          
           dispatch(fetchAllCategories());
           dispatch(fetchAllBrands());
           // Fetch cart items if user object is available
