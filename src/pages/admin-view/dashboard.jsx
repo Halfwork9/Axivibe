@@ -104,13 +104,6 @@ export default function AdminDashboard() {
   }, [darkMode]);
 
   // ──────────────────────────────────────────────────────────────
-  // Auto-refresh every 30s
-  useEffect(() => {
-    const interval = setInterval(() => handleRefresh(), 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ──────────────────────────────────────────────────────────────
   // Safe refresh handler
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
