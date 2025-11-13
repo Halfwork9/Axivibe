@@ -408,7 +408,7 @@ function ProductDetailsPage() {
             </div>
             <div className="flex items-center space-x-2">
               <RefreshCw className="h-5 w-5 text-primary" />
-              <span className="text-sm">30 days return policy</span>
+              <span className="text-sm">7 days return policy</span>
             </div>
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-primary" />
@@ -508,7 +508,7 @@ function ProductDetailsPage() {
             <p className="text-gray-600">International shipping available</p>
             <Separator className="my-6" />
             <h3 className="text-lg font-semibold mb-4">Return Policy</h3>
-            <p className="text-gray-600">30 days return policy</p>
+            <p className="text-gray-600">7 days return policy</p>
             <p className="text-gray-600">Product must be in original condition</p>
             <p className="text-gray-600">Original packaging required</p>
             <p className="text-gray-600">Return shipping fee may apply</p>
