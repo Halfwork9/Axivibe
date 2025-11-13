@@ -81,10 +81,6 @@ function ShoppingHome() {
     }
   }, [dispatch, isAuthenticated, user?.id]);
 
-  // Debug log to check cart items
-  useEffect(() => {
-    console.log("Cart items updated:", cartItems);
-  }, [cartItems]);
 
   if (authLoading || productsLoading || featureImagesLoading || brandsLoading || categoriesLoading || cartLoading) {
     return (
@@ -101,7 +97,7 @@ function ShoppingHome() {
       <SEO
         title="Axivibe - Shop Premium Products Online"
         description="Discover top categories, premium brands, and trending products with exclusive deals at Axivibe."
-        url="https://axivibe.vercel.app/shop/home"
+        url="https://nikhilmamdekar.site/shop/home"
       />
 
       {(categoryError || cartError) && (
