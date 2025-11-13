@@ -1,3 +1,4 @@
+// src/components/admin-view/tables/BrandPerformanceTable.jsx
 import { Package } from "lucide-react";
 
 const BrandPerformanceTable = ({ data }) => {
@@ -13,15 +14,15 @@ const BrandPerformanceTable = ({ data }) => {
   }
 
   return (
-    <div className="overflow-hidden border rounded-lg shadow-sm">
+    <div className="border rounded-lg shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <div className="max-h-[250px] overflow-y-auto">
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
               <tr>
                 <th className="p-2 text-left font-medium w-1/3">Brand</th>
-                <th className="p-2 text-center font-medium w-1/6">Orders</th>
-                <th className="p-2 text-center font-medium w-1/6">Qty</th>
+                <th className="p-2 text-center font-medium w-1/5">Orders</th>
+                <th className="p-2 text-center font-medium w-1/5">Qty</th>
                 <th className="p-2 text-center font-medium w-1/3">Revenue</th>
               </tr>
             </thead>
@@ -32,7 +33,7 @@ const BrandPerformanceTable = ({ data }) => {
                   key={b._id}
                   className="border-b hover:bg-gray-50 transition"
                 >
-                  <td className="p-2 text-left">{b.brand}</td>
+                  <td className="p-2">{b.brand}</td>
                   <td className="p-2 text-center">{b.orderCount ?? 0}</td>
                   <td className="p-2 text-center">{b.qty ?? 0}</td>
                   <td className="p-2 text-center">
