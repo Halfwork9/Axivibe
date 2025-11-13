@@ -74,7 +74,7 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-      {/* 🛒 CART BUTTON */}
+      {/* CART BUTTON */}
       <Button
         onClick={() => setOpenCartSheet(true)}
         variant="outline"
@@ -90,13 +90,13 @@ function HeaderRightContent() {
         <span className="sr-only">User cart</span>
       </Button>
 
-      {/* 🧺 CART DRAWER */}
+      {/* CART DRAWER */}
       <UserCartWrapper
         isOpen={openCartSheet}
         setOpenCartSheet={setOpenCartSheet}
       />
 
-      {/* 👤 USER DROPDOWN */}
+      {/* USER DROPDOWN */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Avatar className="bg-black cursor-pointer">
