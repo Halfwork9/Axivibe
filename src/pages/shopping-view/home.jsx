@@ -1,244 +1,314 @@
 // src/components/shopping-view/shopping-home.js
-import { Button } from '@/components/ui/button';
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchShopProducts, fetchProductDetails } from '@/store/shop/products-slice';
-import ShoppingProductTile from '@/components/shopping-view/product-tile';
-import { useNavigate } from 'react-router-dom';
-import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
-import { useToast } from '@/components/ui/use-toast';
-import { getFeatureImages } from '@/store/common-slice';
-import { fetchAllBrands } from '@/store/admin/brand-slice';
-import { fetchAllCategories } from '@/store/admin/category-slice';
-import * as LucideIcons from 'lucide-react';
-import SEO from '@/components/common/SEO';
-import { getImageUrl } from '@/utils/imageUtils';
+import { Button } from "@/components/ui/button";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-function ShoppingHome() {
-  
+import {
+  fetchShopProducts,
+  fetchProductDetails,
+} from "@/store/shop/products-slice";
+
+import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import { useNavigate } from "react-router-dom";
+import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { useToast } from "@/components/ui/use-toast";
+import { getFeatureImages } from "@/store/common-slice";
+import { fetchAllBrands } from "@/store/admin/brand-slice";
+import { fetchAllCategories } from "@/store/admin/category-slice";
+import * as Icons from "lucide-react";
+import SEO from "@/components/common/SEO";
+import { getImageUrl } from "@/utils/imageUtils";
+
+// Skeleton component for loading UI
+const SkeletonBox = ({ className }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`}></div>
+);
+
+export default function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [imageErrors, setImageErrors] = useState({});
 
-  const { productList = [], isLoading: productsLoading } = useSelector((state) => state.shopProducts || {});
-  const { featureImageList = [], isLoading: featureImagesLoading } = useSelector((state) => state.commonFeature || {});
-  const { brandList = [], isLoading: brandsLoading } = useSelector((state) => state.adminBrands || {});
-  const { categoryList = [], isLoading: categoriesLoading, error: categoryError } = useSelector((state) => state.adminCategories || {});
-  const { cartItems = [], isLoading: cartLoading, error: cartError } = useSelector((state) => state.shopCart || {});
-  const { user, isAuthenticated, isLoading: authLoading } = useSelector((state) => state.auth || {});
+  const {
+    productList = [],
+    listLoading,
+    detailsLoading,
+  } = useSelector((state) => state.shopProducts || {});
+
+  const { featureImageList = [], isLoading: featureImagesLoading } =
+    useSelector((state) => state.commonFeature || {});
+
+  const { brandList = [], isLoading: brandsLoading } = useSelector(
+    (state) => state.adminBrands || {}
+  );
+
+  const {
+    categoryList = [],
+    isLoading: categoriesLoading,
+    error: categoryError,
+  } = useSelector((state) => state.adminCategories || {});
+
+  const { user, isAuthenticated, isLoading: authLoading } = useSelector(
+    (state) => state.auth || {}
+  );
+
+  const {
+    cartItems = [],
+    isLoading: cartLoading,
+    error: cartError,
+  } = useSelector((state) => state.shopCart || {});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  
-  const handleNavigateToListingPage = (item, section) => {
-    sessionStorage.removeItem('filters');
-    const filter = { [section]: [item.id || item._id] };
-    sessionStorage.setItem('filters', JSON.stringify(filter));
-    navigate('/shop/listing');
+  // -------------------- Navigation --------------------
+  const handleNavigateToListingPage = (item, type) => {
+    sessionStorage.removeItem("filters");
+
+    const filter = {
+      [type]: [item.id || item._id],
+    };
+
+    sessionStorage.setItem("filters", JSON.stringify(filter));
+    navigate("/shop/listing");
   };
 
   const handleGetProductDetails = (id) => {
-    // Navigate to product details page instead of opening dialog
     navigate(`/shop/product/${id}`);
   };
 
-  const handleAddtoCart = (id) => {
-    if (!isAuthenticated || !user?.id) {
-      toast({ title: 'Please login to add items to cart', variant: 'destructive' });
-      navigate('/auth/login');
-      return;
+  const handleAddtoCart = async (id) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Please login to add items to cart",
+        variant: "destructive",
+      });
+      return navigate("/auth/login");
     }
-    
-    dispatch(addToCart({ userId: user.id, productId: id, quantity: 1 })).then((action) => {
-      if (action.meta.requestStatus === 'fulfilled') {
-        // The cart state is already updated by the addToCart action
-        // No need to fetch cart items again
-        toast({ title: 'Product added to cart' });
-      } else {
-        toast({ title: 'Failed to add product to cart', variant: 'destructive' });
-      }
-    });
+
+    const action = await dispatch(
+      addToCart({ userId: user.id, productId: id, quantity: 1 })
+    );
+
+    if (action.meta.requestStatus === "fulfilled") {
+      toast({ title: "Product added to cart" });
+    } else {
+      toast({ title: "Failed to add product to cart", variant: "destructive" });
+    }
   };
 
+  // -------------------- Banner Slider --------------------
   useEffect(() => {
     if (featureImageList.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % featureImageList.length);
-    }, 3000);
+
+    const timer = setInterval(
+      () => setCurrentSlide((prev) => (prev + 1) % featureImageList.length),
+      4000
+    );
+
     return () => clearInterval(timer);
   }, [featureImageList]);
 
+  // -------------------- Load initial data --------------------
   useEffect(() => {
-    dispatch(fetchShopProducts({ filterParams: {}, sortParams: 'price-lowtohigh' }));
+    dispatch(
+      fetchShopProducts({ filterParams: {}, sortParams: "price-lowtohigh" })
+    );
     dispatch(getFeatureImages());
     dispatch(fetchAllBrands());
     dispatch(fetchAllCategories());
+
     if (isAuthenticated && user?.id) {
       dispatch(fetchCartItems(user.id));
     }
   }, [dispatch, isAuthenticated, user?.id]);
 
+  // -------------------- Loading Screen --------------------
+  const isLoading =
+    authLoading ||
+    listLoading ||
+    featureImagesLoading ||
+    brandsLoading ||
+    categoriesLoading ||
+    cartLoading;
 
-  if (authLoading || productsLoading || featureImagesLoading || brandsLoading || categoriesLoading || cartLoading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Loading...</p>
+      <div className="p-6 space-y-6">
+        <SkeletonBox className="h-[300px] w-full" />
+        <SkeletonBox className="h-8 w-48 mx-auto" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[...Array(10)].map((_, i) => (
+            <SkeletonBox key={i} className="h-32 w-full" />
+          ))}
         </div>
       </div>
     );
   }
 
+  // -------------------- Main UI --------------------
   return (
     <div className="flex flex-col min-h-screen">
       <SEO
         title="Axivibe - Shop Premium Products Online"
-        description="Discover top categories, premium brands, and trending products with exclusive deals at Axivibe."
+        description="Discover top categories, premium brands, and trending products."
         url="https://nikhilmamdekar.site/shop/home"
       />
 
+      {/* Error Messages */}
       {(categoryError || cartError) && (
-        <div className="bg-red-100 text-red-700 p-4 text-center">
-          {categoryError && <p>Category Error: {categoryError}</p>}
-          {cartError && <p>Cart Error: {cartError}</p>}
+        <div className="bg-red-100 text-red-600 p-4 text-center">
+          {categoryError && <p>{categoryError}</p>}
+          {cartError && <p>{cartError}</p>}
         </div>
       )}
 
-      <div className="relative w-full h-[600px] overflow-hidden">
-        {featureImageList?.length > 0 ? (
+      {/* -------------------- Featured Banner -------------------- */}
+      <div className="relative w-full h-[45vh] md:h-[60vh] overflow-hidden rounded-b-xl">
+        {featureImageList.length > 0 ? (
           featureImageList.map((slide, i) => (
             <img
               key={i}
-              src={slide?.image}
-              alt={`Slide ${i}`}
+              src={slide.image}
               crossOrigin="anonymous"
-              className={`${
-                i === currentSlide ? 'opacity-100' : 'opacity-0'
-              } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                i === currentSlide ? "opacity-100" : "opacity-0"
+              }`}
             />
           ))
         ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            No featured images available
-          </div>
+          <div className="bg-gray-200 w-full h-full"></div>
         )}
+
+        {/* Slide Navigation */}
         {featureImageList.length > 1 && (
           <>
             <Button
               variant="outline"
               size="icon"
+              className="absolute top-1/2 left-3 bg-white/70"
               onClick={() =>
-                setCurrentSlide((prev) => (prev - 1 + featureImageList.length) % featureImageList.length)
+                setCurrentSlide(
+                  (prev) =>
+                    (prev - 1 + featureImageList.length) %
+                    featureImageList.length
+                )
               }
-              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
             >
-              <ChevronLeftIcon className="w-4 h-4" />
+              <ChevronLeftIcon />
             </Button>
+
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setCurrentSlide((prev) => (prev + 1) % featureImageList.length)}
-              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+              className="absolute top-1/2 right-3 bg-white/70"
+              onClick={() =>
+                setCurrentSlide((prev) => (prev + 1) % featureImageList.length)
+              }
             >
-              <ChevronRightIcon className="w-4 h-4" />
+              <ChevronRightIcon />
             </Button>
           </>
         )}
       </div>
 
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categoryList?.length > 0 ? (
-              categoryList.map((c) => {
-                const Icon = LucideIcons[c.icon] || LucideIcons.Package;
-                return (
-                  <Card
-                    key={c._id}
-                    onClick={() => handleNavigateToListingPage(c, 'category')}
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
-                  >
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <Icon className="w-12 h-12 mb-4 text-primary" />
-                      <span className="font-bold">{c.name || 'Unknown'}</span>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            ) : (
-              <p className="col-span-full text-center">No categories available</p>
-            )}
-          </div>
+      {/* -------------------- Categories -------------------- */}
+      <section className="py-10">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6">
+          Shop by Category
+        </h2>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
+          {categoryList?.length ? (
+            categoryList.map((c) => {
+              const Icon = Icons[c.icon] || Icons.Package;
+
+              return (
+                <Card
+                  key={c._id}
+                  onClick={() => handleNavigateToListingPage(c, "category")}
+                  className="cursor-pointer hover:shadow-lg transition p-4 flex flex-col items-center text-center"
+                >
+                  <Icon className="h-10 w-10 text-primary mb-3" />
+                  <p className="font-semibold text-sm md:text-base">{c.name}</p>
+                </Card>
+              );
+            })
+          ) : (
+            <p>No categories available</p>
+          )}
         </div>
       </section>
 
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {brandList?.length > 0 ? (
-              brandList.map((b) => {
-                const Icon = b.icon && typeof LucideIcons[b.icon] === 'function' ? LucideIcons[b.icon] : null;
-                return (
-                  <Card
-                    key={b._id}
-                    onClick={() => handleNavigateToListingPage(b, 'brand')}
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
-                  >
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      {b.logo ? (
-                        <img 
-                          src={imageErrors[b._id] ? "https://via.placeholder.com/64" : getImageUrl(b.logo)} 
-                          alt={b.name} 
-                          className="w-16 h-16 mb-4 object-contain" 
-                          crossOrigin="anonymous"
-                          onError={() => setImageErrors(prev => ({ ...prev, [b._id]: true }))}
-                        />
-                      ) : Icon ? (
-                        <Icon className="w-12 h-12 mb-4 text-primary" />
-                      ) : (
-                        <span className="w-12 h-12 mb-4 flex items-center justify-center border rounded-full text-primary">
-                          {b.name?.[0] || '?'}
-                        </span>
-                      )}
-                      <span className="font-bold text-center">{b.name || 'Unknown'}</span>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            ) : (
-              <p className="col-span-full text-center">No brands available</p>
-            )}
-          </div>
+      {/* -------------------- Brands -------------------- */}
+      <section className="py-10 bg-gray-50">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6">
+          Shop by Brand
+        </h2>
+
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4 px-4">
+          {brandList?.length ? (
+            brandList.map((b) => (
+              <Card
+                key={b._id}
+                onClick={() => handleNavigateToListingPage(b, "brand")}
+                className="cursor-pointer hover:shadow-lg transition p-4 flex flex-col items-center"
+              >
+                {b.logo ? (
+                  <img
+                    src={
+                      imageErrors[b._id]
+                        ? "https://via.placeholder.com/80"
+                        : getImageUrl(b.logo)
+                    }
+                    crossOrigin="anonymous"
+                    onError={() =>
+                      setImageErrors((prev) => ({ ...prev, [b._id]: true }))
+                    }
+                    className="h-14 w-14 object-contain mb-2"
+                  />
+                ) : (
+                  <div className="h-14 w-14 rounded-full bg-gray-200 flex items-center justify-center text-primary font-semibold">
+                    {b.name?.[0]}
+                  </div>
+                )}
+
+                <p className="font-semibold text-sm md:text-base text-center">
+                  {b.name}
+                </p>
+              </Card>
+            ))
+          ) : (
+            <p>No brands available</p>
+          )}
         </div>
       </section>
 
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productList?.length > 0 ? (
-              productList.map((p) => (
-                <ShoppingProductTile
-                  key={p._id}
-                  product={p}
-                  handleGetProductDetails={handleGetProductDetails}
-                  handleAddtoCart={handleAddtoCart}
-                  user={user}
-                />
-              ))
-            ) : (
-              <p className="col-span-full text-center">No products available</p>
-            )}
-          </div>
+      {/* -------------------- Featured Products -------------------- */}
+      <section className="py-10">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6">
+          Featured Products
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
+          {productList?.length ? (
+            productList.map((p) => (
+              <ShoppingProductTile
+                key={p._id}
+                product={p}
+                handleGetProductDetails={handleGetProductDetails}
+                handleAddtoCart={handleAddtoCart}
+              />
+            ))
+          ) : (
+            <p className="col-span-full text-center">
+              No products available
+            </p>
+          )}
         </div>
       </section>
     </div>
   );
 }
-
-export default ShoppingHome;
