@@ -1,29 +1,42 @@
+// src/store/shop-products-slice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "@/api";
 
 const initialState = {
   productList: [],
   productDetails: null,
-  pagination: null,
-  isLoading: false,
+
+  pagination: {
+    page: 1,
+    limit: 20,
+    total: 0,
+  },
+
+  listLoading: false,       // ✔ separate loader for product list
+  detailsLoading: false,    // ✔ separate loader for product details
+  reviewSubmitting: false,  // ✔ separate loader for reviews
+
   error: null,
 };
 
 /**
- * 🛒 Fetch all products with filters, sort, pagination
+ * 🛒 Fetch all products (cached, sorted, paginated)
  */
 export const fetchShopProducts = createAsyncThunk(
   "shopProducts/fetchAll",
-  async ({ filterParams = {}, sortParams = "", page = 1, limit = 20 } = {}, { rejectWithValue }) => {
+  async (
+    { filterParams = {}, sortParams = "", page = 1, limit = 20 } = {},
+    { rejectWithValue }
+  ) => {
     try {
       const params = new URLSearchParams({
         ...filterParams,
         sortBy: sortParams,
         page,
         limit,
-      }).toString();
+      });
 
-      const response = await api.get(`/shop/products/get?${params}`);
+      const response = await api.get(`/shop/products/get?${params.toString()}`);
       return response?.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -32,7 +45,7 @@ export const fetchShopProducts = createAsyncThunk(
 );
 
 /**
- * 📦 Fetch single product details
+ * 📦 Fetch single product details (cached)
  */
 export const fetchProductDetails = createAsyncThunk(
   "shopProducts/fetchDetails",
@@ -41,13 +54,13 @@ export const fetchProductDetails = createAsyncThunk(
       const response = await api.get(`/shop/products/product-details/${productId}`);
       return response?.data?.data || {};
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
 
 /**
- * ⭐ Add review to a product
+ * ⭐ Add Review (Auto-updates productDetails)
  */
 export const addReviewToProduct = createAsyncThunk(
   "shopProducts/addReview",
@@ -57,7 +70,8 @@ export const addReviewToProduct = createAsyncThunk(
         rating,
         comment,
       });
-      return response.data.data; // Backend returns updated product
+
+      return response.data.data; // The updated product returned by backend
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -73,47 +87,53 @@ const shopProductsSlice = createSlice({
       state.error = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
-      // 🟦 Fetch all products
+      // 🟦 Product list fetch
       .addCase(fetchShopProducts.pending, (state) => {
-        state.isLoading = true;
+        state.listLoading = true;
       })
       .addCase(fetchShopProducts.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.listLoading = false;
+
         state.productList = action.payload?.data || [];
-        state.pagination = action.payload?.pagination || null;
+
+        state.pagination = action.payload?.pagination || {
+          page: 1,
+          limit: 20,
+          total: action.payload?.data?.length || 0,
+        };
       })
       .addCase(fetchShopProducts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.productList = [];
+        state.listLoading = false;
         state.error = action.payload;
       })
 
-      // 🟩 Fetch single product details
+      // 🟩 Product details fetch
       .addCase(fetchProductDetails.pending, (state) => {
-        state.isLoading = true;
+        state.detailsLoading = true;
       })
       .addCase(fetchProductDetails.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.detailsLoading = false;
         state.productDetails = action.payload;
       })
       .addCase(fetchProductDetails.rejected, (state, action) => {
-        state.isLoading = false;
+        state.detailsLoading = false;
         state.productDetails = null;
         state.error = action.payload;
       })
 
-      // 🟨 Add review
+      // 🟨 Add Review
       .addCase(addReviewToProduct.pending, (state) => {
-        state.isLoading = true;
+        state.reviewSubmitting = true;
       })
       .addCase(addReviewToProduct.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.productDetails = action.payload; // update with new review
+        state.reviewSubmitting = false;
+        state.productDetails = action.payload; // Updated product with review
       })
       .addCase(addReviewToProduct.rejected, (state, action) => {
-        state.isLoading = false;
+        state.reviewSubmitting = false;
         state.error = action.payload;
       });
   },
