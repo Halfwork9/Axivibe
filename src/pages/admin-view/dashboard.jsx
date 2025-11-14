@@ -351,8 +351,49 @@ export default function AdminDashboard() {
 
       {/* MAIN CONTENT */}
       <div id="dashboard-content" className="p-6 space-y-8 max-w-7xl mx-auto">
-      {/* ✅ KPI CARDS ROW-1 */}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
+   {/* ------------------ SALES KPIs ------------------ */}
+<h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+  Sales Overview
+</h2>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+  <DashboardCard
+    title="Total Revenue"
+    icon={<IndianRupee className="text-green-500" size={28} />}
+    value={currency(stats.totalRevenue)}
+    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs lifetime`}
+    sparklineData={getSparkline(salesOverview, "revenue")}
+    sparklineColor="#10b981"
+  />
+
+  <DashboardCard
+    title="Weekly Revenue"
+    icon={<IndianRupee className="text-orange-500" size={28} />}
+    value={currency(stats.weeklyRevenue)}
+    change="Last 7 days"
+  />
+
+  <DashboardCard
+    title="Today’s Revenue"
+    icon={<IndianRupee className="text-blue-500" size={28} />}
+    value={currency(stats.todayRevenue)}
+    change="Today"
+  />
+
+  {/* MONTH SELECT DROPDOWN CARD */}
+  <MonthlyRevenueKPI currency={currency} />
+
+</div>
+
+
+{/* ------------------ ORDER KPIs ------------------ */}
+<h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-10 mb-2">
+  Order Metrics
+</h2>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
   <DashboardCard
     title="Total Orders"
     icon={<ShoppingCart className="text-blue-500" size={28} />}
@@ -363,44 +404,41 @@ export default function AdminDashboard() {
   />
 
   <DashboardCard
-    title="Revenue"
-    icon={<IndianRupee className="text-green-500" size={28} />}
-    value={`₹${stats.totalRevenue.toLocaleString()}`}
-    change={`${stats.revenueGrowthPercentage > 0 ? "+" : ""}${stats.revenueGrowthPercentage}% vs Lifetime`}
-    sparklineData={getSparkline(salesOverview, "revenue")}
-    sparklineColor="#10b981"
-  />
-
-  <DashboardCard
-    title="Pending"
+    title="Pending Orders"
     icon={<Package className="text-yellow-500" size={28} />}
     value={stats.pendingOrders}
     change={formatChange(stats.pendingChange)}
   />
 
   <DashboardCard
-    title="Delivered"
+    title="Delivered Orders"
     icon={<Truck className="text-indigo-500" size={28} />}
     value={stats.deliveredOrders}
     change={formatChange(stats.deliveredChange)}
   />
 
   <DashboardCard
-    title="Customers"
-    icon={<Users className="text-purple-500" size={28} />}
-    value={stats.totalCustomers}
-    change={formatChange(stats.customersChange)}
-  />
-</div>
-
-
-{/* ✅ KPI CARDS ROW-2 */}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
-  <DashboardCard
     title="Avg Order Value"
     icon={<IndianRupee className="text-emerald-500" size={28} />}
     value={currency(stats.avgOrderValue)}
     change="Lifetime"
+  />
+
+</div>
+
+
+{/* ------------------ CUSTOMER KPIs ------------------ */}
+<h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-10 mb-2">
+  Customer Insights
+</h2>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+  <DashboardCard
+    title="Total Customers"
+    icon={<Users className="text-purple-500" size={28} />}
+    value={stats.totalCustomers}
+    change={formatChange(stats.customersChange)}
   />
 
   <DashboardCard
@@ -411,52 +449,19 @@ export default function AdminDashboard() {
   />
 
   <DashboardCard
-    title="Cancel Rate"
-    icon={<Percent className="text-red-500" size={28} />}
-    value={`${stats.cancelRate}%`}
-    change="Lifetime"
-  />
-
-  <DashboardCard
-    title="Return Rate"
-    icon={<Percent className="text-orange-500" size={28} />}
-    value={`${stats.returnRate}%`}
-    change="Lifetime"
-  />
-
-  <MonthlyRevenueKPI currency={currency} />
-</div>
-
-
-{/* ✅ KPI CARDS ROW-3 */}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
-  <DashboardCard
-    title="Weekly Revenue"
-    icon={<IndianRupee className="text-orange-500" size={28} />}
-    value={currency(stats.weeklyRevenue)}
-    change="vs last week"
-  />
-
-  <DashboardCard
-    title="Today’s Revenue"
-    icon={<IndianRupee className="text-blue-500" size={28} />}
-    value={currency(stats.todayRevenue)}
-    change="Today"
-  />
-
-  <DashboardCard
     title="Top Brand"
     icon={<Award className="text-indigo-500" size={28} />}
     value={stats.bestSellingBrand || "—"}
-    change="Best performer"
+    change="Most Selling Brand"
   />
 
   <DashboardCard
     title="Top Category"
     icon={<Tag className="text-rose-500" size={28} />}
     value={stats.bestSellingCategory || "—"}
-    change="Best performer"
+    change="Most Selling Category"
   />
+
 </div>
 
 {/* CHARTS */}
