@@ -108,14 +108,16 @@ function ShoppingProductTile({
 
   return (
     <Card className="relative w-full h-full shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
-     {/* SALE RIBBON */}
+ {/* SALE RIBBON */}
 {isOnSale && (
-  <div className="absolute top-3 -left-3 z-10 rotate-[-45deg]">
-   <span className="bg-red-600 text-white text-xs font-semibold px-14 py-1 shadow-md block text-center tracking-wide">
-  SALE
-</span>
+  <div className="absolute top-0 left-0 z-10 w-[100px] h-[100px] overflow-hidden pointer-events-none">
+    <div className="absolute top-[22px] left-[-28px] rotate-[-45deg] bg-red-600 text-white text-xs font-bold 
+                    w-[160px] py-1 text-center shadow-md tracking-wide">
+      SALE
+    </div>
   </div>
 )}
+
 
 
       {/* IMAGE SECTION */}
