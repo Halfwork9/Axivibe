@@ -419,12 +419,6 @@ export default function AdminDashboard() {
     change="Lifetime"
   />
 
-{/*  <DashboardCard
-    title="Monthly Revenue"
-    icon={<IndianRupee className="text-green-600" size={28} />}
-    value={currency(stats.monthlyRevenue)}
-    change="vs last month"
-  />*/}
   <MonthlyRevenueKPI currency={currency} />
 </div>
 
