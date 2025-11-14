@@ -107,7 +107,7 @@ function ShoppingProductTile({
   };
 
   return (
-    <Card className="relative w-full mx-auto shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
+    <Card className="relative w-full h-full shadow-lg hover:shadow-2xl transition-all bg-white rounded-lg border overflow-hidden">
       {/* SALE RIBBON */}
       {isOnSale && (
         <div className="absolute top-0 left-0 z-10">
