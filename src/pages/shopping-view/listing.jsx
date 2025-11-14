@@ -142,7 +142,7 @@ function ShoppingListing() {
   // Render Page
   // -------------------------------
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 w-full mx-auto">
 
       {/* MOBILE FILTER BUTTON */}
       <div className="md:hidden flex justify-end mb-3">
@@ -226,7 +226,7 @@ function ShoppingListing() {
           </div>
 
           {/* PRODUCTS GRID */}
-          <div className="p-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="p-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {productList?.length > 0 ? (
               productList.map((p) => (
                 <ShoppingProductTile
