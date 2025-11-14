@@ -52,6 +52,7 @@ import PaymentMethodDonutChart from "@/components/admin-view/charts/PaymentMetho
 import TopCustomersTable from "@/components/admin-view/tables/TopCustomersTable";
 import { getImageUrl } from "@/utils/imageUtils";
 import { clearAnalyticsCache } from "@/store/admin/cache-slice";
+import api from "@/api"; 
 
 // ──────────────────────────────────────────────────────────────
 const DEFAULT_STATS = {
@@ -74,6 +75,85 @@ weeklyRevenue: 0,
 todayRevenue: 0,
 bestSellingBrand: null,
 bestSellingCategory: null,
+};
+
+// Insert this component in AdminDashboard.jsx (same file)
+const MonthlyRevenueKPI = ({ currency }) => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const [month, setMonth] = useState(now.getMonth() + 1); // 1..12
+  const [year, setYear] = useState(currentYear);
+  const [loading, setLoading] = useState(false);
+  const [revenue, setRevenue] = useState(null);
+  const years = Array.from({ length: 6 }).map((_, i) => currentYear - i); // last 6 years
+
+  const fetch = async (m, y) => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/admin/orders/monthly-revenue?month=${m}&year=${y}`);
+      if (res.data?.success) setRevenue(res.data.revenue || 0);
+      else setRevenue(0);
+    } catch (err) {
+      console.error("Monthly revenue fetch error", err);
+      setRevenue(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // fetch on mount and whenever month/year changes
+  useEffect(() => {
+    fetch(month, year);
+  }, [month, year]);
+
+  return (
+    <Card className="shadow-sm hover:shadow-md transition">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <p className="text-gray-500 text-sm">Monthly Revenue</p>
+            <h3 className="text-2xl font-bold text-gray-800 mt-1">
+              {loading ? "Loading..." : `₹${Number(revenue || 0).toLocaleString()}`}
+            </h3>
+            <p className="text-sm mt-1 text-gray-400">{/* optional: month label */}</p>
+          </div>
+
+          <div className="flex flex-col gap-2 w-40">
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="border rounded p-2 bg-white text-sm"
+            >
+              <option value={1}>Jan</option>
+              <option value={2}>Feb</option>
+              <option value={3}>Mar</option>
+              <option value={4}>Apr</option>
+              <option value={5}>May</option>
+              <option value={6}>Jun</option>
+              <option value={7}>Jul</option>
+              <option value={8}>Aug</option>
+              <option value={9}>Sep</option>
+              <option value={10}>Oct</option>
+              <option value={11}>Nov</option>
+              <option value={12}>Dec</option>
+            </select>
+
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="border rounded p-2 bg-white text-sm"
+            >
+              {years.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
 export default function AdminDashboard() {
@@ -339,12 +419,13 @@ export default function AdminDashboard() {
     change="Lifetime"
   />
 
-  <DashboardCard
+{/*  <DashboardCard
     title="Monthly Revenue"
     icon={<IndianRupee className="text-green-600" size={28} />}
     value={currency(stats.monthlyRevenue)}
     change="vs last month"
-  />
+  />*/}
+  <MonthlyRevenueKPI currency={currency} />
 </div>
 
 
