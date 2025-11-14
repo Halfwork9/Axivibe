@@ -24,20 +24,36 @@ const initialState = {
  */
 export const fetchShopProducts = createAsyncThunk(
   "shopProducts/fetchAll",
-  async (
-    { filterParams = {}, sortParams = "", page = 1, limit = 20 } = {},
-    { rejectWithValue }
-  ) => {
+  async ({ filterParams = {}, sortParams = "", page = 1, limit = 20 } = {}, { rejectWithValue }) => {
     try {
-      const params = new URLSearchParams({
-        ...filterParams,
-        sortBy: sortParams,
-        page,
-        limit,
-      });
+      const params = new URLSearchParams();
+
+      // Convert filters into backend format
+      if (filterParams.category?.length) {
+        params.append("category", filterParams.category.join(","));
+      }
+      if (filterParams.brand?.length) {
+        params.append("brand", filterParams.brand.join(","));
+      }
+      if (filterParams.isOnSale === true) {
+        params.append("isOnSale", "true");
+      }
+      if (filterParams.priceRange) {
+        params.append("priceRange", filterParams.priceRange.join(","));
+      }
+      if (filterParams.rating) {
+        params.append("rating", filterParams.rating);
+      }
+
+      // Sorting
+      params.append("sortBy", sortParams);
+
+      // Pagination
+      params.append("page", page);
+      params.append("limit", limit);
 
       const response = await api.get(`/shop/products/get?${params.toString()}`);
-      return response?.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
