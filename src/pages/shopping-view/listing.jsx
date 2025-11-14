@@ -20,16 +20,16 @@ import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-function createSearchParamsHelper(filterParams) {
-  const queryParams = [];
-  for (const [key, value] of Object.entries(filterParams)) {
-    if (Array.isArray(value) && value.length > 0) {
-      queryParams.push(`${key}=${encodeURIComponent(value.join(","))}`);
-    } else if (value) {
-      queryParams.push(`${key}=${encodeURIComponent(value)}`);
-    }
-  }
-  return queryParams.join("&");
+function createSearchParamsHelper(filters) {
+  const params = {};
+
+  if (filters.category?.length) params.category = filters.category.join(",");
+  if (filters.brand?.length) params.brand = filters.brand.join(",");
+  if (filters.isOnSale) params.isOnSale = "true";
+  if (filters.priceRange) params.priceRange = filters.priceRange.join(",");
+  if (filters.rating) params.rating = filters.rating;
+
+  return params;
 }
 
 function ShoppingListing() {
