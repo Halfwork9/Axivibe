@@ -111,9 +111,9 @@ function ShoppingProductTile({
      {/* SALE RIBBON */}
 {isOnSale && (
   <div className="absolute top-3 -left-3 z-10 rotate-[-45deg]">
-    <span className="bg-red-600 text-white text-xs font-semibold px-10 py-1 shadow-md block text-center">
-      SALE
-    </span>
+   <span className="bg-red-600 text-white text-xs font-semibold px-14 py-1 shadow-md block text-center tracking-wide">
+  SALE
+</span>
   </div>
 )}
 
