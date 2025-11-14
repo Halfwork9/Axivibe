@@ -111,11 +111,16 @@ const MonthlyRevenueKPI = ({ currency }) => {
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <p className="text-gray-500 text-sm">Monthly Revenue</p>
+            <p className="text-gray-500 text-sm flex items-center gap-2">
+  <IndianRupee className="text-green-600 h-4 w-4" />
+  Monthly Revenue
+</p>
             <h3 className="text-2xl font-bold text-gray-800 mt-1">
               {loading ? "Loading..." : `₹${Number(revenue || 0).toLocaleString()}`}
             </h3>
-            <p className="text-sm mt-1 text-gray-400">{/* optional: month label */}</p>
+            <p className="text-xs text-gray-400 mt-1">
+  {new Date(year, month - 1).toLocaleString("default", { month: "long", year: "numeric" })}
+</p>
           </div>
 
           <div className="flex flex-col gap-2 w-40">
