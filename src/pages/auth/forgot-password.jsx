@@ -13,28 +13,43 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const result = await dispatch(forgotPassword(email));
+
     if (forgotPassword.fulfilled.match(result)) {
-      toast({ title: "✅ Email Sent", description: "Check your inbox to reset your password." });
+      toast({
+        title: "Reset Email Sent",
+        description: "Check your inbox for the password reset link.",
+      });
       navigate("/auth/login");
     } else {
       toast({
-        title: "❌ Error",
-        description: result.payload?.message || "Could not send reset email.",
+        title: "Error",
+        description:
+          result.payload?.message || "Unable to send reset email.",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-6">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-4">
-          Forgot Password?
-        </h2>
-        <p className="text-center text-gray-500 mb-6">
-          Enter your email address and we’ll send you a reset link.
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <img
+            src="/AIXIVIBE.png"
+            alt="Axivibe Logo"
+            className="w-20 mx-auto mb-3"
+          />
+          <h2 className="text-3xl font-bold text-gray-800">Forgot Password?</h2>
+          <p className="text-gray-500 text-sm mt-1">
+            Enter your email and we’ll send you a reset link.
+          </p>
+        </div>
+
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -42,16 +57,28 @@ export default function ForgotPassword() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
           />
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
           >
             {isLoading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
+
+        {/* Back Link */}
+        <p className="text-center mt-6 text-sm text-gray-600">
+          Remember your password?{" "}
+          <a
+            href="/auth/login"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Sign In
+          </a>
+        </p>
       </div>
     </div>
   );
