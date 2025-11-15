@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { loginUser, loginWithGoogle } from "@/store/auth-slice";
 import { useToast } from "@/components/ui/use-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 const AuthLogin = () => {
   const dispatch = useDispatch();
@@ -12,10 +13,10 @@ const AuthLogin = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Handle Email + Password Login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -24,55 +25,69 @@ const AuthLogin = () => {
     try {
       const result = await dispatch(loginUser({ email, password })).unwrap();
       const role = result?.role;
-     toast({ title: "Login Successful", description: `Welcome back, ${result?.userName || "User"}!` });
+
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${result?.userName || "User"}!`,
+      });
+
       if (role === "admin") navigate("/admin/dashboard");
       else navigate("/shop/home");
     } catch (err) {
       setError(err?.message || "Invalid credentials. Please try again.");
-      toast({ title: "Login Failed", description: err?.message || "Invalid email or password", variant: "destructive" });
+      toast({
+        title: "Login Failed",
+        description: err?.message || "Invalid email or password",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Handle Google Login Success
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setLoading(true);
-    setError(null);
+  const handleGoogleSuccess = async (cred) => {
     try {
-      const token = credentialResponse?.credential;
+      setLoading(true);
+      const token = cred?.credential;
+
       if (!token) throw new Error("No Google token received");
 
       const result = await dispatch(loginWithGoogle(token)).unwrap();
-     const role = result?.role;
-      toast({ title: "Google Login Successful", description: `Welcome back, ${result?.userName || "User"}!` });
+      const role = result?.role;
+
+      toast({
+        title: "Google Login Successful",
+        description: `Welcome back, ${result?.userName || "User"}!`,
+      });
+
       if (role === "admin") navigate("/admin/dashboard");
       else navigate("/shop/home");
     } catch (err) {
-      console.error("Google login error:", err);
-      setError("Google login failed. Please try again.");
-      toast({ title: "Google Login Failed", description: "Please try again.", variant: "destructive" });
+      console.error(err);
+      toast({
+        title: "Google Login Failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Handle Google Login Failure
-  const handleGoogleError = () => {
-    setError("Google login failed. Please try again.");
-    toast({ title: "Error", description: "Google sign-in failed", variant: "destructive" });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-4">
+      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
         <div className="text-center mb-6">
-          <img src="/AIXIVIBE.png" alt="Axivibe Logo" className="w-20 mx-auto mb-3" />
+          <img src="/AIXIVIBE.png" alt="Logo" className="w-20 mx-auto mb-3" />
           <h1 className="text-3xl font-bold text-gray-800">Axivibe</h1>
           <p className="text-gray-500 text-sm mt-1">Sign in to continue shopping</p>
         </div>
 
-        {error && <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">{error}</div>}
+        {error && (
+          <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -80,17 +95,30 @@ const AuthLogin = () => {
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
-            required
-          />
+
+          {/* Password Field with Show/Hide */}
+          <div className="relative">
+            <input
+              type={showPwd ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              required
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPwd(!showPwd)}
+              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+            >
+              {showPwd ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -107,7 +135,7 @@ const AuthLogin = () => {
         </div>
 
         <div className="flex justify-center">
-          <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} useOneTap={false} />
+          <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => {}} useOneTap={false} />
         </div>
 
         <div className="mt-6 text-center text-sm text-gray-600">
@@ -116,6 +144,7 @@ const AuthLogin = () => {
             Register
           </Link>
         </div>
+
         <div className="text-center text-sm mt-2">
           <Link to="/auth/forgot-password" className="text-blue-500 hover:underline">
             Forgot your password?
