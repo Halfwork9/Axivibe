@@ -6,35 +6,61 @@ import { useNavigate, useParams } from "react-router-dom";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const { token } = useParams();
   const { toast } = useToast();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.auth);
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
-      setMessage("Passwords do not match.");
+      toast({
+        title: "Error",
+        description: "Passwords do not match!",
+        variant: "destructive",
+      });
       return;
     }
+
     try {
-      const response = await axios.post(
-        "https://axivibe.onrender.com/api/auth/reset-password/" + token,
-        { password }
-      );
-      setMessage(response.data.message);
-      setTimeout(() => navigate("/login"), 2000); // Redirect to login
+      const action = await dispatch(resetPassword({ token, password }));
+
+      if (resetPassword.fulfilled.match(action)) {
+        toast({
+          title: "Success",
+          description: "Password reset successful!",
+        });
+        navigate("/auth/login");
+      } else {
+        toast({
+          title: "Error",
+          description: action.payload?.message || "Reset failed",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
-      setMessage(error.response?.data?.message || "Something went wrong.");
+      toast({
+        title: "Error",
+        description: "Something went wrong.",
+        variant: "destructive",
+      });
     }
   };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 px-6">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-6">
+      <div
+        className="max-w-md w-full p-8 rounded-2xl shadow-xl bg-white 
+                   border border-gray-200"
+      >
+        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">
           Reset Your Password
         </h2>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="password"
@@ -42,12 +68,22 @@ export default function ResetPassword() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-400 outline-none"
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
           />
+
+          <input
+            type="password"
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+          />
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
+            className="w-full py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
           >
             {isLoading ? "Updating..." : "Reset Password"}
           </button>
