@@ -17,7 +17,6 @@ const AuthLogin = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Handle login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -47,39 +46,29 @@ const AuthLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-4">
-      <div className="w-full max-w-lg bg-white shadow-xl rounded-2xl p-10 border border-gray-200">
+    <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-4 py-10">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
 
         {/* Logo + Heading */}
-        <div className="text-center mb-8">
-          <img
-            src="/AIXIVIBE.png"
-            alt="Logo"
-            className="w-24 mx-auto mb-4"
-          />
-          <h1 className="text-4xl font-bold text-gray-800">Welcome Back</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Sign in to continue shopping with Axivibe
-          </p>
+        <div className="text-center mb-6">
+          <img src="/AIXIVIBE.png" alt="Logo" className="w-20 mx-auto mb-3" />
+          <h1 className="text-3xl font-bold text-gray-800">Welcome Back</h1>
+          <p className="text-gray-500 text-sm mt-1">Sign in to continue shopping</p>
         </div>
 
-        {/* Error Box */}
         {error && (
           <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">
             {error}
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          {/* Email */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg"
+            className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
 
@@ -90,30 +79,30 @@ const AuthLogin = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg"
+              className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               required
             />
+
             <button
               type="button"
               onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
             >
-              {showPwd ? <EyeOff size={22} /> : <Eye size={22} />}
+              {showPwd ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         {/* Divider */}
-        <div className="flex items-center my-8">
+        <div className="flex items-center my-6">
           <div className="flex-grow h-px bg-gray-300" />
           <span className="px-3 text-gray-400 text-sm">OR</span>
           <div className="flex-grow h-px bg-gray-300" />
@@ -122,15 +111,15 @@ const AuthLogin = () => {
         {/* Google Login */}
         <div className="flex justify-center">
           <GoogleLogin
-            onSuccess={(cred) => handleGoogleSuccess(cred)}
+            onSuccess={(cred) => console.log(cred)}
             onError={() => {}}
             useOneTap={false}
           />
         </div>
 
         {/* Navigation Links */}
-        <div className="mt-8 text-center text-gray-600 text-sm">
-          Don’t have an account?{" "}
+        <div className="mt-6 text-center text-sm text-gray-600">
+          Don't have an account?{" "}
           <Link to="/auth/register" className="text-blue-600 font-medium hover:underline">
             Register
           </Link>
