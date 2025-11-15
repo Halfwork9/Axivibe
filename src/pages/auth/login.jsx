@@ -17,6 +17,7 @@ const AuthLogin = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Handle login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -31,8 +32,8 @@ const AuthLogin = () => {
         description: `Welcome back, ${result?.userName || "User"}!`,
       });
 
-      if (role === "admin") navigate("/admin/dashboard");
-      else navigate("/shop/home");
+      navigate(role === "admin" ? "/admin/dashboard" : "/shop/home");
+
     } catch (err) {
       setError(err?.message || "Invalid credentials. Please try again.");
       toast({
@@ -45,100 +46,90 @@ const AuthLogin = () => {
     }
   };
 
-  const handleGoogleSuccess = async (cred) => {
-    try {
-      setLoading(true);
-      const token = cred?.credential;
-
-      if (!token) throw new Error("No Google token received");
-
-      const result = await dispatch(loginWithGoogle(token)).unwrap();
-      const role = result?.role;
-
-      toast({
-        title: "Google Login Successful",
-        description: `Welcome back, ${result?.userName || "User"}!`,
-      });
-
-      if (role === "admin") navigate("/admin/dashboard");
-      else navigate("/shop/home");
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Google Login Failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-4">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
-        <div className="text-center mb-6">
-          <img src="/AIXIVIBE.png" alt="Logo" className="w-20 mx-auto mb-3" />
-          <h1 className="text-3xl font-bold text-gray-800">Axivibe</h1>
-          <p className="text-gray-500 text-sm mt-1">Sign in to continue shopping</p>
+      <div className="w-full max-w-lg bg-white shadow-xl rounded-2xl p-10 border border-gray-200">
+
+        {/* Logo + Heading */}
+        <div className="text-center mb-8">
+          <img
+            src="/AIXIVIBE.png"
+            alt="Logo"
+            className="w-24 mx-auto mb-4"
+          />
+          <h1 className="text-4xl font-bold text-gray-800">Welcome Back</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Sign in to continue shopping with Axivibe
+          </p>
         </div>
 
+        {/* Error Box */}
         {error && (
           <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          {/* Email */}
           <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg"
             required
           />
 
-          {/* Password Field with Show/Hide */}
+          {/* Password */}
           <div className="relative">
             <input
               type={showPwd ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg"
               required
             />
-
             <button
               type="button"
               onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
             >
-              {showPwd ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPwd ? <EyeOff size={22} /> : <Eye size={22} />}
             </button>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <div className="flex items-center my-6">
-          <div className="flex-grow h-px bg-gray-200" />
-          <span className="px-2 text-gray-400 text-sm">OR</span>
-          <div className="flex-grow h-px bg-gray-200" />
+        {/* Divider */}
+        <div className="flex items-center my-8">
+          <div className="flex-grow h-px bg-gray-300" />
+          <span className="px-3 text-gray-400 text-sm">OR</span>
+          <div className="flex-grow h-px bg-gray-300" />
         </div>
 
+        {/* Google Login */}
         <div className="flex justify-center">
-          <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => {}} useOneTap={false} />
+          <GoogleLogin
+            onSuccess={(cred) => handleGoogleSuccess(cred)}
+            onError={() => {}}
+            useOneTap={false}
+          />
         </div>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
+        {/* Navigation Links */}
+        <div className="mt-8 text-center text-gray-600 text-sm">
           Don’t have an account?{" "}
           <Link to="/auth/register" className="text-blue-600 font-medium hover:underline">
             Register
@@ -150,6 +141,7 @@ const AuthLogin = () => {
             Forgot your password?
           </Link>
         </div>
+
       </div>
     </div>
   );
