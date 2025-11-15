@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { registerUser, loginWithGoogle } from '@/store/auth-slice';
-import { GoogleLogin } from '@react-oauth/google';
-import { useToast } from '@/components/ui/use-toast';
-import { registerFormControls } from '@/config';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { registerUser, loginWithGoogle } from "@/store/auth-slice";
+import { GoogleLogin } from "@react-oauth/google";
+import { useToast } from "@/components/ui/use-toast";
+import { registerFormControls } from "@/config";
 import { Eye, EyeOff } from "lucide-react";
 
 const AuthRegister = () => {
   const [formData, setFormData] = useState({
-    userName: '',
-    email: '',
-    password: ''
+    userName: "",
+    email: "",
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -26,35 +26,43 @@ const AuthRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const action = await dispatch(registerUser(formData));
 
     if (registerUser.fulfilled.match(action)) {
-      toast({ title: "Success", description: "Registration successful. Please log in." });
-      navigate('/auth/login');
+      toast({
+        title: "Success",
+        description: "Registration successful. Please log in.",
+      });
+      navigate("/auth/login");
     } else {
       toast({
         title: "Error",
         description: action.payload?.message || "Registration failed",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9] px-4">
+      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
 
-        {/* Logo */}
+        {/* Header */}
         <div className="text-center mb-6">
           <img src="/AIXIVIBE.png" alt="Logo" className="w-20 mx-auto mb-3" />
           <h1 className="text-3xl font-bold text-gray-800">Create an Account</h1>
-          <p className="text-gray-500 text-sm mt-1">Join Axivibe and start shopping today!</p>
+          <p className="text-gray-500 text-sm mt-1">
+            Join Axivibe and start shopping today!
+          </p>
         </div>
 
-        {/* Error */}
+        {/* Error Message */}
         {error && (
           <div className="bg-red-100 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">
-            {typeof error === "string" ? error : error.message || "Something went wrong"}
+            {typeof error === "string"
+              ? error
+              : error.message || "Something went wrong"}
           </div>
         )}
 
@@ -62,17 +70,16 @@ const AuthRegister = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {registerFormControls.map(({ name, type, placeholder }) => (
             <div key={name}>
-              {/* Password Input with Show/Hide */}
               {name === "password" ? (
                 <div className="relative">
                   <input
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter password"
+                    placeholder={placeholder}
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                   <span
                     className="absolute right-3 top-2.5 cursor-pointer text-gray-500"
@@ -89,12 +96,13 @@ const AuthRegister = () => {
                   value={formData[name]}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               )}
             </div>
           ))}
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
@@ -111,15 +119,17 @@ const AuthRegister = () => {
           <div className="flex-grow h-px bg-gray-200" />
         </div>
 
-        {/* Google */}
+        {/* Google OAuth */}
         <div className="flex justify-center">
           <GoogleLogin
-            onSuccess={(cred) => dispatch(loginWithGoogle(cred.credential))}
+            onSuccess={(cred) =>
+              dispatch(loginWithGoogle(cred.credential))
+            }
             onError={() =>
               toast({
                 title: "Error",
                 description: "Google login failed",
-                variant: "destructive"
+                variant: "destructive",
               })
             }
           />
@@ -128,7 +138,10 @@ const AuthRegister = () => {
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-600 font-medium hover:underline">
+          <a
+            href="/auth/login"
+            className="text-blue-600 font-medium hover:underline"
+          >
             Sign In
           </a>
         </div>
